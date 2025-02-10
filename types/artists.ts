@@ -1,5 +1,5 @@
 export interface Artist {
-    id: string
+    id?: string
     is_completed: boolean
     name: string
     slug: string
@@ -7,20 +7,16 @@ export interface Artist {
     rank_change: number | null
     last_rank_update: string | null
     bio: string | null
-    active_status: boolean
     gender: string | null
     country: string | null
     birth_date: string | null
     image_url: string | null
-    created_at: string
-    updated_at: string
   }
 
   export interface ArtistPlatformId {
     artist_id: string
     platform: 'spotify' | 'youtube' | 'lastfm' | 'musicbrainz'
     platform_id: string
-    created_at: string
   }
   
   export interface ArtistUrl {
@@ -31,13 +27,12 @@ export interface Artist {
   }
 
   export interface ArtistMetric {
-    id: string
+    id?: string
     artist_id: string
     date: string
     platform: string
     metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners'
     value: number
-    created_at: string
   }
 
   // types/database/rankings.ts

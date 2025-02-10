@@ -2,19 +2,16 @@ import z from "zod";
 import { Artist } from "@/types/artists";
 
 export const artistSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   is_completed: z.boolean(),
   name: z.string(),
   slug: z.string(),
-  rank: z.number(),
-  rank_change: z.number(),
-  last_rank_update: z.string(),
+  rank: z.number().nullable(),
+  rank_change: z.number().nullable(),
+  last_rank_update: z.string().nullable(),
   bio: z.string(),
-  active_status: z.boolean(),
   gender: z.string(),
   country: z.string(),
   birth_date: z.string(),
   image_url: z.string(),
-  created_at: z.string(),
-  updated_at: z.string(),
 }) satisfies z.Schema<Artist>;

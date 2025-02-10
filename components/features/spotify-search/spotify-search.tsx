@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import {debounce} from '@/utils/debounce'
+import { debounce } from '@/utils/debounce'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { SpotifyArtist } from '@/types/artists'
+import { addArtistFull } from '@/actions/artist'
+import axios from 'axios'
 /**
  * Helper function to find Wikipedia entry for an artist
  */
@@ -95,9 +97,22 @@ export default function SpotifySearch() {
 
     try {
       setIsSearching(true)
-      const response = await fetch(`/api/spotify/search?q=${query}`)
-      const data = await response.json()
-      setSearchResults(data.artists)
+      // const response = await fetch(`/api/spotify/search?q=${query}`)
+      // const data = await response.json()
+      // setSearchResults(data.artists)
+
+      // For testing purposes, we're using a static artist object instead of making an API call.
+      const testArtist: SpotifyArtist = {
+        spotify_id: "7dGJo4pcD2V6oG8kP0tJRR",
+        name: "Eminem",
+        image_url:
+          "https://i.scdn.co/image/ab6761610000e5eba00b11c129b27a88fc72f36b",
+        genres: ["rap", "hip hop"],
+        popularity: 90,
+        followers: 97262923,
+      }
+
+      setSearchResults([testArtist])
     } catch (error) {
       console.error('Spotify search error:', error)
     } finally {
@@ -115,6 +130,23 @@ export default function SpotifySearch() {
    */
   const handleArtistSelect = async (spotifyArtist: SpotifyArtist) => {
     console.log(spotifyArtist)
+    const response = await axios.get(`/api/artists/get-info?artistName=${spotifyArtist.name}&artistId=${spotifyArtist.spotify_id}`)
+    const artistData = response.data
+    const { artist, platformData, urlData, metricData } = artistData;
+    // add spotify
+    const transformed = {
+      artist,
+      platformData,
+      urlData,
+      metricData
+    }
+    console.log(transformed)
+    try {
+      const addArtistFullAction = await addArtistFull(transformed)
+      console.log(addArtistFullAction)
+    } catch (error) {
+      console.error('Error adding artist:', error)
+    }
   }
 
    /**
