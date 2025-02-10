@@ -2,9 +2,9 @@ import FetchDataSteps from "@/components/tutorial/fetch-data-steps";
 import { createClient } from "@/utils/supabase/server";
 import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
-import NotificationsPopover from "@/components/notifications/notifications-popover";
+import NotificationsPopover from "@/components/features/notifications/notifications-popover";
 import { fetchUserNotes, deleteNoteById } from "./actions";
-import NewNotificationForm from "@/components/notifications/NewNotificationForm";
+import NewNotificationForm from "@/components/features/notifications/new-notification-form";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();

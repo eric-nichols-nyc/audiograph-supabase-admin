@@ -1,7 +1,7 @@
 "use client";
 
 import { timeAgo } from "@/utils/time-ago";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { Notification } from "@/hooks/useFetchNotification";

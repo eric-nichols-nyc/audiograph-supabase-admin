@@ -1,11 +1,10 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import useFetchNotification from "@/hooks/useFetchNotification";
-import { timeAgo } from "@/utils/time-ago";
 import { BellIcon } from "lucide-react";
-import NotificationItem from "@/components/notifications/NotificationItem";
-import { ScrollArea } from "../ui/scroll-area";
+import NotificationItem from "@/components/features/notifications/notification-item";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Notification {
   id: string;
