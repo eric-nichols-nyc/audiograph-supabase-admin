@@ -23,7 +23,6 @@ export async function GET(request: Request) {
     await refreshSpotifyToken();
     
     const response = await spotify.searchArtists(query, { limit: 10 });
-    console.log(response.body);
     const artists = response.body.artists?.items.map(artist => ({
       spotify_id: artist.id,
       name: artist.name,

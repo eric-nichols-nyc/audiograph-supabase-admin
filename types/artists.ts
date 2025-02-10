@@ -82,3 +82,13 @@ export interface ArtistVideo {
     created_at: string
     updated_at: string
   }
+
+  export interface SpotifyArtist {
+    spotify_id: string
+    name: string
+    image_url: string
+    genres: string[]
+    popularity: number
+    followers: number
+  }
+  
