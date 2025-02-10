@@ -58,7 +58,6 @@ private getAccessToken = unstable_cache(
     if (!data.artists?.items?.length) {
         throw new Error('Artist not found');
     }
-    console.log('searchArtist = ', data.artists.items[0])
 
     const artist_id = data.artists.items[0].id;
 
@@ -71,9 +70,7 @@ private getAccessToken = unstable_cache(
         }
     );
 
-    const artistData = await artistResponse.json();
-    console.log('artistData ==================?????= ', artistData)
-    
+    const artistData = await artistResponse.json();    
     return artist_id;
 
 },['spotify-search-artist'], { tags: ['spotify-search-artist'], revalidate: 60 * 60 * 24 });
@@ -92,7 +89,6 @@ private getAccessToken = unstable_cache(
     );
 
     const data = await response.json();
-    console.log('data ==================?????= ', data)
 
     return data;
   }, ['spotify-artist-data'], { tags: ['spotify-artist-data'], revalidate: 60 * 60 * 24 });
