@@ -1,6 +1,6 @@
 export interface Artist {
     id?: string
-    is_completed: boolean
+    is_complete: boolean
     name: string
     slug: string
     rank: number | null
