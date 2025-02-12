@@ -4,6 +4,7 @@ export interface Artist {
     name: string
     slug: string
     rank: number | null
+    genres: string[] | null
     rank_change: number | null
     last_rank_update: string | null
     bio: string | null
@@ -62,6 +63,39 @@ export interface ArtistVideo {
   
   // types/database/tracks.ts
   export interface ArtistTrack {
+    id: string
+    artist_id: string
+    title: string
+    track_id: string
+    platform: 'spotify'
+    popularity: number | null
+    stream_count_total: number | null
+    stream_count_monthly: number | null
+    preview_url: string | null
+    thumbnail_url: string | null
+    external_url: string | null
+    published_at: string | null
+    created_at: string
+    updated_at: string
+  }
+
+    // types/database/videos.ts
+export interface Video {
+    id: string
+    artist_id: string
+    title: string
+    video_id: string
+    platform: 'youtube'
+    view_count: number | null
+    monthly_view_count: number | null
+    thumbnail_url: string | null
+    published_at: string | null
+    created_at: string
+    updated_at: string
+  }
+  
+  // types/database/tracks.ts
+  export interface Track {
     id: string
     artist_id: string
     title: string

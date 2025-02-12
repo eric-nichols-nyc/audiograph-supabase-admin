@@ -3,7 +3,7 @@ import { Artist } from "@/types/artists";
 
 export const artistSchema = z.object({
   id: z.string().optional(),
-  is_completed: z.boolean(),
+  is_complete: z.boolean(),
   name: z.string(),
   slug: z.string(),
   rank: z.number().nullable(),
@@ -14,4 +14,5 @@ export const artistSchema = z.object({
   country: z.string(),
   birth_date: z.string(),
   image_url: z.string(),
+  genres: z.array(z.string()).nullable(),
 }) satisfies z.Schema<Artist>;
