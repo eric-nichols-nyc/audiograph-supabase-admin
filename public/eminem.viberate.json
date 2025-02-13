@@ -1,0 +1,15 @@
+{
+  "artist_analytics": {
+    "spotify_monthly_listeners": 73900000,
+    "facebook_followers": 94900000,
+    "instagram_followers": 45500000,
+    "youtube_subscribers": 64000000,
+    "spotify_followers": 97200000,
+    "tiktok_followers": 9700000,
+    "soundcloud_followers": 2000000
+  },
+  "fromCache": false,
+  "fetchedAt": "2025-02-13T14:58:27.667Z",
+  "responseTime": "12389ms",
+  "success": true
+}

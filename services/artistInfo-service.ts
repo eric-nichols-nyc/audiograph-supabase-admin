@@ -2,22 +2,13 @@ import { createMusicBrainzService } from "@/services/music-brainz-service";
 import { createYoutubeService } from "@/services/youtube-service";
 import { createLastfmService } from "@/services/lastfm-service";
 import { createSpotifyService } from "@/services/spotify-service";
+import { Artist } from "@/types/artists";
+import { createSlug } from "@/utils/slugify";
+import { GeminiService } from "@/services/gemini-service";
 
-export interface ArtistInfo {
-  name: string;
-  genres: string[];
-  country?: string;
-  birth_date?: string;
-  gender?: string;
-  images?: string[];
-  youtubeChannelId?: string;
-  youtubeViews?: number;
-  lastfmBio?: string;
-  spotifyId?: string;
-  // Add any additional fields as needed.
-}
 
-export async function getArtistInfo(artistName: string, artistId: string): Promise<ArtistInfo> {
+
+export async function getArtistInfo(artistName: string, artistId: string): Promise<{ artist: Artist, platformData: any[], urlData: any[], metricData: any[] }> {
   const musicBrainzService = createMusicBrainzService();
   const youtubeService = createYoutubeService();
   const lastfmService = createLastfmService();
@@ -30,24 +21,117 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
     spotifyService.getArtistData(artistId),
   ]);
 
-  const info: ArtistInfo = {
-    // Use MusicBrainz data as the base
-    name: musicBrainz.status === "fulfilled" && musicBrainz.value?.name ? musicBrainz.value.name : artistName,
-    genres: musicBrainz.status === "fulfilled" && musicBrainz.value?.genres ? musicBrainz.value.genres : [],
-    country: musicBrainz.status === "fulfilled" ? musicBrainz.value?.country : undefined,
-    birth_date: musicBrainz.status === "fulfilled" ? musicBrainz.value?.birth_date : undefined,
-    gender: musicBrainz.status === "fulfilled" ? musicBrainz.value?.gender : undefined,
-    // Use Spotify data for images and ID
-    images: spotify.status === "fulfilled" && spotify.value?.images
-      ? spotify.value.images.map((img: any) => img.url)
-      : [],
-    spotifyId: spotify.status === "fulfilled" ? spotify.value?.id : undefined,
-    // Use YouTube info if available
-    youtubeChannelId: youtube.status === "fulfilled" ? youtube.value?.youtube_channel_id : undefined,
-    youtubeViews: youtube.status === "fulfilled" ? youtube.value?.youtube_total_views : undefined,
-    // Use Last.fm for bio text
-    lastfmBio: lastfm.status === "fulfilled" ? lastfm.value?.bio : "",
+  // Extract and validate the country value from MusicBrainz data.
+  const country = musicBrainz.status === "fulfilled" ? (musicBrainz.value?.country ?? null) : null;
+  if (country === null) {
+    throw new Error(
+      `Validation Error: Artist country is missing for "${artistName}". Please update the artist's country before adding to the database.`
+    );
+  }
+
+  // Determine bio: use Last.fm if available, otherwise generate bio using Gemini.
+  let bioText = lastfm.status === 'fulfilled' ? lastfm.value?.bio : "";
+  if (!bioText) {
+    const geminiService = new GeminiService();
+    const artistForBio = {
+      name: spotify.status === 'fulfilled' && spotify.value?.name ? spotify.value.name : artistName,
+      genres: musicBrainz.status === 'fulfilled' && musicBrainz.value?.genres ? musicBrainz.value.genres : [],
+      country: country,
+      gender: musicBrainz.status === 'fulfilled' ? (musicBrainz.value?.gender ?? null) : null,
+      birth_date: musicBrainz.status === 'fulfilled' ? (musicBrainz.value?.birth_date ?? null) : null,
+    };
+    bioText = await geminiService.generateArtistBio(artistForBio, 'full');
+  }
+
+  const info: Artist = {
+    name:
+      musicBrainz.status === 'fulfilled' && musicBrainz.value?.name
+        ? musicBrainz.value.name
+        : artistName,
+    image_url:
+      spotify.status === 'fulfilled' && spotify.value?.images
+        ? spotify.value.images[0].url
+        : null,
+    country: country,
+    gender:
+      musicBrainz.status === 'fulfilled'
+        ? (musicBrainz.value?.gender ?? null)
+        : null,
+    birth_date:
+      musicBrainz.status === 'fulfilled'
+        ? (musicBrainz.value?.birth_date ?? null)
+        : null,
+    genres:
+      musicBrainz.status === 'fulfilled' && musicBrainz.value?.genres
+        ? musicBrainz.value.genres
+        : [],
+    is_complete: false,
+    bio: bioText,
+    slug: createSlug(artistName),
+    rank: null,
+    rank_change: null,
+    last_rank_update: null,
   };
 
-  return info;
+  // Build additional data arrays as per the API route's transformation.
+  const currentDate = new Date().toISOString();
+  const platformData = [
+    {
+      artist_id: "", // Assign artist id when available
+      platform: "youtube",
+      platform_id: youtube.status === 'fulfilled' ? youtube.value?.youtube_channel_id : ""
+    },
+    {
+      artist_id: "",
+      platform: "musicbrainz",
+      platform_id: musicBrainz.status === 'fulfilled' ? musicBrainz.value?.musicbrainz_id : ""
+    },
+    {
+      artist_id: "",
+      platform: "spotify",
+      platform_id: spotify.status === 'fulfilled' ? spotify.value?.id : ""
+    }
+  ];
+
+  const urlData = [
+    {
+      artist_id: "",
+      platform: "lastfm",
+      url: lastfm.status === 'fulfilled' ? lastfm.value?.lfmUrl : "",
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  const metricData = [
+    {
+      artist_id: "",
+      date: currentDate,
+      platform: "youtube",
+      metric_type: "views",
+      value: youtube.status === 'fulfilled' ? youtube.value?.youtube_total_views : 0
+    },
+    {
+      artist_id: "",
+      date: currentDate,
+      platform: "youtube",
+      metric_type: "subscribers",
+      value: youtube.status === 'fulfilled' ? youtube.value?.youtube_subcribers : 0
+    },
+    {
+      artist_id: "",
+      date: currentDate,
+      platform: "lastfm",
+      metric_type: "monthly_listeners",
+      value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_monthly_listeners) : 0
+    },
+    {
+      artist_id: "",
+      date: currentDate,
+      platform: "lastfm",
+      metric_type: "play_count",
+      value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_play_count) : 0
+    }
+  ];
+
+  return { artist: info, platformData, urlData, metricData };
 } 

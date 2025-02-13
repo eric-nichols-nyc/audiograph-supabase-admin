@@ -1,1 +1,202 @@
-{"stats":[{"label":"Streams","total":54384293751,"asLead":46142984563,"solo":28051563878,"asFeature":8241309188},{"label":"Daily","total":23323259,"asLead":19645524,"solo":11772039,"asFeature":3677735},{"label":"Tracks","total":388,"asLead":319,"solo":212,"asFeature":69}],"tracks":[{"title":"Without Me","trackId":"7lQ8MOhq6IN2w8EYcFNSUk","streams":2510986663,"dailyStreams":1439938,"isCollaboration":false},{"title":"Lose Yourself","trackId":"5Z01UMMf7V1o0MzF86s6WJ","streams":2461702661,"dailyStreams":1164235,"isCollaboration":false},{"title":"Till I Collapse","trackId":"4xkOaSrkexMciUUogZKVTS","streams":2157677122,"dailyStreams":873300,"isCollaboration":false},{"title":"The Real Slim Shady","trackId":"3yfqSUWxFvZELEM4PmlwIR","streams":2073591768,"dailyStreams":1050730,"isCollaboration":false},{"title":"Mockingbird","trackId":"561jH07mF1jHuk7KlaeF0s","streams":2000173656,"dailyStreams":1268215,"isCollaboration":false},{"title":"Love The Way You Lie","trackId":"15JINEqzVMv3SvJTAXAKED","streams":1764832760,"dailyStreams":977233,"isCollaboration":false},{"title":"Godzilla (feat. Juice WRLD)","trackId":"7FIWs0pqAYbP91WWM0vlTQ","streams":1651635813,"dailyStreams":770171,"isCollaboration":false},{"title":"Smack That","trackId":"2kQuhkFX7uSVepCD3h29g5","streams":1270383492,"dailyStreams":875649,"isCollaboration":true},{"title":"Stan","trackId":"3UmaczJpikHgJFyBTAJVoz","streams":1255653102,"dailyStreams":544918,"isCollaboration":false},{"title":"Rap God","trackId":"6or1bKJiZ06IlK0vFvY75k","streams":1161226637,"dailyStreams":356617,"isCollaboration":false},{"title":"The Monster","trackId":"4WgvTITBJbEfCJHguiE7QS","streams":1151545416,"dailyStreams":579253,"isCollaboration":false},{"title":"Not Afraid","trackId":"7Ie9W94M7OjPoZVV216Xus","streams":1122821655,"dailyStreams":483198,"isCollaboration":false},{"title":"Superman","trackId":"4woTEX1wYOTGDqNXuavlRC","streams":1087563107,"dailyStreams":730732,"isCollaboration":false},{"title":"Forgot About Dre","trackId":"7iXF2W9vKmDoGAhlHdpyIa","streams":912140461,"dailyStreams":412503,"isCollaboration":true},{"title":"River (feat. Ed Sheeran)","trackId":"1cS0TgbR263ey9jn0MwD2s","streams":875074813,"dailyStreams":199587,"isCollaboration":false},{"title":"Venom - Music From The Motion Picture","trackId":"2SL6oP2YAEQbqsrkOzRGO4","streams":860904435,"dailyStreams":289848,"isCollaboration":false},{"title":"Lucky You (feat. Joyner Lucas)","trackId":"60SdxE8apGAxMiRrpbmLY0","streams":746490248,"dailyStreams":141092,"isCollaboration":false},{"title":"My Name Is","trackId":"75IN3CtuZwTHTnZvYM4qnJ","streams":669607690,"dailyStreams":288328,"isCollaboration":false},{"title":"Forever","trackId":"5UsLjwBaTHBX4ektWIr4XX","streams":657564384,"dailyStreams":361325,"isCollaboration":true},{"title":"Sing For The Moment","trackId":"3CpoeW0cZSDzIRv5z34F87","streams":589405067,"dailyStreams":298108,"isCollaboration":false},{"title":"Shake That","trackId":"0fGh0trRN1xz3s41r7V5ce","streams":577736855,"dailyStreams":249193,"isCollaboration":false},{"title":"Houdini","trackId":"3ELHphyeYEG8QcOYohNXzS","streams":568452661,"dailyStreams":867591,"isCollaboration":false},{"title":"Homicide","trackId":"0Lw6aQcBFWTQ9m4MSwwwes","streams":552178373,"dailyStreams":112416,"isCollaboration":true},{"title":"When I'm Gone","trackId":"42YNobZ4HN3tRVEA47wLT6","streams":531468811,"dailyStreams":166434,"isCollaboration":false},{"title":"What's The Difference","trackId":"1SWVDBtw6h3tm9OehOkDhv","streams":489461476,"dailyStreams":257555,"isCollaboration":true}]}
+{
+  "stats": [
+    {
+      "label": "Streams",
+      "total": 54384293751,
+      "asLead": 46142984563,
+      "solo": 28051563878,
+      "asFeature": 8241309188
+    },
+    {
+      "label": "Daily",
+      "total": 23323259,
+      "asLead": 19645524,
+      "solo": 11772039,
+      "asFeature": 3677735
+    },
+    {
+      "label": "Tracks",
+      "total": 388,
+      "asLead": 319,
+      "solo": 212,
+      "asFeature": 69
+    }
+  ],
+  "tracks": [
+    {
+      "title": "Without Me",
+      "trackId": "7lQ8MOhq6IN2w8EYcFNSUk",
+      "streams": 2510986663,
+      "dailyStreams": 1439938,
+      "isCollaboration": false
+    },
+    {
+      "title": "Lose Yourself",
+      "trackId": "5Z01UMMf7V1o0MzF86s6WJ",
+      "streams": 2461702661,
+      "dailyStreams": 1164235,
+      "isCollaboration": false
+    },
+    {
+      "title": "Till I Collapse",
+      "trackId": "4xkOaSrkexMciUUogZKVTS",
+      "streams": 2157677122,
+      "dailyStreams": 873300,
+      "isCollaboration": false
+    },
+    {
+      "title": "The Real Slim Shady",
+      "trackId": "3yfqSUWxFvZELEM4PmlwIR",
+      "streams": 2073591768,
+      "dailyStreams": 1050730,
+      "isCollaboration": false
+    },
+    {
+      "title": "Mockingbird",
+      "trackId": "561jH07mF1jHuk7KlaeF0s",
+      "streams": 2000173656,
+      "dailyStreams": 1268215,
+      "isCollaboration": false
+    },
+    {
+      "title": "Love The Way You Lie",
+      "trackId": "15JINEqzVMv3SvJTAXAKED",
+      "streams": 1764832760,
+      "dailyStreams": 977233,
+      "isCollaboration": false
+    },
+    {
+      "title": "Godzilla (feat. Juice WRLD)",
+      "trackId": "7FIWs0pqAYbP91WWM0vlTQ",
+      "streams": 1651635813,
+      "dailyStreams": 770171,
+      "isCollaboration": false
+    },
+    {
+      "title": "Smack That",
+      "trackId": "2kQuhkFX7uSVepCD3h29g5",
+      "streams": 1270383492,
+      "dailyStreams": 875649,
+      "isCollaboration": true
+    },
+    {
+      "title": "Stan",
+      "trackId": "3UmaczJpikHgJFyBTAJVoz",
+      "streams": 1255653102,
+      "dailyStreams": 544918,
+      "isCollaboration": false
+    },
+    {
+      "title": "Rap God",
+      "trackId": "6or1bKJiZ06IlK0vFvY75k",
+      "streams": 1161226637,
+      "dailyStreams": 356617,
+      "isCollaboration": false
+    },
+    {
+      "title": "The Monster",
+      "trackId": "4WgvTITBJbEfCJHguiE7QS",
+      "streams": 1151545416,
+      "dailyStreams": 579253,
+      "isCollaboration": false
+    },
+    {
+      "title": "Not Afraid",
+      "trackId": "7Ie9W94M7OjPoZVV216Xus",
+      "streams": 1122821655,
+      "dailyStreams": 483198,
+      "isCollaboration": false
+    },
+    {
+      "title": "Superman",
+      "trackId": "4woTEX1wYOTGDqNXuavlRC",
+      "streams": 1087563107,
+      "dailyStreams": 730732,
+      "isCollaboration": false
+    },
+    {
+      "title": "Forgot About Dre",
+      "trackId": "7iXF2W9vKmDoGAhlHdpyIa",
+      "streams": 912140461,
+      "dailyStreams": 412503,
+      "isCollaboration": true
+    },
+    {
+      "title": "River (feat. Ed Sheeran)",
+      "trackId": "1cS0TgbR263ey9jn0MwD2s",
+      "streams": 875074813,
+      "dailyStreams": 199587,
+      "isCollaboration": false
+    },
+    {
+      "title": "Venom - Music From The Motion Picture",
+      "trackId": "2SL6oP2YAEQbqsrkOzRGO4",
+      "streams": 860904435,
+      "dailyStreams": 289848,
+      "isCollaboration": false
+    },
+    {
+      "title": "Lucky You (feat. Joyner Lucas)",
+      "trackId": "60SdxE8apGAxMiRrpbmLY0",
+      "streams": 746490248,
+      "dailyStreams": 141092,
+      "isCollaboration": false
+    },
+    {
+      "title": "My Name Is",
+      "trackId": "75IN3CtuZwTHTnZvYM4qnJ",
+      "streams": 669607690,
+      "dailyStreams": 288328,
+      "isCollaboration": false
+    },
+    {
+      "title": "Forever",
+      "trackId": "5UsLjwBaTHBX4ektWIr4XX",
+      "streams": 657564384,
+      "dailyStreams": 361325,
+      "isCollaboration": true
+    },
+    {
+      "title": "Sing For The Moment",
+      "trackId": "3CpoeW0cZSDzIRv5z34F87",
+      "streams": 589405067,
+      "dailyStreams": 298108,
+      "isCollaboration": false
+    },
+    {
+      "title": "Shake That",
+      "trackId": "0fGh0trRN1xz3s41r7V5ce",
+      "streams": 577736855,
+      "dailyStreams": 249193,
+      "isCollaboration": false
+    },
+    {
+      "title": "Houdini",
+      "trackId": "3ELHphyeYEG8QcOYohNXzS",
+      "streams": 568452661,
+      "dailyStreams": 867591,
+      "isCollaboration": false
+    },
+    {
+      "title": "Homicide",
+      "trackId": "0Lw6aQcBFWTQ9m4MSwwwes",
+      "streams": 552178373,
+      "dailyStreams": 112416,
+      "isCollaboration": true
+    },
+    {
+      "title": "When I'm Gone",
+      "trackId": "42YNobZ4HN3tRVEA47wLT6",
+      "streams": 531468811,
+      "dailyStreams": 166434,
+      "isCollaboration": false
+    },
+    {
+      "title": "What's The Difference",
+      "trackId": "1SWVDBtw6h3tm9OehOkDhv",
+      "streams": 489461476,
+      "dailyStreams": 257555,
+      "isCollaboration": true
+    }
+  ]
+}
