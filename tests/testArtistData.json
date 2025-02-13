@@ -1,0 +1,85 @@
+{
+    "artist": {
+         "name": "Integration Test Artist",
+          "image_url": "https://i.scdn.co/image/ab67616100005174a00b11c129b27a88fc72f36b",
+          "country": "US",
+          "gender": "male",
+          "birth_date": "1972-10-17",
+          "genres": [
+              "boom bap",
+              "conscious hip hop",
+              "hardcore hip hop",
+              "hip hop",
+              "horrorcore",
+              "pop rap",
+              "trap"
+          ],
+          "is_completed": false,
+          "bio": "Marshall Bruce Mathers III (born October 17, 1972 in St. Joseph, MO), known professionally as Eminem (stylized as EMINƎM), is an American rapper, songwriter, and record producer. He is credited with popularizing hip-hop in Middle America and is regarded as one of the greatest rappers of all time. His success is considered to have broken racial barriers to the acceptance of white rappers in popular music. While much of his transgressive work during the late 1990s and early 2000s made him a controversial figure <a href=\"https://www.last.fm/music/Eminem\">Read more on Last.fm</a>",
+          "slug": "eminem"
+    },
+    "platformData": [
+      {
+          "artist_id": "eminem",
+          "platform": "spotify",
+          "platform_id": "7dGJo4pcD2V6oG8kP0tJRR"
+      },
+      {
+          "artist_id": "eminem",
+          "platform": "youtube",
+          "platform_id": "UCfM3zsQsOnfWNUppiycmBuw"
+      }
+  ],
+    "urlData": [
+      {
+        "artist_id": "eminem",
+        "platform": "lastfm",
+        "url": "http://last.fm/test",
+        "created_at": "2023-10-03T00:00:00.000Z"
+      }
+    ],
+    "metricData": [
+      {
+       "artist_id": "eminem",
+        "platform": "youtube",
+        "metric_type": "views",
+        "value": 10
+      }
+    ],
+    "tracks": [
+      {
+        "title": "Integration Test Track",
+        "track_id": "test-track-123",
+        "stream_count_total": 100,
+        "stream_count_daily": 10,
+        "isCollaboration": false,
+        "platform":"spotify",
+        "thumbnail_url":"www.example.com"
+      }
+    ],
+    "videos": [
+      {
+         "title": "Eminem - Love The Way You Lie ft. Rihanna",
+              "video_id": "uelHwf8o7_U",
+              "view_count": 2937644642,
+              "monthly_view_count": 515950,
+              "published_at": "2010-08-01T04:00:00.000Z",
+              "isCollaboration": false,
+         "platform":"youtube",
+          "thumbnail_url":"www.example.com"
+      }
+    ],
+    "artist_tracks": [
+      {
+        "artist_id": "test-artist-123",
+        "track_id": "test-track-123"
+      }
+    ],
+    "artist_videos": [
+      {
+        "artist_id": "test-artist-123",
+        "video_id": "test-video-123"
+      }
+    ]
+  }
+  
