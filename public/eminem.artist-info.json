@@ -1,0 +1,70 @@
+{
+    "artist": {
+        "name": "Eminem",
+        "image_url": "https://i.scdn.co/image/ab67616100005174a00b11c129b27a88fc72f36b",
+        "country": "US",
+        "gender": "male",
+        "birth_date": "1972-10-17",
+        "genres": [
+            "boom bap",
+            "conscious hip hop",
+            "hardcore hip hop",
+            "hip hop",
+            "horrorcore",
+            "pop rap",
+            "trap"
+        ],
+        "is_completed": false,
+        "bio": "Marshall Bruce Mathers III (born October 17, 1972 in St. Joseph, MO), known professionally as Eminem (stylized as EMINƎM), is an American rapper, songwriter, and record producer. He is credited with popularizing hip-hop in Middle America and is regarded as one of the greatest rappers of all time. His success is considered to have broken racial barriers to the acceptance of white rappers in popular music. While much of his transgressive work during the late 1990s and early 2000s made him a controversial figure <a href=\"https://www.last.fm/music/Eminem\">Read more on Last.fm</a>",
+        "slug": "eminem",
+        "rank": null,
+        "rank_change": null,
+        "last_rank_update": null
+    },
+    "platformData": [
+        {
+            "platform": "youtube",
+            "platform_id": "UCfM3zsQsOnfWNUppiycmBuw"
+        },
+        {
+            "platform": "musicbrainz",
+            "platform_id": "b95ce3ff-3d05-4e87-9e01-c97b66af13d4"
+        },
+        {
+            "platform": "spotify",
+            "platform_id": "7dGJo4pcD2V6oG8kP0tJRR"
+        }
+    ],
+    "urlData": [
+        {
+            "platform": "lastfm",
+            "url": "https://www.last.fm/music/Eminem"
+        }
+    ],
+    "metricData": [
+        {
+            "date": "2025-02-13T15:22:15.699Z",
+            "platform": "youtube",
+            "metric_type": "views",
+            "value": 32917231641
+        },
+        {
+            "date": "2025-02-13T15:22:15.699Z",
+            "platform": "youtube",
+            "metric_type": "subscribers",
+            "value": 64000000
+        },
+        {
+            "date": "2025-02-13T15:22:15.699Z",
+            "platform": "lastfm",
+            "metric_type": "monthly_listeners",
+            "value": 6898895
+        },
+        {
+            "date": "2025-02-13T15:22:15.699Z",
+            "platform": "lastfm",
+            "metric_type": "play_count",
+            "value": 452949093
+        }
+    ]
+}

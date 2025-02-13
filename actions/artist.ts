@@ -5,6 +5,7 @@ import { actionClient } from "@/lib/safe-action";
 import { Artist, ArtistPlatformId, ArtistUrl, ArtistMetric } from "../types/artists";
 import { artistSchema } from "@/schemas/artists";
 import { z } from "zod";
+import { aggregateArtistData } from '@/services/artistAggregator';
 
 // Define a schema for the full input
 const addArtistFullSchema = z.object({
@@ -95,6 +96,16 @@ export const addArtistFull = actionClient
   .action(
     async ({ parsedInput }) => {
       const { artist, platformData, urlData, metricData } = parsedInput;
+      // Get aggregated data from multiple sources
+      const { artistInfo, viberateData, kworbData } = await aggregateArtistData(artist.id, artist.name);
+      
+      // Merge or transform the aggregated data as needed into your full artist record
+      const fullArtistData = {
+        ...artistInfo,
+        viberate: viberateData,
+        kworb: kworbData,
+      };
+
       const supabase = await createClient();
 
       // Begin transaction (requires corresponding RPC functions in your database)
@@ -154,7 +165,7 @@ export const addArtistFull = actionClient
           throw new Error(`Failed to commit transaction: ${txCommitError.message}`);
         }
 
-        return artistData;
+        return fullArtistData;
       } catch (error) {
         // Rollback the transaction in case of any error
         await supabase.rpc('rollback_transaction');

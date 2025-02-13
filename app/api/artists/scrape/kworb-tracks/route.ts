@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     const page = await browser.newPage();
 
     // Navigate to the Spotify tracks page on kworb.net using the provided artist parameter
-    await page.goto(`https://kworb.net/spotify/artist/1uNFoZAHBGtllmzznpCI3s_songs.html`);
+    await page.goto(`https://kworb.net/spotify/artist/${artist}_songs.html`);
 
     // Extract information from the third .subcontainer.
     // The first table inside it contains the artist stats and the second table (with class "addpos sortable") contains the tracks.
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
         const streams = parseInt(streamsText.replace(/,/g, ''), 10);
         const dailyStreams = parseInt(dailyText.replace(/,/g, ''), 10);
         return { title, trackId, streams, dailyStreams, isCollaboration };
-      }).filter(item => item !== null).slice(0, 50);
+      }).filter(item => item !== null).slice(0, 25);
 
       return { stats, tracks };
     });

@@ -9,28 +9,6 @@ import { Input } from '@/components/ui/input'
 import { SpotifyArtist } from '@/types/artists'
 import { addArtistFull } from '@/actions/artist'
 import axios from 'axios'
-/**
- * Helper function to find Wikipedia entry for an artist
- */
-async function findWikipediaEntry(artistName: string) {
-    const sanitizedName = encodeURIComponent(artistName)
-    const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=info&inprop=url&titles=${sanitizedName}&origin=*`
-  
-    try {
-      const response = await fetch(apiUrl)
-      const data = await response.json()
-      const pages = data.query.pages
-      const pageId = Object.keys(pages)[0]
-  
-      return pageId !== "-1" ? {
-        url: pages[pageId].fullurl,
-        title: pages[pageId].title
-      } : null
-    } catch (error) {
-      console.error('Wikipedia search error:', error)
-      return null
-    }
-  }
 
   /**
  * ArtistSearchResult Component
@@ -134,15 +112,9 @@ export default function SpotifySearch() {
     const artistData = response.data
     const { artist, platformData, urlData, metricData } = artistData;
     // add spotify
-    const transformed = {
-      artist,
-      platformData,
-      urlData,
-      metricData
-    }
-    console.log(transformed)
+    console.log(artistData)
     try {
-      const addArtistFullAction = await addArtistFull(transformed)
+      const addArtistFullAction = await addArtistFull(artistData)
       console.log(addArtistFullAction)
     } catch (error) {
       console.error('Error adding artist:', error)
