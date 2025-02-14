@@ -17,7 +17,6 @@ export function Sidebar({ dbArtists }: SidebarProps) {
     setArtists(dbArtists);
   }, [dbArtists, setArtists]);
   
-  console.log('sidebar artists', artists);
   return <div className="flex flex-col gap-4 w-full h-full">
     <Button>add artist</Button>
     <div><Searchbar /></div>

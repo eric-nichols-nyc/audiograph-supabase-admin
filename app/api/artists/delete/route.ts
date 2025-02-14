@@ -85,7 +85,7 @@ export async function DELETE(request: Request) {
       }
 
       return new Response(
-        JSON.stringify({ message: "Artist deleted successfully." }),
+        JSON.stringify({ message: "Artist deleted successfully.", id }),
         { status: 200 }
       );
     } catch (error) {
@@ -95,7 +95,7 @@ export async function DELETE(request: Request) {
     }
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
     });
   }

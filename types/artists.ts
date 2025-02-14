@@ -17,14 +17,12 @@ export interface Artist {
   export interface ArtistPlatformId {
     artist_id: string
     platform: 'spotify' | 'youtube' | 'lastfm' | 'musicbrainz'
-    platform_id: string
   }
   
   export interface ArtistUrl {
     artist_id: string
     platform: 'lastfm' | 'spotify' | 'youtube' | 'instagram' | 'tiktok' | 'facebook' | 'viberate'
     url: string
-    created_at: string
   }
 
   export interface ArtistMetric {

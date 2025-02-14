@@ -21,14 +21,12 @@ export const artistSchema = z.object({
 export const artistPlatformIdSchema = z.array(z.object({
   artist_id: z.string(),
   platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz']),
-  platform_id: z.string(),
 })) satisfies z.Schema<ArtistPlatformId[]>;
 
 export const artistUrlSchema = z.array(z.object({
   artist_id: z.string(),
   platform: z.enum(['lastfm', 'spotify', 'youtube', 'instagram', 'tiktok', 'facebook', 'viberate']),
   url: z.string(),
-  created_at: z.string(),
 })) satisfies z.Schema<ArtistUrl[]>;
 
 export const artistMetricSchema = z.array(z.object({

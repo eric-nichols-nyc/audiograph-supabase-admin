@@ -1,5 +1,5 @@
-import SpotifySearch from "@/components/features/spotify-search/spotify-search";
+import AddArtist from "@/components/add-artist";
 
 export default function AddArtistPage() {
-  return <SpotifySearch />;
+  return <AddArtist />;
 }
