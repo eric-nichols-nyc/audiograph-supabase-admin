@@ -62,9 +62,9 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
-            console.log('result', message.payload)
+            console.log('result', message.payload);
             setIsProcessing(false);
-            setFinalResult(message.result || message.details);
+            setFinalResult(message.payload || message.details);
           }
         }
       }
@@ -83,7 +83,6 @@ export default function AddArtist() {
       setError('Please select an artist first');
       return;
     }
-    console.log('selected artist', selectedArtist)
     processArtist(selectedArtist);
   };
 
