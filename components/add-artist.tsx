@@ -8,21 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { SpotifyArtist } from "@/types/artists";
+
+type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE";
 
 interface StageUpdate {
-  stage: string;
+  stage: Stage;
   message: string;
   details: string;
   progress?: number;
+  result?: any;
 }
 
 export default function AddArtist() {
   const [currentStage, setCurrentStage] = useState<StageUpdate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [selectedArtist, setSelectedArtist] = useState<SpotifyArtist | null>(null);
+  const [finalResult, setFinalResult] = useState<any>(null);
 
-  const processArtist = async (artistName: string) => {
+  const processArtist = async (spotifyArtist: SpotifyArtist) => {
+    console.log('processing artist', selectedArtist)
+    console.log('processing artist', spotifyArtist)
+
     setIsProcessing(true);
     setError(null);
     setCurrentStage(null);
@@ -31,7 +39,7 @@ export default function AddArtist() {
       const response = await fetch('/api/artists/get-artist-full', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ artistName })
+        body: JSON.stringify({ ...spotifyArtist })
       });
 
       if (!response.body) throw new Error('No response body');
@@ -58,6 +66,7 @@ export default function AddArtist() {
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
             setIsProcessing(false);
+            setFinalResult(message.result || message.details);
           }
         }
       }
@@ -67,16 +76,17 @@ export default function AddArtist() {
     }
   };
 
-  const handleArtistSelect = (artistName: string) => {
-    setSelectedArtist(artistName);
+  const handleArtistSelect = (spotifyArtist: SpotifyArtist) => {
+    setSelectedArtist(spotifyArtist);
   };
 
   const handleStartProcess = () => {
-    // if (!selectedArtist) {
-    //   setError('Please select an artist first');
-    //   return;
-    // }
-    processArtist('eminem');
+    if (!selectedArtist) {
+      setError('Please select an artist first');
+      return;
+    }
+    console.log('selected artist', selectedArtist)
+    processArtist(selectedArtist);
   };
 
   return (
@@ -87,8 +97,7 @@ export default function AddArtist() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {/* <SpotifySearch onArtistSelect={handleArtistSelect} /> */}
-            <Button onClick={handleStartProcess}>CLICK</Button>
+            <SpotifySearch onArtistSelect={handleArtistSelect} />
             {selectedArtist && (
               <Button 
                 onClick={handleStartProcess} 
@@ -127,6 +136,13 @@ export default function AddArtist() {
             />
           </CardContent>
         </Card>
+      )}
+
+      {finalResult && (
+        <div className="mt-4 p-4 border rounded">
+          <h3 className="font-semibold mb-2">Final Result</h3>
+          <pre>{JSON.stringify(finalResult, null, 2)}</pre>
+        </div>
       )}
     </div>
   );

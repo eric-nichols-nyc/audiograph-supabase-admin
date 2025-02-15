@@ -1,7 +1,4 @@
 export function createSlug(artistName: string): string {
-    return artistName
-        .toLowerCase() // Convert to lowercase
-        .trim() // Remove whitespace from both ends
-        .replace(/[\s\W-]+/g, '-') // Replace spaces and non-word characters with hyphens
-        .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+    // Trim whitespace, remove spaces and dashes, and convert to lowercase
+    return artistName.trim().replace(/[\s-]+/g, '').toLowerCase();
 }

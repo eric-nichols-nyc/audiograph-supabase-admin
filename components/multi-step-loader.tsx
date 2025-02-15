@@ -6,8 +6,10 @@ const STAGES = {
   ANALYTICS: { title: 'Analytics Data', order: 2 },
   VIDEO_DATA: { title: 'Video Data', order: 3 },
   TRACK_DATA: { title: 'Track Data', order: 4 },
-  WIKIPEDIA: { title: 'Wikipedia Data', order: 5 },
-  COMPLETE: { title: 'Complete', order: 6 },
+  URL_DATA: { title: 'URL Data', order: 5 },
+  WIKIPEDIA: { title: 'Wikipedia Data', order: 6 },
+  STORE: { title: 'Store Data', order: 7 },
+  COMPLETE: { title: 'Complete', order: 8 },
   ERROR: { title: 'Error', order: -1 }
 } as const;
 

@@ -21,7 +21,6 @@ const _scrapeKworbData = async (
     }
 
     await page.goto(url);
-    console.log('Navigated to URL:', url);
 
     if (type === 'tracks') {
       // Scrape tracks
@@ -122,4 +121,4 @@ export const getKworbData = async (artistName: string) => {
   const response = await fetch(url);
   const data = await response.json();
   return data;
-};
+}; 

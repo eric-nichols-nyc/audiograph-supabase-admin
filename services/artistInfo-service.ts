@@ -21,6 +21,11 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
     spotifyService.getArtistData(artistId),
   ]);
 
+  // console.log('artistinfo service musicBrainz', musicBrainz)
+  // console.log('artistinfo service youtube', youtube)
+  // console.log('artistinfo service lastfm', lastfm)
+  // console.log('artistinfo service spotify', spotify)
+
   // Extract and validate the country value from MusicBrainz data.
   const country = musicBrainz.status === "fulfilled" ? (musicBrainz.value?.country ?? null) : null;
   if (country === null) {
