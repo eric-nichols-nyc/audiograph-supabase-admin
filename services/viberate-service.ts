@@ -52,8 +52,8 @@ const getMonthlyListeners = async (page: Page): Promise<number> => {
   }
 };
 
-export const getViberateData = (artistName: string) =>
-  unstable_cache(
+export const getViberateData = async (artistName: string): Promise<ViberateResponse> =>
+  await unstable_cache(
     async (): Promise<ViberateResponse> => {
       let browser: any = null;
       try {
@@ -147,4 +147,4 @@ export const getViberateData = (artistName: string) =>
       revalidate: 86400,
       tags: [`viberate-data-${artistName}`],
     }
-  );
+  )();

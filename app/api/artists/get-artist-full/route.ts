@@ -40,7 +40,9 @@ const fetchArtistMetadata = async (artistName: string, artistSpotifyId: string) 
 
 const fetchAnalytics = async (artistName: string) => {
   try {
-    return await getViberateData(slugify(artistName));
+    const analyticsData = await getViberateData(slugify(artistName));
+    console.log('*********analyticsData*******', analyticsData)
+    return analyticsData;
   } catch (error) {
     throw new Error(`Failed to fetch analytics data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -49,7 +51,6 @@ const fetchAnalytics = async (artistName: string) => {
 const getArtistVideoData = async (artistName: string) => {
   try {
     const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
-    console.log('*********videoData*******', videoData)
     return videoData;
   } catch (error) {
     throw new Error(`Failed to fetch video data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -57,10 +58,8 @@ const getArtistVideoData = async (artistName: string) => {
 }
 
 const fetchTrackData = async (artistName: string) => {
-  console.log('*********fetchTrackData*******', artistName)
   try {
     const trackData = await scrapeKworbData(artistName, 'tracks');
-    console.log('*********trackData*******', trackData)
     return trackData;
   } catch (error) {
     throw new Error(`Failed to fetch track data: ${error instanceof Error ? error.message : 'Unknown error'}`);
