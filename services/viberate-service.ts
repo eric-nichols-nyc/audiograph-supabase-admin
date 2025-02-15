@@ -12,6 +12,8 @@ export interface ViberateResponse {
     spotify_followers?: number;
     tiktok_followers?: number;
     soundcloud_followers?: number;
+    total_views?: number;
+    total_streams?: number;
   };
   fromCache?: boolean;
   fetchedAt?: string;
@@ -185,6 +187,14 @@ const analyticsMapping: {
   soundcloud_followers: {
     platform: "soundcloud",
     metric_type: "followers",
+  },
+  total_views: {
+    platform: "youtube",
+    metric_type: "total_views",
+  },
+  total_streams: {
+    platform: "spotify",
+    metric_type: "total_streams",
   },
 };
 

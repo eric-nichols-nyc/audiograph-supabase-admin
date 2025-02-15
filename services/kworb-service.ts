@@ -21,6 +21,7 @@ const _scrapeKworbData = async (
     }
 
     await page.goto(url);
+    await page.waitForTimeout(2000); // pauses for 5 seconds
     console.log('Navigated to URL:', url);
 
     if (type === 'tracks') {
@@ -43,12 +44,9 @@ const _scrapeKworbData = async (
         const stats = Array.from(statsTable.querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
           if (cells.length < 5) return null;
-          const label = cells[0].textContent?.trim() || "";
+          const metric = cells[0].textContent?.trim() || "";
           const total = parseInt(cells[1].textContent?.replace(/,/g, '') || '0', 10);
-          const asLead = parseInt(cells[2].textContent?.replace(/,/g, '') || '0', 10);
-          const solo = parseInt(cells[3].textContent?.replace(/,/g, '') || '0', 10);
-          const asFeature = parseInt(cells[4].textContent?.replace(/,/g, '') || '0', 10);
-          return { label, total, asLead, solo, asFeature };
+          return { metric, total };
         }).filter(item => item !== null);
 
         // Parse tracks table
@@ -60,46 +58,64 @@ const _scrapeKworbData = async (
           if (!link) return null;
           const href = link.getAttribute('href') || '';
           const trackIdMatch = href.match(/\/track\/([^/?]+)/);
-          const trackId = trackIdMatch ? trackIdMatch[1] : '';
+          const track_id = trackIdMatch ? trackIdMatch[1] : '';
           const title = link.textContent?.trim() || "";
           const isCollaboration = (titleCell.textContent?.trim() || "").startsWith('*');
           const streamsText = cells[1].textContent?.trim() || "";
           const dailyText = cells[2].textContent?.trim() || "";
-          const streams = parseInt(streamsText.replace(/,/g, '') || '0', 10);
-          const dailyStreams = parseInt(dailyText.replace(/,/g, '') || '0', 10);
-          return { title, trackId, streams, dailyStreams, isCollaboration };
+          const steam_count_total = parseInt(streamsText.replace(/,/g, '') || '0', 10);
+          const steam_count_daily = parseInt(dailyText.replace(/,/g, '') || '0', 10);
+          return { title, track_id, steam_count_total, steam_count_daily, isCollaboration };
         }).filter(item => item !== null).slice(0, 25);
 
         return { stats, tracks };
       });
       return result;
     } else if (type === 'videos') {
-      // Scrape videos
-      const videos = await page.$$eval('table.addpos.sortable tbody tr', rows => {
-        return Array.from(rows)
-          .map(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 4) return null;
-            const videoCell = cells[0];
-            const link = videoCell.querySelector('a');
-            if (!link) return null;
-            const href = link.getAttribute('href') || '';
-            // Remove the "../video/" prefix and ".html" suffix to get the video ID.
-            const videoId = href.replace(/^\.\.\/video\//, '').replace(/\.html$/, '');
-            const title = link.textContent?.trim() || "";
-            const isCollaboration = (videoCell.textContent?.trim() || "").startsWith('*');
-            const viewsText = cells[1].textContent?.trim() || "";
-            const dailyViewsText = cells[2].textContent?.trim() || "";
-            const publishedStr = cells[3].textContent?.trim() || "";
-            const publishedDate = new Date(publishedStr + '/01').toISOString();
-            const views = parseInt(viewsText.replace(/,/g, '') || '0', 10);
-            const dailyViews = parseInt(dailyViewsText.replace(/,/g, '') || '0', 10);
-            return { title, videoId, views, dailyViews, publishedDate, isCollaboration };
-          })
-          .filter(item => item !== null)
-          .slice(0, 50);
+      // Scrape videos: extract two tables (stats and video details)
+      const result = await page.evaluate(() => {
+        const tables = document.getElementsByTagName('table');
+        if (!tables.length) {
+          console.log('No tables found');
+          return { stats: [], videos: [] };
+        }else{
+          console.log('tables=================', tables)
+        }
+
+        // Parse stats table (e.g., "Total views:" and "Current daily avg:")
+        const stats = Array.from(tables[0].querySelectorAll('tbody tr')).map(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 2) return null;
+          const metric = cells[0].textContent?.trim().toLowerCase() || "";
+          const valueText = cells[1].textContent?.replace(/,/g, '') || "0";
+          const value = parseInt(valueText, 10);
+          return { metric, value };
+        }).filter(item => item !== null);
+
+        // Parse video details table (similar to track rows)
+        const videos = Array.from(tables[1].querySelectorAll('tbody tr')).map(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 4) return null;
+          const videoCell = cells[0];
+          const link = videoCell.querySelector('a');
+          if (!link) return null;
+          const href = link.getAttribute('href') || '';
+          // Remove the "../video/" prefix and ".html" suffix to get the video ID.
+          const video_id = href.replace(/^\.\.\/video\//, '').replace(/\.html$/, '');
+          const title = link.textContent?.trim() || "";
+          const isCollaboration = (videoCell.textContent?.trim() || "").startsWith('*');
+          const viewsText = cells[1].textContent?.trim() || "";
+          const dailyViewsText = cells[2].textContent?.trim() || "";
+          const publishedStr = cells[3].textContent?.trim() || "";
+          const published_at = new Date(publishedStr + '/01').toISOString();
+          const view_count = parseInt(viewsText.replace(/,/g, '') || '0', 10);
+          const daily_view_count = parseInt(dailyViewsText.replace(/,/g, '') || '0', 10);
+          return { title, video_id, view_count, daily_view_count, published_at, isCollaboration };
+        }).filter(item => item !== null).slice(0, 50);
+
+        return { stats, videos };
       });
-      return { videos };
+      return result;
     } else {
       throw new Error(`Invalid scrape type: ${type}`);
     }

@@ -16,7 +16,7 @@ export interface Artist {
 
   export interface ArtistPlatformId {
     artist_id: string
-    platform: 'spotify' | 'youtube' | 'lastfm' | 'musicbrainz'
+    platform: 'spotify' | 'youtube' | 'musicbrainz'
   }
   
   export interface ArtistUrl {
@@ -29,7 +29,7 @@ export interface Artist {
     id?: string
     artist_id?: string
     platform: string
-    metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners'
+    metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners' | 'daily_view_count' | 'daily_stream_count' | 'total_views' | 'total_streams'
     value: number
   }
 

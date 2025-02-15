@@ -5,9 +5,9 @@ import { getViberateData } from '@/services/viberate-service';
 import { scrapeKworbData } from '@/services/kworb-service';
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 import { convertViberateResponseToArtistMetrics } from '@/services/viberate-service';
-import { createYoutubeService } from '@/services/youtube-service';
+import { createYoutubeService, convertYoutubeVideosVideoType } from '@/services/youtube-service';
 import { createSpotifyService } from '@/services/spotify-service';
-import { ArtistMetric } from '@/types/artists';
+import { ArtistMetric, Video } from '@/types/artists';
 const STAGES = {
   INIT: 'Initializing artist ingestion',
   METADATA: 'Fetching metadata',
@@ -53,20 +53,54 @@ const fetchAnalytics = async (artistName: string): Promise<ArtistMetric[]> => {
 const getArtistVideoData = async (artistName: string) => {
   try {
     const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
-    return videoData;
+    const {videos, stats} = videoData;
+    const videoIds = videos.map((video:Video) => video.video_id);
+    // No, this needs to stay inside the function since createYoutubeService() 
+    // initializes a new service instance that should be scoped to each request
+    const youtubeService = createYoutubeService();
+    const youtubeVideos = await youtubeService.getYoutubeVideos(videoIds);
+    const ytvids = youtubeVideos.map((video) => ({
+      id: video.id || '',
+      title: video.snippet?.title || '',
+      thumbnail_url: video.snippet?.thumbnails?.default?.url || '',
+      view_count: Number(video.statistics?.viewCount) || 0,
+      published_at: video.snippet?.publishedAt || '',
+    }));
+
+    const youtubeVideosWithStats = convertYoutubeVideosVideoType(videos, ytvids);
+    const videStatsWMetrics = convertViberateResponseToArtistMetrics(stats);
+    console.log('videStatsWMetrics', videStatsWMetrics)
+
+    return {
+      stats: videStatsWMetrics,
+      videos: youtubeVideosWithStats
+    };
   } catch (error) {
     throw new Error(`Failed to fetch video data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-const fetchTrackData = async (artistName: string) => {
-  try {
-    const trackData = await scrapeKworbData(artistName, 'tracks');
-    return trackData;
-  } catch (error) {
-    throw new Error(`Failed to fetch track data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  const fetchTrackData = async (artistName: string): Promise<{
+    stats: Array<{metric: string, value: number}>,
+    tracks: Array<{
+      title: string,
+      track_id: string,
+      view_count: number,
+      daily_view_count: number,
+      published_at: string,
+      isCollaboration: boolean
+    }>
+  }> => {
+    try {
+      const trackData = await scrapeKworbData(artistName, 'tracks');
+      return {
+        stats: trackData.stats,
+        tracks: trackData.tracks
+      };
+    } catch (error) {
+      throw new Error(`Failed to fetch track data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
-}
 
 const fetchWikipediaData = async (artistName: string) => {
   try {
@@ -75,18 +109,6 @@ const fetchWikipediaData = async (artistName: string) => {
     throw new Error(`Failed to fetch Wikipedia data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-
-const fetchUrlData = async (artistName: string) => {
-  try {
-    // Mock data - replace with actual URL fetching logic
-    return ['https://www.youtube.com/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ',
-      'https://www.instagram.com/theweeknd/',
-      'https://www.tiktok.com/@theweeknd'];
-  } catch (error) {
-    throw new Error(`Failed to fetch URL data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -146,16 +168,17 @@ export async function POST(req: Request) {
       const analyticsData = await fetchAnalytics(name);
       result.metricData = analyticsData;
       await sendUpdate('ANALYTICS', 'Retrieved YouTube statistics', 40);
+      await sendUpdate('VIDEO_DATA', 'Fetching YouTube video data...', 50);
       const videoData = await getArtistVideoData(name);
-      result.videos = videoData;
-      await sendUpdate('TRACK_DATA', 'Retrieved YouTube statistics', 40);
+      const {stats, videos} = videoData;
+      result.videos = videos;
+      result.metricData = [...result.metricData, ...stats];
+      console.log('result.metricData', result.metricData)
+      await sendUpdate('VIDEO_DATA', 'Retrieved YouTube statistics', 40);
+      await sendUpdate('TRACK_DATA', 'Fetching Spotify track data...', 50);
       const trackData = await fetchTrackData(spotify_id);
       result.tracks = trackData;
-      await sendUpdate('TRACK_DATA', 'Retrieved YouTube statistics', 40);
-      await sendUpdate('URL_DATA', 'Fetching URL data...', 50);
-      const urlData = await fetchUrlData(name);
-      result.urlData = urlData;
-      await sendUpdate('URL_DATA', 'Retrieved URL data', 60);
+      await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
       await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
         const wikiData = await fetchWikipediaData(name);
       result.wikipedia = wikiData;
@@ -163,7 +186,7 @@ export async function POST(req: Request) {
 
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 95);
-     console.log('RESULT TO SEND TO DATABASE==========================', result);
+     // console.log('RESULT TO SEND TO DATABASE==========================', result);
       // const result = await ingestionService.ingestArtist({
       //   ...spotifyData,
       //   youtubeData,

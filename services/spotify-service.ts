@@ -92,7 +92,48 @@ private getAccessToken = unstable_cache(
 
     return data;
   }, ['spotify-artist-data'], { tags: ['spotify-artist-data'], revalidate: 60 * 60 * 24 });
+
+    public getTracks = unstable_cache(
+        async (trackIds: string[]) => {
+            const accessToken = await this.getAccessToken();
+            
+            const response = await fetch(
+                `https://api.spotify.com/v1/tracks?ids=${trackIds.join(',')}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+            return data.tracks || [];
+        },
+        ['spotify-tracks'],
+        { tags: ['spotify-tracks'], revalidate: 60 * 60 * 24 }
+    );
 }
+
+interface Images {
+    id: string;
+    url: string;
+}
+
+interface Track {
+    id: string;
+    name: string;
+    popularity: number;
+}
+
+export const convertSpotifyTracksTrackType = (tracks: Track[],images: Images[]) => {
+    return tracks.map((track) => ({
+       ...track,
+       thumbnail_url: images.find((image) => image.id === track.id)?.url  
+    }));
+}
+
+
+
 
 
 
