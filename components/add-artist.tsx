@@ -28,9 +28,6 @@ export default function AddArtist() {
   const [finalResult, setFinalResult] = useState<any>(null);
 
   const processArtist = async (spotifyArtist: SpotifyArtist) => {
-    console.log('processing artist', selectedArtist)
-    console.log('processing artist', spotifyArtist)
-
     setIsProcessing(true);
     setError(null);
     setCurrentStage(null);
@@ -65,6 +62,7 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
+            console.log('result', message.payload)
             setIsProcessing(false);
             setFinalResult(message.result || message.details);
           }

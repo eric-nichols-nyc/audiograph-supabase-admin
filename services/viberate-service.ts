@@ -1,6 +1,7 @@
 // services/viberateService.ts
 import { unstable_cache } from "next/cache";
 import { chromium, Page } from "playwright";
+import { ArtistMetric } from "@/types/artists";
 
 export interface ViberateResponse {
   artist_analytics: {
@@ -148,3 +149,73 @@ export const getViberateData = async (artistName: string): Promise<ViberateRespo
       tags: [`viberate-data-${artistName}`],
     }
   )();
+
+
+// Define a mapping between ViberateResponse fields and platform/metric details.
+const analyticsMapping: {
+  [key in keyof ViberateResponse["artist_analytics"]]: {
+    platform: string;
+    metric_type: ArtistMetric["metric_type"];
+  };
+} = {
+  spotify_monthly_listeners: {
+    platform: "spotify",
+    metric_type: "monthly_listeners",
+  },
+  facebook_followers: {
+    platform: "facebook",
+    metric_type: "followers",
+  },
+  instagram_followers: {
+    platform: "instagram",
+    metric_type: "followers",
+  },
+  youtube_subscribers: {
+    platform: "youtube",
+    metric_type: "subscribers",
+  },
+  spotify_followers: {
+    platform: "spotify",
+    metric_type: "followers",
+  },
+  tiktok_followers: {
+    platform: "tiktok",
+    metric_type: "followers",
+  },
+  soundcloud_followers: {
+    platform: "soundcloud",
+    metric_type: "followers",
+  },
+};
+
+/**
+ * Converts a ViberateResponse object to an array of ArtistMetric entries.
+ *
+ * @param artistId The id of the artist to be associated with the metrics.
+ * @param response The raw analytics data from Viberate.
+ * @returns An array of ArtistMetric objects formatted for the database.
+ */
+export function convertViberateResponseToArtistMetrics(
+  response: ViberateResponse
+): ArtistMetric[] {
+  const metrics: ArtistMetric[] = [];
+
+  // Loop through each analytics field in the response.
+  for (const key in response.artist_analytics) {
+    if (response.artist_analytics.hasOwnProperty(key)) {
+      const value = response.artist_analytics[key as keyof ViberateResponse["artist_analytics"]];
+      if (value === undefined || typeof value !== "number") continue; // Skip undefined or invalid values
+
+      const mappingInfo = analyticsMapping[key as keyof typeof analyticsMapping];
+      if (!mappingInfo) continue; // Skip if no mapping is defined
+
+      metrics.push({
+        platform: mappingInfo.platform,
+        metric_type: mappingInfo.metric_type,
+        value,
+      });
+    }
+  }
+
+  return metrics;
+}

@@ -27,7 +27,7 @@ export interface Artist {
 
   export interface ArtistMetric {
     id?: string
-    artist_id: string
+    artist_id?: string
     platform: string
     metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners'
     value: number

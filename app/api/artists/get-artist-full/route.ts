@@ -4,8 +4,10 @@ import { getArtistInfo } from '@/services/artistInfo-service';
 import { getViberateData } from '@/services/viberate-service';
 import { scrapeKworbData } from '@/services/kworb-service';
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
+import { convertViberateResponseToArtistMetrics } from '@/services/viberate-service';
 import { createYoutubeService } from '@/services/youtube-service';
 import { createSpotifyService } from '@/services/spotify-service';
+import { ArtistMetric } from '@/types/artists';
 const STAGES = {
   INIT: 'Initializing artist ingestion',
   METADATA: 'Fetching metadata',
@@ -38,11 +40,11 @@ const fetchArtistMetadata = async (artistName: string, artistSpotifyId: string) 
   }
 }
 
-const fetchAnalytics = async (artistName: string) => {
+const fetchAnalytics = async (artistName: string): Promise<ArtistMetric[]> => {
   try {
     const analyticsData = await getViberateData(slugify(artistName));
-    console.log('*********analyticsData*******', analyticsData)
-    return analyticsData;
+    const metrics = convertViberateResponseToArtistMetrics(analyticsData);
+    return metrics;
   } catch (error) {
     throw new Error(`Failed to fetch analytics data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -161,7 +163,7 @@ export async function POST(req: Request) {
 
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 95);
-     //  console.log('RESULT TO SEND TO DATABASE==========================', result);
+     console.log('RESULT TO SEND TO DATABASE==========================', result);
       // const result = await ingestionService.ingestArtist({
       //   ...spotifyData,
       //   youtubeData,
