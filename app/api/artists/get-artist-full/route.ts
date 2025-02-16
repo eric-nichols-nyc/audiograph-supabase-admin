@@ -151,7 +151,7 @@ export async function POST(req: Request) {
     metricData: [],
     tracks: [],
     videos: [],
-    wikipedia: null
+    //wikipedia: null
   };
 
   // Helper to send updates
@@ -196,10 +196,10 @@ export async function POST(req: Request) {
       result.tracks = trackData.tracks;
       result.metricData = [...result.metricData, ...trackData.stats];
       await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
-      await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
-        const wikiData = await fetchWikipediaData(name);
-      result.wikipedia = wikiData;
-      await sendUpdate('WIKIPEDIA', 'Retrieved Wikipedia data', 90);
+      // await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
+      //   const wikiData = await fetchWikipediaData(name);
+      // result.wikipedia = wikiData;
+      // await sendUpdate('WIKIPEDIA', 'Retrieved Wikipedia data', 90);
 
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 95);
