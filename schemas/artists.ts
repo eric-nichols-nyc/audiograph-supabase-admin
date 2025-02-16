@@ -44,8 +44,8 @@ export const trackSchema = z.array(
     track_id: z.string(),
     platform: z.enum(['spotify']).optional(),
     popularity: z.number().nullable().optional(),
-    stream_count_total: z.number().nullable().optional(),
-    stream_count_daily: z.number().nullable().optional(),
+    stream_count_total: z.number().nullable(),
+    stream_count_daily: z.number().nullable(),
     thumbnail_url: z.string().nullable(),
   })
 ) satisfies z.Schema<Track[]>;
