@@ -112,7 +112,30 @@ private getAccessToken = unstable_cache(
         ['spotify-tracks'],
         { tags: ['spotify-tracks'], revalidate: 60 * 60 * 24 }
     );
+
+    public getTrackImage = unstable_cache(
+        async (trackId: string) => {
+            const accessToken = await this.getAccessToken();
+            
+            const response = await fetch(
+                `https://api.spotify.com/v1/tracks/${trackId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+            return data.album.images[0].url;
+        },
+        ['spotify-track-image'],
+        { tags: ['spotify-track-image'], revalidate: 60 * 60 * 24 }
+    );
+    
 }
+
+
 
 interface Images {
     id: string;

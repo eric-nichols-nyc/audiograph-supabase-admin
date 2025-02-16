@@ -21,7 +21,6 @@ export default async function Layout({
   children: React.ReactNode;
 }>) {
     const artists = (await getArtistsFromDb()) ?? [];
-    console.log(artists);
   return (
       <div className="flex w-full">
         <div className="w-1/4">

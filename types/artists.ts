@@ -59,13 +59,13 @@ export interface ArtistVideo {
 
     // types/database/videos.ts
 export interface Video {
-    id?: string
+    id?: string | undefined | null
     title: string
     video_id: string
-    platform: 'youtube'
+    platform?: 'youtube'
     view_count: number | null
-    monthly_view_count: number | null
-    thumbnail_url: string | null
+    monthly_view_count?: number | null
+    thumbnail_url: string | null | undefined
     published_at: string | null
   }
   

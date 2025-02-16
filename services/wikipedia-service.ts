@@ -276,7 +276,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const result = await scrapeAndStoreWikipedia(artistId, artistName);
+    const result = await scrapeAndStoreWikipedia(artistName);
     return new Response(JSON.stringify(result), {
       headers: { 'Content-Type': 'application/json' }
     });

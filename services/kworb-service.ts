@@ -44,9 +44,9 @@ const _scrapeKworbData = async (
         const stats = Array.from(statsTable.querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
           if (cells.length < 5) return null;
-          const metric = cells[0].textContent?.trim() || "";
-          const total = parseInt(cells[1].textContent?.replace(/,/g, '') || '0', 10);
-          return { metric, total };
+          const metric_type = cells[0].textContent?.trim().toLowerCase().replace(/\s+/g, '_') || "";
+          const value = parseInt(cells[1].textContent?.replace(/,/g, '') || '0', 10);
+          return { metric_type , value };
         }).filter(item => item !== null);
 
         // Parse tracks table
@@ -86,7 +86,7 @@ const _scrapeKworbData = async (
         const stats = Array.from(tables[0].querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
           if (cells.length < 2) return null;
-          const metric = cells[0].textContent?.trim().toLowerCase() || "";
+          const metric = cells[0].textContent?.trim().toLowerCase().replace(/\s+/g, '_') || "";
           const valueText = cells[1].textContent?.replace(/,/g, '') || "0";
           const value = parseInt(valueText, 10);
           return { metric, value };

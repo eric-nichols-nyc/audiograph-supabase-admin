@@ -6,8 +6,8 @@ import { scrapeKworbData } from '@/services/kworb-service';
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 import { convertViberateResponseToArtistMetrics } from '@/services/viberate-service';
 import { createYoutubeService, convertYoutubeVideosVideoType } from '@/services/youtube-service';
-import { createSpotifyService } from '@/services/spotify-service';
-import { ArtistMetric, Video } from '@/types/artists';
+import { convertSpotifyTracksTrackType, createSpotifyService } from '@/services/spotify-service';
+import { ArtistMetric, Track, Video } from '@/types/artists';
 const STAGES = {
   INIT: 'Initializing artist ingestion',
   METADATA: 'Fetching metadata',
@@ -50,7 +50,10 @@ const fetchAnalytics = async (artistName: string): Promise<ArtistMetric[]> => {
   }
 }
 
-const getArtistVideoData = async (artistName: string) => {
+const getArtistVideoData = async (artistName: string): Promise<{
+  stats: ArtistMetric[],
+  videos: Video[]
+}> => {
   try {
     const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
     const {videos, stats} = videoData;
@@ -62,17 +65,20 @@ const getArtistVideoData = async (artistName: string) => {
     const ytvids = youtubeVideos.map((video) => ({
       id: video.id || '',
       title: video.snippet?.title || '',
-      thumbnail_url: video.snippet?.thumbnails?.default?.url || '',
-      view_count: Number(video.statistics?.viewCount) || 0,
+      thumbnail_url: video.snippet?.thumbnails?.default?.url ?? '',
+      view_count: Number(video.statistics?.viewCount) ?? 0,
       published_at: video.snippet?.publishedAt || '',
     }));
 
-    const youtubeVideosWithStats = convertYoutubeVideosVideoType(videos, ytvids);
-    const videStatsWMetrics = convertViberateResponseToArtistMetrics(stats);
-    console.log('videStatsWMetrics', videStatsWMetrics)
+    const statsMetrics: ArtistMetric = {
+      platform: 'youtube',
+      metric_type: 'total_views' as 'total_views',
+      value: stats.find((stat: any) => stat.metric === 'total_views')?.value || 0,
+    };
 
+    const youtubeVideosWithStats = convertYoutubeVideosVideoType(videos, ytvids);
     return {
-      stats: videStatsWMetrics,
+      stats: [statsMetrics],
       videos: youtubeVideosWithStats
     };
   } catch (error) {
@@ -81,21 +87,33 @@ const getArtistVideoData = async (artistName: string) => {
 }
 
   const fetchTrackData = async (artistName: string): Promise<{
-    stats: Array<{metric: string, value: number}>,
-    tracks: Array<{
-      title: string,
-      track_id: string,
-      view_count: number,
-      daily_view_count: number,
-      published_at: string,
-      isCollaboration: boolean
-    }>
+    stats: ArtistMetric[],
+    tracks: Track[]
   }> => {
     try {
+      const spotifyService = createSpotifyService();
       const trackData = await scrapeKworbData(artistName, 'tracks');
+      
+      const tracks = trackData.tracks.map((track: any) => ({
+        ...track,
+        thumbnail_url: track.thumbnail_url || spotifyService.getTrackImage(track.track_id)
+      }));
+
+      const stats: ArtistMetric[] = [
+        { 
+          platform: "spotify",
+          metric_type: "total_streams", 
+          value: trackData.stats.find((stat: any) => stat.metric === 'streams')?.value || 0 
+        },
+        { 
+          platform: "spotify",
+          metric_type: "daily_stream_count", 
+          value: trackData.stats.find((stat: any) => stat.metric === 'daily')?.value || 0 
+        }
+      ];
       return {
-        stats: trackData.stats,
-        tracks: trackData.tracks
+        stats,
+        tracks
       };
     } catch (error) {
       throw new Error(`Failed to fetch track data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -112,9 +130,7 @@ const fetchWikipediaData = async (artistName: string) => {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  console.log('get artist full body', body)
   const { name, spotify_id, image_url, popularity, followers, genres } = body;
-  console.log('get artist full body', name, spotify_id, image_url, popularity, followers, genres)
   if (!name || !spotify_id) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
@@ -163,6 +179,7 @@ export async function POST(req: Request) {
       const metadata = await fetchArtistMetadata(name, spotify_id);
       result.artist = metadata.artist;
       result.platformData = metadata.platformData;
+      result.metricData = metadata.metricData;
       await sendUpdate('METADATA', 'Found artist on Spotify', 20);
       await sendUpdate('ANALYTICS', 'Fetching YouTube channel...', 30);
       const analyticsData = await fetchAnalytics(name);
@@ -173,11 +190,11 @@ export async function POST(req: Request) {
       const {stats, videos} = videoData;
       result.videos = videos;
       result.metricData = [...result.metricData, ...stats];
-      console.log('result.metricData', result.metricData)
       await sendUpdate('VIDEO_DATA', 'Retrieved YouTube statistics', 40);
       await sendUpdate('TRACK_DATA', 'Fetching Spotify track data...', 50);
       const trackData = await fetchTrackData(spotify_id);
-      result.tracks = trackData;
+      result.tracks = trackData.tracks;
+      result.metricData = [...result.metricData, ...trackData.stats];
       await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
       await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
         const wikiData = await fetchWikipediaData(name);

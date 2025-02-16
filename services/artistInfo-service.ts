@@ -109,28 +109,24 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
 
   const metricData = [
     {
-      artist_id: "",
       date: currentDate,
       platform: "youtube",
       metric_type: "views",
       value: youtube.status === 'fulfilled' ? youtube.value?.youtube_total_views : 0
     },
     {
-      artist_id: "",
       date: currentDate,
       platform: "youtube",
       metric_type: "subscribers",
       value: youtube.status === 'fulfilled' ? youtube.value?.youtube_subcribers : 0
     },
     {
-      artist_id: "",
       date: currentDate,
       platform: "lastfm",
       metric_type: "monthly_listeners",
       value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_monthly_listeners) : 0
     },
     {
-      artist_id: "",
       date: currentDate,
       platform: "lastfm",
       metric_type: "play_count",
