@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { SpotifyArtist } from "@/types/artists";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE" | "COMPLETE";
 
@@ -23,6 +24,7 @@ interface StageUpdate {
 export default function AddArtist() {
   const [currentStage, setCurrentStage] = useState<StageUpdate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState<SpotifyArtist | null>(null);
   const [finalResult, setFinalResult] = useState<any>(null);
@@ -57,6 +59,9 @@ export default function AddArtist() {
         for (const message of messages) {
           if (message.stage === 'ERROR') {
             setError(message.details);
+            if (message.details.toLowerCase().includes('validation')) {
+              setValidationErrors(message.details);
+            }
             setIsProcessing(false);
             return;
           }
@@ -65,6 +70,7 @@ export default function AddArtist() {
             console.log('result', message.payload);
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
+            setValidationErrors(null);
           }
         }
       }
@@ -121,6 +127,13 @@ export default function AddArtist() {
         </CardContent>
       </Card>
 
+      {validationErrors && (
+        <div className="mt-4 p-4 border rounded bg-red-100 text-red-700">
+          <h3 className="font-semibold mb-2">Validation Errors</h3>
+          <pre>{validationErrors}</pre>
+        </div>
+      )}
+
       {(isProcessing || currentStage) && (
         <Card>
           <CardHeader>
@@ -136,10 +149,12 @@ export default function AddArtist() {
       )}
 
       {finalResult && (
-        <div className="mt-4 p-4 border rounded">
-          <h3 className="font-semibold mb-2">Final Result</h3>
-          <pre>{JSON.stringify(finalResult, null, 2)}</pre>
-        </div>
+        <ScrollArea className="mt-4 h-60 border rounded">
+          <div className="p-4">
+            <h3 className="font-semibold mb-2">Final Result</h3>
+            <pre>{JSON.stringify(finalResult, null, 2)}</pre>
+          </div>
+        </ScrollArea>
       )}
     </div>
   );

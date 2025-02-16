@@ -1,3 +1,6 @@
+import {ArtistDetailView} from "@/components/artist-detail-view";
+import eminemData from "@/public/eminem-inserted-artist.json";
+
 export default function ArtistPage() {
-  return <div>Artist</div>;
+  return <ArtistDetailView data={eminemData.data} />;
 }

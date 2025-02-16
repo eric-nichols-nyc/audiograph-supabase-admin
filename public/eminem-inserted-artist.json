@@ -1,0 +1,679 @@
+{
+  "data": {
+    "id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+    "name": "Eminem",
+    "slug": "eminem",
+    "rank": null,
+    "rank_change": null,
+    "last_rank_update": null,
+    "bio": "Marshall Bruce Mathers III (born October 17, 1972 in St. Joseph, MO), known professionally as Eminem (stylized as EMINƎM), is an American rapper, songwriter, and record producer. He is credited with popularizing hip-hop in Middle America and is regarded as one of the greatest rappers of all time. His success is considered to have broken racial barriers to the acceptance of white rappers in popular music. While much of his transgressive work during the late 1990s and early 2000s made him a controversial figure <a href=\"https://www.last.fm/music/Eminem\">Read more on Last.fm</a>",
+    "gender": "male",
+    "country": "US",
+    "birth_date": "1972-10-17",
+    "image_url": "https://i.scdn.co/image/ab6761610000e5eba00b11c129b27a88fc72f36b",
+    "created_at": "2025-02-16T17:58:07.947524+00:00",
+    "updated_at": "2025-02-16T17:58:07.947524+00:00",
+    "is_complete": true,
+    "genres": [
+      "boom bap",
+      "conscious hip hop",
+      "hardcore hip hop",
+      "hip hop",
+      "horrorcore",
+      "pop rap",
+      "trap"
+    ],
+    "artist_platform_ids": [
+      {
+        "id": "c4a76130-70a6-4caf-95b8-2231e3dc601f",
+        "platform": "youtube",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:08.292562+00:00"
+      },
+      {
+        "id": "9cd8553c-d411-4ec1-8a38-e224134ce647",
+        "platform": "musicbrainz",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:08.602425+00:00"
+      },
+      {
+        "id": "14866cdb-f570-4b22-854e-56acc8558ff6",
+        "platform": "spotify",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:08.889694+00:00"
+      }
+    ],
+    "artist_urls": [],
+    "artist_metrics": [
+      {
+        "id": "25325db2-1677-49f3-a9a4-d48dd4afeb8b",
+        "date": "2025-02-16",
+        "value": 73900000,
+        "platform": "spotify",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:09.214015+00:00",
+        "updated_at": "2025-02-16T17:58:09.214015+00:00",
+        "metric_type": "monthly_listeners"
+      },
+      {
+        "id": "86cbefb1-878a-43ae-a0ee-88d02e4e79d2",
+        "date": "2025-02-16",
+        "value": 94900000,
+        "platform": "facebook",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:09.512805+00:00",
+        "updated_at": "2025-02-16T17:58:09.512805+00:00",
+        "metric_type": "followers"
+      },
+      {
+        "id": "48e39f64-4893-427e-8a37-9348b4e6fa9b",
+        "date": "2025-02-16",
+        "value": 45500000,
+        "platform": "instagram",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:09.894751+00:00",
+        "updated_at": "2025-02-16T17:58:09.894751+00:00",
+        "metric_type": "followers"
+      },
+      {
+        "id": "fd8bf7b5-e576-4274-9a0a-545802477429",
+        "date": "2025-02-16",
+        "value": 64000000,
+        "platform": "youtube",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:10.05302+00:00",
+        "updated_at": "2025-02-16T17:58:10.05302+00:00",
+        "metric_type": "subscribers"
+      },
+      {
+        "id": "b8fe44f6-1af3-47b6-b943-2154e3caeca6",
+        "date": "2025-02-16",
+        "value": 97200000,
+        "platform": "spotify",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:10.392367+00:00",
+        "updated_at": "2025-02-16T17:58:10.392367+00:00",
+        "metric_type": "followers"
+      },
+      {
+        "id": "2e39a898-a6e3-49fe-a616-d04ca03d845c",
+        "date": "2025-02-16",
+        "value": 9700000,
+        "platform": "tiktok",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:10.759571+00:00",
+        "updated_at": "2025-02-16T17:58:10.759571+00:00",
+        "metric_type": "followers"
+      },
+      {
+        "id": "27555bc1-4219-4626-bb0e-78fe180d8844",
+        "date": "2025-02-16",
+        "value": 2000000,
+        "platform": "soundcloud",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:10.914031+00:00",
+        "updated_at": "2025-02-16T17:58:10.914031+00:00",
+        "metric_type": "followers"
+      },
+      {
+        "id": "ac742918-d801-46eb-93a9-773cea2d70aa",
+        "date": "2025-02-16",
+        "value": 0,
+        "platform": "youtube",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:11.080351+00:00",
+        "updated_at": "2025-02-16T17:58:11.080351+00:00",
+        "metric_type": "total_views"
+      },
+      {
+        "id": "de7e2c9d-856c-478f-95af-3de499252a27",
+        "date": "2025-02-16",
+        "value": 0,
+        "platform": "spotify",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:11.359868+00:00",
+        "updated_at": "2025-02-16T17:58:11.359868+00:00",
+        "metric_type": "total_streams"
+      },
+      {
+        "id": "f698d03d-9afa-4180-a483-6b7d97ef81c4",
+        "date": "2025-02-16",
+        "value": 0,
+        "platform": "spotify",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:11.484646+00:00",
+        "updated_at": "2025-02-16T17:58:11.484646+00:00",
+        "metric_type": "daily_stream_count"
+      }
+    ],
+    "artist_tracks": [
+      {
+        "id": "24824d5d-2390-482c-9ec5-7900ef0cd4bf",
+        "role": "primary",
+        "track_id": "57cb1d66-3de6-4bf9-8ad9-bfd5f02e655d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:12.188433+00:00"
+      },
+      {
+        "id": "8774b0e9-8b58-4a86-8aad-61d72c74afbf",
+        "role": "primary",
+        "track_id": "b4c562ec-52ad-479b-91bf-cd996f582a46",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:12.63864+00:00"
+      },
+      {
+        "id": "fb7b6af5-0bd9-42e9-9540-644ac0242fad",
+        "role": "primary",
+        "track_id": "161e6429-0e92-4f99-b9f7-3dffa7cd9dd4",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:13.068089+00:00"
+      },
+      {
+        "id": "ba07476e-e24e-48e3-8542-fb4a8ae22ec9",
+        "role": "primary",
+        "track_id": "feed0125-99a2-49de-8d73-e30fc27d9914",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:13.389214+00:00"
+      },
+      {
+        "id": "aff555c8-911c-4922-91e7-37f2c0f22302",
+        "role": "primary",
+        "track_id": "ac10b935-34a4-4f1a-a05d-2e7825ceca6d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:13.671853+00:00"
+      },
+      {
+        "id": "bb8ec298-37fb-45e4-8dba-68938f27d43b",
+        "role": "primary",
+        "track_id": "e90fb0bc-8178-4bc8-befa-f614f9f40480",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:14.099792+00:00"
+      },
+      {
+        "id": "46583484-01a6-4771-bbac-c2026c3a8f87",
+        "role": "primary",
+        "track_id": "85ef6233-fd7e-4eba-80af-29b0445bbc0a",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:14.544916+00:00"
+      },
+      {
+        "id": "1a439c7c-87fa-4036-aaea-4b1273bfc0c1",
+        "role": "primary",
+        "track_id": "402c74ee-22a1-434f-9782-3e3451c1e24d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:14.973033+00:00"
+      },
+      {
+        "id": "025d4299-52d9-4b4e-9d71-0168862ac875",
+        "role": "primary",
+        "track_id": "b068105c-279d-4e80-aeba-309b9e121157",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:15.485614+00:00"
+      },
+      {
+        "id": "4d6621f2-27f8-432e-b972-66c2fd02e7c1",
+        "role": "primary",
+        "track_id": "553fa817-8e80-4941-8585-27b04e0dba2d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:15.931683+00:00"
+      },
+      {
+        "id": "0082d2cd-66c9-476e-bde8-262469d93a9a",
+        "role": "primary",
+        "track_id": "2f3a1346-baf5-4abc-a661-6473b7cbadd2",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:16.478709+00:00"
+      },
+      {
+        "id": "c3ebda9c-2e70-41d1-8256-5294ff7f13c2",
+        "role": "primary",
+        "track_id": "e3b812e7-531d-432f-b445-caa708d4ea8f",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:16.733843+00:00"
+      },
+      {
+        "id": "4526777d-8e91-4dd9-b9b2-c413993153ac",
+        "role": "primary",
+        "track_id": "4b3cfc64-44e3-4fd3-8071-6b4165bf18ad",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:17.158314+00:00"
+      },
+      {
+        "id": "e9601de8-e3d1-407e-b1ea-e6066ba1d5ea",
+        "role": "primary",
+        "track_id": "bd47036e-20b8-4fd1-97aa-0d909981fa88",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:17.439362+00:00"
+      },
+      {
+        "id": "4eac4280-0e29-4c8f-93dc-684af5bd65eb",
+        "role": "primary",
+        "track_id": "7e183f2b-8caf-481a-a415-1331ff91d388",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:17.737122+00:00"
+      },
+      {
+        "id": "b42661c0-90cf-4c32-916f-98e55a8c92ca",
+        "role": "primary",
+        "track_id": "b6ba6e58-5500-4206-8aae-72e5a3ce3e38",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:18.198812+00:00"
+      },
+      {
+        "id": "96c79853-5db1-4eb2-afd7-b992cc634a40",
+        "role": "primary",
+        "track_id": "420e58d8-d671-4159-9892-7150f08ece70",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:18.654748+00:00"
+      },
+      {
+        "id": "02501950-2437-44b6-89f0-de666bc6b30c",
+        "role": "primary",
+        "track_id": "49c35943-55e2-4070-82d5-3f160fc2c9b7",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:18.931807+00:00"
+      },
+      {
+        "id": "8bbc3a37-d047-4852-8a97-740caff5e510",
+        "role": "primary",
+        "track_id": "41134c6c-e7b3-477c-ac1d-837955910e94",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:19.179519+00:00"
+      },
+      {
+        "id": "168e55a6-0a6c-4a4e-88d3-40edc2eef6c8",
+        "role": "primary",
+        "track_id": "0ac25a36-9dce-4ab0-9fa8-e0511e4eb7e4",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:19.419983+00:00"
+      },
+      {
+        "id": "d7cb4cc9-0bfe-42c1-a473-a532a793d730",
+        "role": "primary",
+        "track_id": "e3c196eb-be34-43ba-929a-5cdcbf19cf96",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:19.80115+00:00"
+      },
+      {
+        "id": "9582cf2e-61c8-479d-a177-126843000d47",
+        "role": "primary",
+        "track_id": "469ca178-9606-4486-a457-d5ff170e45cf",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:20.141388+00:00"
+      },
+      {
+        "id": "834569e7-e499-4cfc-b528-84dc43cd1dc7",
+        "role": "primary",
+        "track_id": "3fdd1a9f-150e-420b-9289-f0c4576f7a85",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:20.672769+00:00"
+      },
+      {
+        "id": "2024299c-2cb4-4e6f-85e3-3b75fe976102",
+        "role": "primary",
+        "track_id": "9fc6196d-adaf-4531-90e1-2c23000bd0c4",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:21.044771+00:00"
+      },
+      {
+        "id": "36e80ceb-33d7-4139-87cb-4cb37c234c87",
+        "role": "primary",
+        "track_id": "db659719-9c4c-4e7a-8ffb-887cebfb30e2",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:21.453013+00:00"
+      }
+    ],
+    "artist_videos": [
+      {
+        "id": "0ef60f99-ac7e-43bd-8774-5d34a86bf437",
+        "role": "primary",
+        "video_id": "17991566-4513-4c6b-b8e7-e74f833d09ac",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:21.812901+00:00"
+      },
+      {
+        "id": "953b629f-fc73-4d08-898b-b81af70705b3",
+        "role": "primary",
+        "video_id": "9f2d7902-841d-4183-a230-91b9d95bb6a9",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:22.171774+00:00"
+      },
+      {
+        "id": "5e04afd4-9cd3-4cc6-aa43-2b6f25c5f706",
+        "role": "primary",
+        "video_id": "6a188c1a-066f-40be-9461-201b42293807",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:22.570829+00:00"
+      },
+      {
+        "id": "4fed3e60-3c8b-439a-ae9c-7fcc8d3979f7",
+        "role": "primary",
+        "video_id": "fc38dc84-febd-49ae-add2-c177a13e1a2b",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:23.083299+00:00"
+      },
+      {
+        "id": "ca5f8c34-a85b-46f5-b00e-07d45230fbed",
+        "role": "primary",
+        "video_id": "58c9269e-bcbe-45d0-ba08-0d3acefadab7",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:23.48806+00:00"
+      },
+      {
+        "id": "171d0e03-99e9-4626-9082-0a06ae0c4e3b",
+        "role": "primary",
+        "video_id": "6205ada3-12ca-40bc-892b-a393d20e181f",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:23.747447+00:00"
+      },
+      {
+        "id": "fddb6dec-5670-47f0-8f70-216bf0c275ef",
+        "role": "primary",
+        "video_id": "97748f7b-f9a3-4c5b-905a-eab77e6bd43c",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:24.000328+00:00"
+      },
+      {
+        "id": "5164279e-6334-4f06-a5fd-4c3ee880af7c",
+        "role": "primary",
+        "video_id": "750e128b-9937-425c-bbbf-68c3353eaa85",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:24.265786+00:00"
+      },
+      {
+        "id": "86894961-9142-4aad-a40d-8e039ba9dcf2",
+        "role": "primary",
+        "video_id": "06eb6e01-ae8d-47c1-b6c0-3602846c4c0f",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:24.664496+00:00"
+      },
+      {
+        "id": "80973e2d-f033-4019-9a64-1b8856e223d7",
+        "role": "primary",
+        "video_id": "5a3e37d1-c3aa-4f06-8425-036835b23b7a",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:24.923918+00:00"
+      },
+      {
+        "id": "2b677ea6-a722-4978-b9d9-f273e295ea41",
+        "role": "primary",
+        "video_id": "b63d9abf-2ca5-4a9a-925d-414b797ece33",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:25.185771+00:00"
+      },
+      {
+        "id": "e4e24f9e-9eba-4f5e-ad2d-e5fe208c0d2b",
+        "role": "primary",
+        "video_id": "da326686-2003-4bd5-8b1b-2f59ddb2e447",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:25.433831+00:00"
+      },
+      {
+        "id": "2c18105d-a68e-4a1a-8303-a7b9cc2d8582",
+        "role": "primary",
+        "video_id": "dc401dd8-5916-4ad8-809e-6931e3aa4a36",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:25.956386+00:00"
+      },
+      {
+        "id": "704479f7-371f-4b72-97d2-6511b3321c1c",
+        "role": "primary",
+        "video_id": "9a9f56bf-d4d7-4e8b-9dfc-3ecedcfa5919",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:26.267724+00:00"
+      },
+      {
+        "id": "1b87f335-3dfb-4430-9420-a9fb14098cdf",
+        "role": "primary",
+        "video_id": "b1dce424-88b9-4525-91f3-14c10e57c61f",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:26.519533+00:00"
+      },
+      {
+        "id": "e76b197b-3303-436e-b21d-613a5db405b2",
+        "role": "primary",
+        "video_id": "3cfb9f13-7157-4165-adcd-e0f168216a62",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:26.810259+00:00"
+      },
+      {
+        "id": "b4a02532-b928-4fb0-b930-d6303074812c",
+        "role": "primary",
+        "video_id": "16c19c50-ba20-47cc-b20c-5dd6f817721d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:27.075813+00:00"
+      },
+      {
+        "id": "967a82ce-7aec-4839-9d37-aa3831f1a65a",
+        "role": "primary",
+        "video_id": "44bcc7da-bcae-437b-a001-9fef5788389a",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:27.487897+00:00"
+      },
+      {
+        "id": "9d5d1d0b-57b4-4773-8dd9-14044ebced48",
+        "role": "primary",
+        "video_id": "5618e7d0-e6ac-491f-b40c-a280b950e1c3",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:27.751265+00:00"
+      },
+      {
+        "id": "9dec0755-94e8-4917-ba6a-16f9201e9e17",
+        "role": "primary",
+        "video_id": "7b348a4d-68b0-44d8-924f-828a08680db6",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:28.03681+00:00"
+      },
+      {
+        "id": "2d953f85-04c3-45f5-b855-f51b0186577e",
+        "role": "primary",
+        "video_id": "47d311a8-d806-456e-bd5b-6121f3313cae",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:28.311367+00:00"
+      },
+      {
+        "id": "701299b3-4876-4591-990c-f315f6693ec5",
+        "role": "primary",
+        "video_id": "8135b818-69b4-4ad2-9b8c-36a8f4d6ccf2",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:28.581002+00:00"
+      },
+      {
+        "id": "d9cd2754-a1e5-422f-bea1-4cf5b51ee59b",
+        "role": "primary",
+        "video_id": "bab96cc7-874e-4d75-a29e-6d8d82afc9a4",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:28.834614+00:00"
+      },
+      {
+        "id": "f900afe2-7dc0-41c3-8048-c9f61c691bab",
+        "role": "primary",
+        "video_id": "87a7be51-d914-4cf0-b154-818db1fb6d4d",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:29.106188+00:00"
+      },
+      {
+        "id": "9f4a80a5-b188-4956-852a-5481f75a7775",
+        "role": "primary",
+        "video_id": "c13e4ce5-f428-474c-b0a5-1ffec028d6a0",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:29.362002+00:00"
+      },
+      {
+        "id": "87bfe868-7376-4faa-92f8-d354860c1bb0",
+        "role": "primary",
+        "video_id": "5140115d-3823-4ae5-9954-5406289ef2f0",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:29.770567+00:00"
+      },
+      {
+        "id": "03a7b6fb-2f67-45a1-871c-3f89b9b8a950",
+        "role": "primary",
+        "video_id": "2bf0ff6f-3f02-4f26-95a4-ad08df020f91",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:30.034649+00:00"
+      },
+      {
+        "id": "b6f9dae7-36fe-4d02-ab30-7625ed4c2ca7",
+        "role": "primary",
+        "video_id": "c6118da7-5275-49de-a6e5-4150f03dab62",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:30.27549+00:00"
+      },
+      {
+        "id": "59bd6992-deae-4b90-9f6e-96c361ee8381",
+        "role": "primary",
+        "video_id": "1a829456-fe21-4320-b6ea-813671fad516",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:30.525366+00:00"
+      },
+      {
+        "id": "b445a220-2863-41a6-b32b-e40e10c192d6",
+        "role": "primary",
+        "video_id": "92fa463d-9101-40a1-b2eb-1ddb9c58eb52",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:30.800135+00:00"
+      },
+      {
+        "id": "3b86c3c3-49e9-406e-a789-117750fc5720",
+        "role": "primary",
+        "video_id": "a81197b2-373c-48b2-8596-cd5188285119",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:31.067139+00:00"
+      },
+      {
+        "id": "9e5f2de9-2498-4130-8dfb-5c8594298d12",
+        "role": "primary",
+        "video_id": "c06fbfea-8526-41b2-8fdc-9247d07e85d0",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:31.307558+00:00"
+      },
+      {
+        "id": "fbda3516-1901-49d2-a87c-16010692241e",
+        "role": "primary",
+        "video_id": "24d626d7-fc76-4896-9736-6c572d1a4b4e",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:31.559872+00:00"
+      },
+      {
+        "id": "8100fb00-cb18-4edf-bdab-ab4b552b40c1",
+        "role": "primary",
+        "video_id": "f6b6ff9c-0c99-4dcd-874d-3d75b5feb7ca",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:31.801393+00:00"
+      },
+      {
+        "id": "0bcad24f-bf67-4e5f-b0bb-acbb61cbc29d",
+        "role": "primary",
+        "video_id": "07f963ea-259e-480b-aa98-f632d78db8dc",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:32.100238+00:00"
+      },
+      {
+        "id": "5526b3dd-e51d-4f96-8354-ac1fe2fa004e",
+        "role": "primary",
+        "video_id": "2cd97028-fbc0-4554-af6a-a42be1674c96",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:32.54746+00:00"
+      },
+      {
+        "id": "6fbd09b0-1968-4d64-b1b2-f0f55c687a84",
+        "role": "primary",
+        "video_id": "d3d6aa44-a917-44a8-be38-084477a5c2be",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:32.799831+00:00"
+      },
+      {
+        "id": "e1bf8138-22aa-48a5-a162-5bef0db5192c",
+        "role": "primary",
+        "video_id": "16ca3e6f-a6e1-4e90-bf64-152189f99c5b",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:33.08156+00:00"
+      },
+      {
+        "id": "0114bbdc-c6dc-46a0-90cb-74af909344e5",
+        "role": "primary",
+        "video_id": "079f5651-f132-4ad6-ae20-c96d077aae09",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:33.381882+00:00"
+      },
+      {
+        "id": "3d8b1584-3946-4cc3-a5d6-db9e8bfb6926",
+        "role": "primary",
+        "video_id": "e2216fa9-71b7-4464-81c8-a5269683cb0b",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:33.645236+00:00"
+      },
+      {
+        "id": "ee518c42-2304-4c52-b398-aac5f9a9b8bb",
+        "role": "primary",
+        "video_id": "065a914a-d428-4e42-ae9d-cd2525569ab6",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:33.902756+00:00"
+      },
+      {
+        "id": "b133677e-171f-4a82-9caf-b45996e02763",
+        "role": "primary",
+        "video_id": "25e8b96e-c115-4aa7-b4e1-e02b09536a72",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:34.148686+00:00"
+      },
+      {
+        "id": "ba4e43b3-7da2-4e6e-adf3-a49d3cb02610",
+        "role": "primary",
+        "video_id": "09cb29bf-1f0b-4084-92fd-f5c64e692f99",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:34.398893+00:00"
+      },
+      {
+        "id": "bf24ee74-76d6-43d4-87c7-508ebb21bb61",
+        "role": "primary",
+        "video_id": "bdd28020-2814-4805-ab25-668311a6c98e",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:34.658585+00:00"
+      },
+      {
+        "id": "893285e6-3464-4cbc-b714-50ff512196ea",
+        "role": "primary",
+        "video_id": "ef8643ea-7243-4263-8782-66bbfab4dadd",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:34.899388+00:00"
+      },
+      {
+        "id": "3a2e0c46-130e-4de6-9733-508d98630697",
+        "role": "primary",
+        "video_id": "8fb1465a-b997-4796-95d7-b5a707484dc7",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:35.156354+00:00"
+      },
+      {
+        "id": "f832b236-f4b3-4771-92e9-b5a598eb457e",
+        "role": "primary",
+        "video_id": "0ceefb77-a1c2-4094-ad07-eb904c07075b",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:35.43686+00:00"
+      },
+      {
+        "id": "39161648-7454-4f42-8262-de342a8a72a8",
+        "role": "primary",
+        "video_id": "40a7f0b9-47cf-413c-a62f-9fbb588cd267",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:35.999888+00:00"
+      },
+      {
+        "id": "bcec9f98-c03f-4455-bdb2-cd17d4510740",
+        "role": "primary",
+        "video_id": "f9d573a1-5107-4ee5-8566-477da04d7863",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:36.236833+00:00"
+      },
+      {
+        "id": "8ccbc977-7f55-485e-933c-25ba04b4d03f",
+        "role": "primary",
+        "video_id": "7786166c-2997-4752-9b6f-295197032f47",
+        "artist_id": "f18d13f6-7389-4bd9-aded-a8207a444134",
+        "created_at": "2025-02-16T17:58:36.465176+00:00"
+      }
+    ]
+  }
+}

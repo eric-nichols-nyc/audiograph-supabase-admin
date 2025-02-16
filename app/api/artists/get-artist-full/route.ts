@@ -121,13 +121,6 @@ const getArtistVideoData = async (artistName: string): Promise<{
     }
   }
 
-const fetchWikipediaData = async (artistName: string) => {
-  try {
-    return await scrapeAndStoreWikipedia(artistName);
-  } catch (error) {
-    throw new Error(`Failed to fetch Wikipedia data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -152,7 +145,6 @@ export async function POST(req: Request) {
     metricData: [],
     tracks: [],
     videos: [],
-    //wikipedia: null
   };
 
   // Helper to send updates
@@ -197,18 +189,24 @@ export async function POST(req: Request) {
       result.tracks = trackData.tracks;
       result.metricData = [...result.metricData, ...trackData.stats];
       await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
-      // await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
-      //   const wikiData = await fetchWikipediaData(name);
-      // result.wikipedia = wikiData;
-      // await sendUpdate('WIKIPEDIA', 'Retrieved Wikipedia data', 90);
+      await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
+      const wikiData = await new Promise(resolve => {
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve("wikiData done");
+          }, 2000);
+        });
+      });
+      result.wikipedia = wikiData;
+      await sendUpdate('WIKIPEDIA', 'Retrieved Wikipedia data', 90);
 
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 95);
      // console.log('RESULT TO SEND TO DATABASE==========================', result);
-      //const artist = await addArtistFull(result);
+      const insertedArtist = await addArtistFull(result);
 
       // Complete
-      await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, result);
+      await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
       return NextResponse.json(result);
     } catch (error) {
       console.error('Artist ingestion error:', error);

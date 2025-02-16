@@ -39,7 +39,7 @@ interface ProcessedArticle extends WikipediaArticle {
 
 
 // Main function to scrape and store Wikipedia articles
-export async function scrapeAndStoreWikipedia(artistName: string) {
+export async function scrapeAndStoreWikipedia(artistName: string, artistId: string) {
   try {
     console.log('Using Supabase client from utils/supabase');
 
@@ -56,10 +56,10 @@ export async function scrapeAndStoreWikipedia(artistName: string) {
     const processedArticle = await processArticle(article);
 
     // Store in database
-    //const result = await storeArticle(artistId, processedArticle);
+    const result = await storeArticle(artistId, processedArticle);
 
     // Update artist similarities
-    //await updateArtistSimilarities(artistId, processedArticle);
+    await updateArtistSimilarities(artistId, processedArticle);
 
     return {
       success: true as const,
@@ -259,32 +259,32 @@ function findSharedCategories(article1: ProcessedArticle, article2: { categories
   return article2.categories.filter((category: string) => categories1.has(category));
 }
 
-// API route entry point
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const artistId = searchParams.get('artistId');
-    const artistName = searchParams.get('artistName');
+// // API route entry point
+// export async function GET(request: Request) {
+//   try {
+//     const { searchParams } = new URL(request.url);
+//     const artistId = searchParams.get('artistId');
+//     const artistName = searchParams.get('artistName');
     
-    console.log('API Route - Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('API Route - Service Key (first 10 chars):', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10));
+//     console.log('API Route - Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+//     console.log('API Route - Service Key (first 10 chars):', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10));
 
-    if (!artistId || !artistName) {
-      return new Response(
-        JSON.stringify({ error: 'Artist ID and artist name are required' }), 
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+//     if (!artistId || !artistName) {
+//       return new Response(
+//         JSON.stringify({ error: 'Artist ID and artist name are required' }), 
+//         { status: 400, headers: { 'Content-Type': 'application/json' } }
+//       );
+//     }
 
-    const result = await scrapeAndStoreWikipedia(artistName);
-    return new Response(JSON.stringify(result), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('API Route Error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-}
+//     const result = await scrapeAndStoreWikipedia(artistName, artistId);
+//     return new Response(JSON.stringify(result), {
+//       headers: { 'Content-Type': 'application/json' }
+//     });
+//   } catch (error) {
+//     console.error('API Route Error:', error);
+//     return new Response(
+//       JSON.stringify({ error: 'Internal Server Error' }),
+//       { status: 500, headers: { 'Content-Type': 'application/json' } }
+//     );
+//   }
+// }

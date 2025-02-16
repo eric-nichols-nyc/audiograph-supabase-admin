@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { actionClient } from "@/lib/safe-action";
 import { addArtistFullSchema } from "@/schemas/addArtistFullSchema"; // Adjust path as needed
+import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 
 export const addArtistFull = actionClient
   .schema(addArtistFullSchema)
@@ -8,7 +9,7 @@ export const addArtistFull = actionClient
     // console.log('addFullArtist parsedInput ', parsedInput);
     // Destructure the parsed input
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
-    
+
     // Example: Get aggregated data from multiple sources
     const fullArtistData = parsedInput;
 
@@ -45,9 +46,6 @@ export const addArtistFull = actionClient
           throw new Error(`Error inserting artist platform: ${platformError.message}`);
         }
       }
-
-      console.log('platformData = ', platformData);
-
       // Insert URL data
       for (const url of urlData) {
         const urlInsert = { ...url, artist_id: artistId };
@@ -58,21 +56,21 @@ export const addArtistFull = actionClient
           throw new Error(`Error inserting artist URL: ${urlError.message}`);
         }
       }
-
-      console.log('urlData = ', urlData);
-
       // Insert metric data
       for (const metric of metricData) {
         const metricInsert = { ...metric, artist_id: artistId };
-        const { error: metricError } = await supabase
+        const { data: metricResult, error: metricError } = await supabase
           .from("artist_metrics")
-          .insert(metricInsert);
+          .insert(metricInsert)
+          .select('id')
+          .single();
         if (metricError) {
           throw new Error(`Error inserting artist metric: ${metricError.message}`);
         }
       }
 
-      console.log('metricData = ', metricData);
+      console.log('artist_metrics added');
+
 
       // Insert tracks and create artist_tracks entries
       if (tracks && tracks.length > 0) {
@@ -81,7 +79,7 @@ export const addArtistFull = actionClient
           const { data: trackResult, error: trackError } = await supabase
             .from("tracks")
             .upsert({
-              track_id: track.track_id, 
+              track_id: track.track_id,
               title: track.title,
               platform: track.platform,
               thumbnail_url: track.thumbnail_url,
@@ -92,24 +90,25 @@ export const addArtistFull = actionClient
             })
             .select('id')
             .single();
-      
+
           if (trackError) throw new Error(`Track upsert error: ${trackError.message}`);
-          
+
           // Insert or update the artist-track relationship
           const { error: artistTrackError } = await supabase
             .from("artist_tracks")
-            .upsert({ 
-              artist_id: artistId, 
+            .upsert({
+              artist_id: artistId,
               track_id: trackResult.id,
               role: 'primary' // or whatever role is appropriate
             }, {
               onConflict: 'artist_id,track_id'
             });
-      
+
           if (artistTrackError) throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
         }
       }
-      
+      console.log('tracks and artist_tracks added');
+
 
       // Insert videos and create artist_videos entries
       if (videos && videos.length > 0) {
@@ -143,7 +142,7 @@ export const addArtistFull = actionClient
         }
       }
 
-      console.log('videos = ', videos);
+      console.log('videos and artist_videos added');
 
       // Commit transaction if all operations succeed
       const { error: txCommitError } = await supabase.rpc("commit_transaction");
@@ -151,10 +150,46 @@ export const addArtistFull = actionClient
         throw new Error(`Failed to commit transaction: ${txCommitError.message}`);
       }
 
-      return fullArtistData;
+      // NEW: Trigger Wikipedia service after commit using artist name and artistId.
+      try {
+        await scrapeAndStoreWikipedia(artist.name, artistId);
+        console.log('Wikipedia service completed');
+      } catch (wikiError) {
+        console.error("Error in Wikipedia service:", wikiError);
+        // Ideally, we should not rollback here since the main transaction is already committed.
+        // Instead, log the error and consider scheduling a retry or marking the record for update.
+      }
+      // set artist isComplete to true and throw an error if it fails
+      const { error: updateError } = await supabase
+        .from("artists")
+        .update({ is_complete: true })
+        .eq("id", artistId);
+      if (updateError) {
+        throw new Error(`Error updating artist is_complete: ${updateError.message}`);
+      }
+
+      // Now query the database for the inserted artist with related data.
+      const { data: insertedArtist, error: fetchError } = await supabase
+        .from("artists")
+        .select(`
+          *,
+          artist_platform_ids(*),
+          artist_urls(*),
+          artist_metrics(*),
+          artist_tracks(*),
+          artist_videos(*)
+        `)
+        .eq("id", artistId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(`Error fetching inserted artist: ${fetchError.message}`);
+      }
+
+      return insertedArtist;
     } catch (error) {
-      // Rollback the transaction in case of any error
-      await supabase.rpc("rollback_transaction");
+      // Rollback the transaction in case of any error during the database operations
+      await supabase.rpc("rollback_transaction_proc");
       throw error;
     }
   }); 
