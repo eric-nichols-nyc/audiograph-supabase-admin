@@ -237,7 +237,8 @@ export function ArtistDetailView({ data }: ArtistDetailViewProps) {
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="tracks">Tracks</TabsTrigger>
+          <TabsTrigger value="videos">Videos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -249,8 +250,11 @@ export function ArtistDetailView({ data }: ArtistDetailViewProps) {
           <MetricsCard metrics={data.artist_metrics || []} />
         </TabsContent>
 
-        <TabsContent value="content">
+        <TabsContent value="tracks">
           <TracksSection tracks={data.artist_tracks || []} />
+        </TabsContent>
+
+        <TabsContent value="videos">
           <VideosSection videos={data.artist_videos || []} />
         </TabsContent>
       </Tabs>
