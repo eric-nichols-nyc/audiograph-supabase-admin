@@ -1,5 +1,5 @@
 import { addArtistFullSchema } from "@/schemas/addArtistFullSchema";
-import { addArtistFull } from "@/services/addArtistFull";
+import { addArtistFull } from "@/services/add-artist-full";
 
 
 export async function POST(request: Request) {

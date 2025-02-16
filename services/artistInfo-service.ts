@@ -82,17 +82,14 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
   const currentDate = new Date().toISOString();
   const platformData = [
     {
-      artist_id: "", // Assign artist id when available
       platform: "youtube",
       platform_id: youtube.status === 'fulfilled' ? youtube.value?.youtube_channel_id : ""
     },
     {
-      artist_id: "",
       platform: "musicbrainz",
       platform_id: musicBrainz.status === 'fulfilled' ? musicBrainz.value?.musicbrainz_id : ""
     },
     {
-      artist_id: "",
       platform: "spotify",
       platform_id: spotify.status === 'fulfilled' ? spotify.value?.id : ""
     }

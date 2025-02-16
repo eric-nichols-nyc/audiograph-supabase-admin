@@ -5,7 +5,7 @@ import { addArtistFullSchema } from "@/schemas/addArtistFullSchema"; // Adjust p
 export const addArtistFull = actionClient
   .schema(addArtistFullSchema)
   .action(async ({ parsedInput }) => {
-    console.log('addFullArtist parsedInput ', parsedInput);
+    // console.log('addFullArtist parsedInput ', parsedInput);
     // Destructure the parsed input
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
     
@@ -122,7 +122,7 @@ export const addArtistFull = actionClient
               title: video.title,
               platform: video.platform,
               view_count: video.view_count,
-              monthly_view_count: video.monthly_view_count,
+              daily_view_count: video.daily_view_count,
               published_at: video.published_at,
               thumbnail_url: video.thumbnail_url,
             }, {

@@ -16,7 +16,7 @@ export interface Artist {
 
   export interface ArtistPlatformId {
     artist_id: string
-    platform: 'spotify' | 'youtube' | 'musicbrainz'
+    platform: 'spotify' | 'youtube' | 'musicbrainz' | 'lastfm'
   }
   
   export interface ArtistUrl {
@@ -74,7 +74,7 @@ export interface Video {
     id?: string
     title: string
     track_id: string
-    platform: 'spotify'
+    platform?: 'spotify'
     popularity?: number | null
     stream_count_total: number | null
     stream_count_daily: number | null

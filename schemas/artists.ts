@@ -30,30 +30,32 @@ export const artistUrlSchema = z.array(z.object({
 })) satisfies z.Schema<ArtistUrl[]>;
 
 export const artistMetricSchema = z.array(z.object({
-  artist_id: z.string(),
+  artist_id: z.string().optional(),
   platform: z.string(),
-  metric_type: z.enum(['followers', 'views', 'likes', 'subscribers', 'monthly_listeners']),
+  metric_type: z.enum(['followers', 'views', 'likes', 'subscribers', 'monthly_listeners', 'daily_view_count', 'daily_stream_count', 'total_views', 'total_streams']),
   value: z.number(),
 })) satisfies z.Schema<ArtistMetric[]>;
 
 
 
-export const trackSchema = z.array(z.object({
-  title: z.string(),
-  track_id: z.string(),
-  platform: z.enum(['spotify']),
-  popularity: z.number().nullable().optional(),
-  stream_count_total: z.number().nullable(),
-  stream_count_daily: z.number().nullable(),
-  thumbnail_url: z.string().nullable(),
-  })) satisfies z.Schema<Track[]>;
+export const trackSchema = z.array(
+  z.object({
+    title: z.string(),
+    track_id: z.string(),
+    platform: z.enum(['spotify']).optional(),
+    popularity: z.number().nullable().optional(),
+    stream_count_total: z.number().nullable().optional(),
+    stream_count_daily: z.number().nullable().optional(),
+    thumbnail_url: z.string().nullable(),
+  })
+) satisfies z.Schema<Track[]>;
 
 export const videoSchema = z.array(z.object({
   title: z.string(),
   video_id: z.string(),
-  platform: z.enum(['youtube']),
+  platform: z.enum(['youtube']).optional(),
   view_count: z.number().nullable(),
-  monthly_view_count: z.number().nullable(),
+  daily_view_count: z.number().nullable(),
   thumbnail_url: z.string().nullable(),
   published_at: z.string().nullable(),
 })) satisfies z.Schema<Video[]>;

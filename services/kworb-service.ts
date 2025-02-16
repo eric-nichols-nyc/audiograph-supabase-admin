@@ -63,9 +63,9 @@ const _scrapeKworbData = async (
           const isCollaboration = (titleCell.textContent?.trim() || "").startsWith('*');
           const streamsText = cells[1].textContent?.trim() || "";
           const dailyText = cells[2].textContent?.trim() || "";
-          const steam_count_total = parseInt(streamsText.replace(/,/g, '') || '0', 10);
-          const steam_count_daily = parseInt(dailyText.replace(/,/g, '') || '0', 10);
-          return { title, track_id, steam_count_total, steam_count_daily, isCollaboration };
+          const stream_count_total = parseInt(streamsText.replace(/,/g, '') || '0', 10);
+          const stream_count_daily = parseInt(dailyText.replace(/,/g, '') || '0', 10);
+          return { title, track_id, stream_count_total, stream_count_daily, isCollaboration };
         }).filter(item => item !== null).slice(0, 25);
 
         return { stats, tracks };

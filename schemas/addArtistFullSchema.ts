@@ -11,6 +11,6 @@ export const addArtistFullSchema = z.object({
   metricData: artistMetricSchema,
   tracks: trackSchema,
   videos: videoSchema,
-  artist_tracks: artistTrackSchema,
-  artist_videos: artistVideoSchema
+  artist_tracks: artistTrackSchema.optional(),
+  artist_videos: artistVideoSchema.optional()
 }); 

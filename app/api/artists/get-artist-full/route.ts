@@ -8,6 +8,7 @@ import { convertViberateResponseToArtistMetrics } from '@/services/viberate-serv
 import { createYoutubeService, convertYoutubeVideosVideoType } from '@/services/youtube-service';
 import { convertSpotifyTracksTrackType, createSpotifyService } from '@/services/spotify-service';
 import { ArtistMetric, Track, Video } from '@/types/artists';
+import { addArtistFull } from '@/services/add-artist-full';
 const STAGES = {
   INIT: 'Initializing artist ingestion',
   METADATA: 'Fetching metadata',
@@ -94,10 +95,10 @@ const getArtistVideoData = async (artistName: string): Promise<{
       const spotifyService = createSpotifyService();
       const trackData = await scrapeKworbData(artistName, 'tracks');
       
-      const tracks = trackData.tracks.map((track: any) => ({
+      const tracks = await Promise.all(trackData.tracks.map(async (track: any) => ({
         ...track,
-        thumbnail_url: track.thumbnail_url || spotifyService.getTrackImage(track.track_id)
-      }));
+        thumbnail_url: await spotifyService.getTrackImage(track.track_id)
+      })));
 
       const stats: ArtistMetric[] = [
         { 
@@ -204,13 +205,7 @@ export async function POST(req: Request) {
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 95);
      // console.log('RESULT TO SEND TO DATABASE==========================', result);
-      // const result = await ingestionService.ingestArtist({
-      //   ...spotifyData,
-      //   youtubeData,
-      //   lastfmData,
-      //   viberateData,
-      //   wikiData
-      // });
+      //const artist = await addArtistFull(result);
 
       // Complete
       await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, result);
