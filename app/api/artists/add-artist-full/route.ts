@@ -1,4 +1,4 @@
-import { addArtistFullSchema } from "@/schemas/addArtistFullSchema";
+import { addArtistFullSchema } from "@/schemas/artist-full-schema";
 import { addArtistFull } from "@/services/add-artist-full";
 
 
