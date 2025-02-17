@@ -67,7 +67,6 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
-            console.log('result', message.payload);
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
             setValidationErrors(null);
