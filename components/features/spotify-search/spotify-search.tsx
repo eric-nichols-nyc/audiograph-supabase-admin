@@ -7,8 +7,6 @@ import { debounce } from '@/utils/debounce'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { SpotifyArtist } from '@/types/artists'
-import { addArtistFull } from '@/actions/artist'
-import axios from 'axios'
 
 /**
 * ArtistSearchResult Component

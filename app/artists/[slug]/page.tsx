@@ -1,5 +1,4 @@
-import { ArtistDetailView } from "@/components/artist-detail-view";
-import eminemData from "@/public/eminem-inserted-artist.json";
+import { ArtistDetailView } from "@/components/features/artist-detail/ArtistDetailView";
 import { createClient } from "@/utils/supabase/server";
 
 
@@ -13,11 +12,9 @@ async function getArtistData(slug: string) {
       artist_urls (*),
       artist_metrics (*),
       artist_tracks (
-        track_id,
         tracks!track_id(*)
       ),
       artist_videos (
-        video_id,
         videos!video_id(*)
       )
     `)
@@ -29,7 +26,21 @@ async function getArtistData(slug: string) {
 }
 
 export default async function ArtistPage({ params }: { params: { slug: string } }) {
-  const artistData = await getArtistData(params.slug);
-  console.log('artistData ', artistData);
-  return <ArtistDetailView data={eminemData.data} />;
+  let artistData = null;
+  try {
+    artistData = await getArtistData(params.slug);
+  } catch (error) {
+    console.error('Error fetching artist data:', error);
+  }
+
+  if (!artistData) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <p className="text-center text-gray-500">Artist not found.</p>
+      </div>
+    );
+  }
+
+  console.log('artistData ', JSON.stringify(artistData, null, 2));
+  return <ArtistDetailView data={artistData} />;
 }

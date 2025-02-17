@@ -1,3 +1,4 @@
+import { ArtistArticle } from '@/types/artists';
 import { createClient } from '@/utils/supabase/server';
 import { OpenAI } from 'openai';
 
@@ -175,9 +176,10 @@ async function storeArticle(artistId: string, article: ProcessedArticle) {
     artist_id: artistId,
     title: article.title,
     content: article.content,
-    source_url: article.url,
+    url: article.url,
     publication_date: article.lastUpdated,
     embedding: article.embedding,
+    sentiment_score: null,
     metadata: {
       source: 'wikipedia',
       categories: article.categories,
@@ -185,7 +187,7 @@ async function storeArticle(artistId: string, article: ProcessedArticle) {
       last_updated: article.lastUpdated,
       relevance_score: article.relevanceScore
     }
-  };
+  } as ArtistArticle;
   const supabase = await createClient();
 
   // Check for an existing article for this artist from Wikipedia

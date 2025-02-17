@@ -159,6 +159,8 @@ export const addArtistFull = actionClient
         // Ideally, we should not rollback here since the main transaction is already committed.
         // Instead, log the error and consider scheduling a retry or marking the record for update.
       }
+      console.log('Wikipedia service completed');
+
       // set artist isComplete to true and throw an error if it fails
       const { error: updateError } = await supabase
         .from("artists")
@@ -167,6 +169,8 @@ export const addArtistFull = actionClient
       if (updateError) {
         throw new Error(`Error updating artist is_complete: ${updateError.message}`);
       }
+
+      console.log('artist is_complete updated to true');
 
       // Now query the database for the inserted artist with related data.
       const { data: insertedArtist, error: fetchError } = await supabase

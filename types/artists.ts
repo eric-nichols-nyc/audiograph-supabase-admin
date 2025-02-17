@@ -90,3 +90,17 @@ export interface Video {
     followers: number
   }
   
+  /**
+ * Maps to the "artist_articles" table in your database.
+ */
+export interface ArtistArticle {
+  id?: string; // uuid, primary key
+  artist_id: string | null; // uuid, can be null
+  title: string;
+  content: string;
+  url: string | null;
+  publication_date: string | null; // ISO date string; alternatively, use Date if you prefer
+  embedding: number[] | null; // Assuming "public.vector" is a vector of numbers
+  sentiment_score: number | null;
+  metadata: Record<string, any> | null; // JSONB field
+}
