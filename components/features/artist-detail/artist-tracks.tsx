@@ -1,9 +1,18 @@
 import React from 'react';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Track, ArtistTrack } from '@/types/artists';
+import { Track } from '@/types/artists';
 import { formatDate } from '@/utils/format/dates';
 import { formatNumber } from '@/utils/format/numbers';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 interface TracksSectionProps {
   tracks?: Track[];
 }
@@ -16,42 +25,42 @@ export function TracksSection({ tracks = [] }: TracksSectionProps) {
       </CardHeader>
       <CardContent>
         {tracks.length > 0 ? (
-          <div className="space-y-4">
-            {tracks.map((track, index) => (
-              <div key={track.id || index} className="p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">
-                    {index + 1}
-                  </span>
-                  {track.thumbnail_url ? (
-                    <Image
-                      src={track.thumbnail_url}
-                      alt={track.title || 'Track thumbnail'}
-                      width={64}
-                      height={64}
-                      className="rounded-md"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center">
-                      <span className="text-gray-400">No image</span>
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-
-                      <div className="flex-col">
-                        <span className="font-medium">
-                          {track.title || 'Untitled Track'}
-                        </span>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">#</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="text-right">Streams</TableHead>
+                <TableHead className="text-right">Added</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tracks.map((track, index) => (
+                <TableRow key={track.id || index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    {track.thumbnail_url ? (
+                      <Image
+                        src={track.thumbnail_url}
+                        alt={track.title || 'Track thumbnail'}
+                        width={40}
+                        height={40}
+                        className="rounded-md"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No img</span>
                       </div>
-                      <span>{formatNumber(track.stream_count_total)}</span>
-                      <span className="text-sm text-gray-500">Added: {formatDate(track.created_at)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{track.title || 'Untitled Track'}</TableCell>
+                  <TableCell className="text-right">{formatNumber(track.stream_count_total)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{formatDate(track.created_at)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <p className="text-gray-500">No tracks available</p>
         )}
