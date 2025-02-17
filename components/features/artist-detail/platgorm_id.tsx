@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArtistPlatformId } from './types';
+import { ArtistPlatformId } from '@/types/artists';
 
 interface PlatformIdsProps {
   platformIds?: ArtistPlatformId[];

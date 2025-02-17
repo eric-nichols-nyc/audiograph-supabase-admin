@@ -1,30 +1,5 @@
 import { ArtistDetailView } from "@/components/features/artist-detail/artist-detail-view";
-import { createClient } from "@/utils/supabase/server";
-import { transformArtistResponse } from '@/utils/transforms/artist';
-
-async function getArtistData(slug: string) {
-  const supabase = await createClient();
-  const { data: artist, error } = await supabase
-    .from("artists")
-    .select(`
-      *,
-      artist_platform_ids (*),
-      artist_urls (*),
-      artist_metrics (*),
-      artist_tracks (
-        tracks!track_id(*)
-      ),
-      artist_videos (
-        videos!video_id(*)
-      )
-    `)
-    .eq('slug', slug)
-    .single();
-
-  if (error) throw new Error(error.message);
-  
-  return transformArtistResponse(artist);
-}
+import { getArtistData } from "@/actions/artist";
 
 export default async function ArtistPage({ params }: { params: { slug: string } }) {
   let artistData = null;

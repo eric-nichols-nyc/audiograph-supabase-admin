@@ -5,7 +5,7 @@ import { actionClient } from "@/lib/safe-action";
 import { Artist, ArtistPlatformId, ArtistUrl, ArtistMetric } from "../types/artists";
 import { artistSchema } from "@/schemas/artists";
 import { z } from "zod";
-import { aggregateArtistData } from '@/services/artistAggregator';
+import { transformArtistResponse } from '@/utils/transforms/artist';
 
 export const getArtists = actionClient
 .action(async (): Promise<Artist[]> => {
@@ -25,16 +25,30 @@ export const getArtists = actionClient
 });
 
 
-export const addArtist = actionClient
-.schema(artistSchema)
-.action(async ({ parsedInput }: { parsedInput: Artist }) => {
+export const getArtistData = async(slug:string) => {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("artists").insert(parsedInput);
-  if (error) {
-    throw new Error(`Error adding artist: ${error.message}`);
-  }
-  return data;
-});
+  const { data: artist, error } = await supabase
+    .from("artists")
+    .select(`
+      *,
+      artist_platform_ids (*),
+      artist_urls (*),
+      artist_metrics (*),
+      artist_tracks (
+        tracks!track_id(*)
+      ),
+      artist_videos (
+        videos!video_id(*)
+      )
+    `)
+    .eq('slug', slug)
+    .single();
+
+  if (error) throw new Error(error.message);
+  
+  return transformArtistResponse(artist);
+}
+
 
 export const updateArtist = actionClient
   .schema(artistSchema)

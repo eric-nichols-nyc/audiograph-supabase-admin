@@ -2,26 +2,30 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArtistInfo } from './artist-info';
-import { PlatformIds } from './PlatformIds';
+import { PlatformIds } from './platgorm_id';
 import { MetricsCard } from './metric-card';
-import { TracksSection } from './TracksSection';
-import { VideosSection } from './VideosSection';
-import { Artist, ArtistPlatformId, ArtistMetric, ArtistTrack, ArtistVideo } from '@/types/artists';
+import { TracksSection } from './artist-tracks';
+import { VideosSection } from './artist-videos';
+import { Artist, ArtistPlatformId, ArtistMetric, Track, ArtistVideo, ArtistTrack, Video } from '@/types/artists';
+
+type ArtistWithTrack = Track & ArtistTrack;
+type ArtistWithVideo = Video & ArtistVideo; 
 
 export interface FullArtist {
-  artist: Artist;
-  artist_platform_ids: ArtistPlatformId[];
-  artist_metrics: ArtistMetric[];
-  artist_tracks: ArtistTrack[];
-  artist_videos: ArtistVideo[];
+    artist: Artist;
+    artist_platform_ids: ArtistPlatformId[];
+    artist_metrics: ArtistMetric[];
+    artist_tracks: ArtistWithTrack[];
+    artist_videos: ArtistWithVideo[];
 }
 
 export interface ArtistDetailViewProps {
-  data?: FullArtist | null;
+  data: FullArtist;
 }
 
-export function ArtistDetailView({ artist, artist_platform_ids, artist_metrics, artist_tracks, artist_videos }: FullArtist) {
-  if (!artist) {
+export const ArtistDetailView = ({ data }: ArtistDetailViewProps) => {
+  const {artist, artist_platform_ids, artist_metrics, artist_tracks, artist_videos} = data;
+  if (!data) {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <Card>
@@ -49,15 +53,15 @@ export function ArtistDetailView({ artist, artist_platform_ids, artist_metrics, 
         </TabsContent>
 
         <TabsContent value="metrics">
-          <MetricsCard metrics={data.artist_metrics || []} />
+          <MetricsCard metrics={artist_metrics || []} />
         </TabsContent>
 
         <TabsContent value="tracks">
-          <TracksSection tracks={data.artist_tracks || []} />
+          <TracksSection tracks={artist_tracks || []} />
         </TabsContent>
 
         <TabsContent value="videos">
-          <VideosSection videos={data.artist_videos || []} />
+          <VideosSection videos={artist_videos || []} />
         </TabsContent>
       </Tabs>
     </div>

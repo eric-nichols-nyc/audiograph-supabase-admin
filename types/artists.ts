@@ -17,6 +17,7 @@ export interface Artist {
 }
 
 export interface ArtistPlatformId {
+    id?: string
     artist_id: string
     platform: 'spotify' | 'youtube' | 'musicbrainz' | 'lastfm'
 }
@@ -70,6 +71,7 @@ export interface Video {
     monthly_view_count?: number | null
     thumbnail_url: string | null | undefined
     published_at: string | null
+    created_at?: string
 }
 
 // types/database/tracks.ts

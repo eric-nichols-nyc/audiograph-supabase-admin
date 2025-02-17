@@ -1,9 +1,13 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArtistVideo, formatDate } from './types';
+import { Video, ArtistVideo } from '@/types/artists';
+import { formatDate } from '@/utils/format/dates';
+
+
+type ArtistWithVideo = Video & ArtistVideo;
 
 interface VideosSectionProps {
-  videos?: ArtistVideo[];
+  videos?: ArtistWithVideo[];
 }
 
 export function VideosSection({ videos = [] }: VideosSectionProps) {
