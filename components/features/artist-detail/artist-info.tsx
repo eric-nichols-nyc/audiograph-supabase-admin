@@ -1,12 +1,26 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Artist, formatDate } from './types';
+import { Artist } from '@/types/artists';
 
-interface BasicInfoProps {
+export const formatNumber = (num: number | null | undefined): string => {
+  if (num === null || num === undefined) return 'N/A';
+  return new Intl.NumberFormat().format(num);
+};
+
+export const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}; 
+
+interface ArtistInfoProps {
   artist: Artist;
 }
 
-export function BasicInfo({ artist }: BasicInfoProps) {
+export function ArtistInfo({ artist }: ArtistInfoProps) {
   return (
     <Card className="mb-6">
       <CardHeader>

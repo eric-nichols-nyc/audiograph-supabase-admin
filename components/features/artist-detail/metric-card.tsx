@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArtistMetric, formatNumber, formatDate } from './types';
+import { ArtistMetric } from '@/types/artists';
+import { formatNumber } from '@/utils/format/numbers';
+import { formatDate } from '@/utils/format/dates';
 
 interface MetricsCardProps {
   metrics?: ArtistMetric[];

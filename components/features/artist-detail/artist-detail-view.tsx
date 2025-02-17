@@ -1,15 +1,27 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArtistDetailViewProps } from './types';
-import { BasicInfo } from './BasicInfo';
+import { ArtistInfo } from './artist-info';
 import { PlatformIds } from './PlatformIds';
-import { MetricsCard } from './MetricsCard';
+import { MetricsCard } from './metric-card';
 import { TracksSection } from './TracksSection';
 import { VideosSection } from './VideosSection';
+import { Artist, ArtistPlatformId, ArtistMetric, ArtistTrack, ArtistVideo } from '@/types/artists';
 
-export function ArtistDetailView({ data }: ArtistDetailViewProps) {
-  if (!data) {
+export interface FullArtist {
+  artist: Artist;
+  artist_platform_ids: ArtistPlatformId[];
+  artist_metrics: ArtistMetric[];
+  artist_tracks: ArtistTrack[];
+  artist_videos: ArtistVideo[];
+}
+
+export interface ArtistDetailViewProps {
+  data?: FullArtist | null;
+}
+
+export function ArtistDetailView({ artist, artist_platform_ids, artist_metrics, artist_tracks, artist_videos }: FullArtist) {
+  if (!artist) {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <Card>
@@ -32,8 +44,8 @@ export function ArtistDetailView({ data }: ArtistDetailViewProps) {
         </TabsList>
 
         <TabsContent value="overview">
-          <BasicInfo artist={data} />
-          <PlatformIds platformIds={data.artist_platform_ids || []} />
+          <ArtistInfo artist={artist} />
+          <PlatformIds platformIds={artist_platform_ids || []} />
         </TabsContent>
 
         <TabsContent value="metrics">

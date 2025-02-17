@@ -1,6 +1,6 @@
-import { ArtistDetailView } from "@/components/features/artist-detail/ArtistDetailView";
+import { ArtistDetailView } from "@/components/features/artist-detail/artist-detail-view";
 import { createClient } from "@/utils/supabase/server";
-
+import { transformArtistResponse } from '@/utils/transforms/artist';
 
 async function getArtistData(slug: string) {
   const supabase = await createClient();
@@ -22,7 +22,8 @@ async function getArtistData(slug: string) {
     .single();
 
   if (error) throw new Error(error.message);
-  return artist;
+  
+  return transformArtistResponse(artist);
 }
 
 export default async function ArtistPage({ params }: { params: { slug: string } }) {
@@ -41,6 +42,6 @@ export default async function ArtistPage({ params }: { params: { slug: string } 
     );
   }
 
-  console.log('artistData ', JSON.stringify(artistData, null, 2));
+  console.log('artistData ', artistData);
   return <ArtistDetailView data={artistData} />;
 }
