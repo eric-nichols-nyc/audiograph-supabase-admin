@@ -17,6 +17,5 @@ export default async function ArtistPage({ params }: { params: { slug: string } 
     );
   }
 
-  console.log('artistData ', artistData);
   return <ArtistDetailView data={artistData} />;
 }

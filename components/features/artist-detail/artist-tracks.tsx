@@ -3,12 +3,9 @@ import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Track, ArtistTrack } from '@/types/artists';
 import { formatDate } from '@/utils/format/dates';
-
-type ArtistWithTrack = Track & ArtistTrack;
-
-
+import { formatNumber } from '@/utils/format/numbers';
 interface TracksSectionProps {
-  tracks?: ArtistWithTrack[];
+  tracks?: Track[];
 }
 
 export function TracksSection({ tracks = [] }: TracksSectionProps) {
@@ -23,8 +20,11 @@ export function TracksSection({ tracks = [] }: TracksSectionProps) {
             {tracks.map((track, index) => (
               <div key={track.id || index} className="p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
+                  <span className="font-medium">
+                    {index + 1}
+                  </span>
                   {track.thumbnail_url ? (
-                    <Image 
+                    <Image
                       src={track.thumbnail_url}
                       alt={track.title || 'Track thumbnail'}
                       width={64}
@@ -38,9 +38,13 @@ export function TracksSection({ tracks = [] }: TracksSectionProps) {
                   )}
                   <div className="flex-1">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">
-                        {index + 1}. {track.track_id || 'Untitled Track'}
-                      </span>
+
+                      <div className="flex-col">
+                        <span className="font-medium">
+                          {track.title || 'Untitled Track'}
+                        </span>
+                      </div>
+                      <span>{formatNumber(track.stream_count_total)}</span>
                       <span className="text-sm text-gray-500">Added: {formatDate(track.created_at)}</span>
                     </div>
                   </div>

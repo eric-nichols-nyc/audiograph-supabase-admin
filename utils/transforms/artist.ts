@@ -11,6 +11,7 @@ interface ArtistResponse extends Omit<Artist, 'artist_videos' | 'artist_tracks'>
 
 interface TransformedArtist extends Omit<ArtistResponse, 'artist_videos' | 'artist_tracks'> {
   id: string;
+  artist: Artist;
   artist_videos: Video[];
   artist_tracks: Track[];
 }
@@ -22,6 +23,7 @@ export function transformArtistResponse(artist: ArtistResponse): TransformedArti
 
   return {
     ...artist,
+    artist: artist,
     artist_videos: artist.artist_videos?.map(item => item.videos) || [],
     artist_tracks: artist.artist_tracks?.map(item => item.tracks) || []
   };

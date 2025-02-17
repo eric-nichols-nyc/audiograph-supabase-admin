@@ -15,8 +15,8 @@ export interface FullArtist {
     artist: Artist;
     artist_platform_ids: ArtistPlatformId[];
     artist_metrics: ArtistMetric[];
-    artist_tracks: ArtistWithTrack[];
-    artist_videos: ArtistWithVideo[];
+    artist_tracks: Track[];
+    artist_videos: Video[];
 }
 
 export interface ArtistDetailViewProps {

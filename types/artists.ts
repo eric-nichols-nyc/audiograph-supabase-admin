@@ -84,6 +84,7 @@ export interface Track {
     stream_count_total: number | null
     stream_count_daily: number | null
     thumbnail_url: string | null
+    created_at?: string
 }
 
 export interface SpotifyArtist {

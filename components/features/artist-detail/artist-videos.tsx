@@ -4,10 +4,9 @@ import { Video, ArtistVideo } from '@/types/artists';
 import { formatDate } from '@/utils/format/dates';
 
 
-type ArtistWithVideo = Video & ArtistVideo;
 
 interface VideosSectionProps {
-  videos?: ArtistWithVideo[];
+  videos?: Video[];
 }
 
 export function VideosSection({ videos = [] }: VideosSectionProps) {
