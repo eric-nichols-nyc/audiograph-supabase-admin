@@ -39,18 +39,7 @@ export class NotificationService {
   }): Promise<string> {
     try {
       const supabase = await createClient();
-      
-      console.log('Creating notification:', {
-        account_id: this.accountId,
-        type,
-        title,
-        message,
-        priority,
-        metadata,
-        expires_at,
-        link
-      });
-
+    
       const { data, error } = await supabase
         .from('notifications')
         .upsert([{

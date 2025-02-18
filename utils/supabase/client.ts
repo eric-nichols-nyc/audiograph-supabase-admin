@@ -3,20 +3,16 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { createClient } from '@supabase/supabase-js';
 
-// This function initializes and returns a Supabase client instance for use in the browser.
-// It uses the createBrowserClient function from the Supabase SSR package,
-// but tailored to work in browser environments.
-export const createClient = () =>
+// Create the browser client
+export const createBrowserSupabase = () =>
   createBrowserClient(
     // The Supabase URL is read from the environment variable and is used as the 
     // Supabase project endpoint.
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     // The Supabase anon key is read from the environment variable and is used 
     // to authenticate client-side requests.
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Export a singleton instance for direct use
+export const supabase = createBrowserSupabase();

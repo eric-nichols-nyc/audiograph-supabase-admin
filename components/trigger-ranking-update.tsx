@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/utils/supabase/client';  // Use the singleton instance
 
 export function TriggerRankingUpdate() {
   const [isUpdating, setIsUpdating] = useState(false);

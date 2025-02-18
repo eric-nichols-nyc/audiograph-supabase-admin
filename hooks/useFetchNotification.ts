@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createBrowserSupabase } from "@/utils/supabase/client";
 
 export interface Notification {
   id: string;
@@ -16,7 +16,7 @@ export interface Notification {
 export default function useFetchNotification() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   useEffect(() => {
     const fetchNotifications = async () => {
