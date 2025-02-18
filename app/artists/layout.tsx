@@ -1,7 +1,7 @@
 import {Sidebar} from "@/components/features/sidebar/sidebar";
 import { getArtists } from "@/actions/artist";
 import { Artist } from "@/types/artists";
-
+import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
 
 async function getArtistsFromDb(): Promise<Artist[]> {
   try {
@@ -22,11 +22,8 @@ export default async function Layout({
 }>) {
     const artists = (await getArtistsFromDb()) ?? [];
   return (
-      <div className="flex w-full">
-        <div className="w-1/4">
-          <Sidebar dbArtists={artists} />
-        </div>
-        <div className="w-3/4">{children}</div>
-      </div>
+    <AdminPanelLayout>
+      {children}
+    </AdminPanelLayout>
   );
 }
