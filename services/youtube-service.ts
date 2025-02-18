@@ -109,6 +109,8 @@ class YoutubeService {
                 fetchedAt: new Date().toISOString()
             };
 
+            console.log('YOUTUBE RESULT==========================', result);
+
             // Store in memory cache
             // console.log('Storing data in memory cache:', cacheKey);
             this.memoryCache.set(cacheKey, {
@@ -134,7 +136,6 @@ class YoutubeService {
                 })
             );
 
-            console.log('Fetched video data:', response.data.items);
             return response.data.items || [];
         } catch (error) {
             console.error('Error fetching video data:', error);

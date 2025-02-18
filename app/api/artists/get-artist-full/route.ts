@@ -22,6 +22,12 @@ const STAGES = {
   ERROR: 'Error during ingestion'
 } as const;
 
+interface Metric {
+  metric_type: string;
+  value: number;
+}
+
+
 export function combineArtistName(artistName: string): string {
   // Trim whitespace, remove spaces and dashes, and convert to lowercase
   return artistName.trim().replace(/[\s-]+/g, '').toLowerCase();
@@ -58,6 +64,7 @@ const getArtistVideoData = async (artistName: string): Promise<{
   try {
     const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
     const {videos, stats} = videoData;
+    console.log('VIDEO DATA==========================', stats);
     const videoIds = videos.map((video:Video) => video.video_id);
     // No, this needs to stay inside the function since createYoutubeService() 
     // initializes a new service instance that should be scoped to each request
@@ -71,15 +78,22 @@ const getArtistVideoData = async (artistName: string): Promise<{
       published_at: video.snippet?.publishedAt || '',
     }));
 
-    const statsMetrics: Omit<ArtistMetric, 'id' | 'date'> = {
+    const youtube_total_views: Omit<ArtistMetric, 'id' | 'date'> = {
       platform: 'youtube',
-      metric_type: 'total_views' as 'total_views',
-      value: stats.find((stat: any) => stat.metric === 'total_views')?.value || 0,
+      metric_type: 'total_views',
+      value: stats.find((stat: Metric) => stat.metric_type === 'total_views')?.value || 0,
     };
+
+    const youtube_daily_views: Omit<ArtistMetric, 'id' | 'date'> = {
+      platform: 'youtube',
+      metric_type: 'daily_view_count',
+      value: stats.find((stat: Metric) => stat.metric_type === 'current_daily_avg')?.value || 0,
+    };
+
 
     const youtubeVideosWithStats = convertYoutubeVideosVideoType(videos, ytvids);
     return {
-      stats: [statsMetrics],
+      stats: [youtube_total_views, youtube_daily_views],
       videos: youtubeVideosWithStats
     };
   } catch (error) {
@@ -87,32 +101,31 @@ const getArtistVideoData = async (artistName: string): Promise<{
   }
 }
 
+
   const fetchTrackData = async (artistName: string): Promise<{
-    stats: Omit<ArtistMetric, 'id'>[],
+    stats: Omit<ArtistMetric, 'id' | 'date'>[],
     tracks: Track[]
   }> => {
     try {
       const spotifyService = createSpotifyService();
       const trackData = await scrapeKworbData(artistName, 'tracks');
-      
       const tracks = await Promise.all(trackData.tracks.map(async (track: any) => ({
         ...track,
         thumbnail_url: await spotifyService.getTrackImage(track.track_id)
       })));
 
       const currentDate = new Date().toISOString();
-      const stats: Omit<ArtistMetric, 'id'>[] = [
+      // map the stats to the artist metric type
+      const stats: Omit<ArtistMetric, 'id' | 'date'>[] = [
         { 
           platform: "spotify",
           metric_type: "total_streams", 
-          value: trackData.stats.find((stat: any) => stat.metric === 'streams')?.value || 0,
-          date: currentDate
+          value: trackData.stats.find((stat: Metric) => stat.metric_type === 'streams')?.value || 0,
         },
         { 
           platform: "spotify",
           metric_type: "daily_stream_count", 
-          value: trackData.stats.find((stat: any) => stat.metric === 'daily')?.value || 0,
-          date: currentDate
+          value: trackData.stats.find((stat: Metric) => stat.metric_type === 'daily')?.value || 0,
         }
       ];
       return {
@@ -190,15 +203,16 @@ export async function POST(req: Request) {
       await sendUpdate('TRACK_DATA', 'Fetching Spotify track data...', 50);
       const trackData = await fetchTrackData(spotify_id);
       result.tracks = trackData.tracks;
+      console.log('METRIC DATA==========================', trackData.stats);
       result.metricData = [...result.metricData, ...trackData.stats];
       await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
       // Store Everything
       await sendUpdate('STORE', 'Saving artist data...', 80);
-      console.log('RESULT TO SEND TO DATABASE==========================', result.artist);
-      const insertedArtist = await addArtistFull(result);
+      console.log('RESULT TO SEND TO DATABASE==========================', result.metricData);
+      // const insertedArtist = await addArtistFull(result);
 
       // Complete
-      await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
+     await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
       return NextResponse.json(result);
     } catch (error) {
       console.error('Artist ingestion error:', error);

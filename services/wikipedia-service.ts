@@ -261,53 +261,6 @@ function findSharedCategories(article1: ProcessedArticle, article2: { categories
   return article2.categories.filter((category: string) => categories1.has(category));
 }
 
-export class WikipediaService {
-  private baseUrl = 'https://wikimedia.org/api/rest_v1';
-
-  async getPageViews(title: string, days: number = 30): Promise<number> {
-    try {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-
-      const start = this.formatDate(startDate);
-      const end = this.formatDate(endDate);
-
-      const response = await fetch(
-        `${this.baseUrl}/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/${encodeURIComponent(title)}/daily/${start}/${end}`
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch pageviews');
-      }
-
-      const data = await response.json();
-      const totalViews = data.items.reduce((sum: number, item: any) => sum + item.views, 0);
-      
-      // Update the artist_articles table with the pageviews
-      const supabase = await createClient();
-      await supabase
-        .from('artist_articles')
-        .update({
-          metadata: {
-            pageviews: totalViews,
-            pageviews_updated: new Date().toISOString()
-          }
-        })
-        .eq('title', title);
-
-      return totalViews;
-    } catch (error) {
-      console.error('Error fetching Wikipedia pageviews:', error);
-      return 0;
-    }
-  }
-
-  private formatDate(date: Date): string {
-    return date.toISOString().slice(0, 10).replace(/-/g, '');
-  }
-}
-
 // // API route entry point
 // export async function GET(request: Request) {
 //   try {

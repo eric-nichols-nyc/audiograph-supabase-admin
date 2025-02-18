@@ -44,7 +44,11 @@ const _scrapeKworbData = async (
         const stats = Array.from(statsTable.querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
           if (cells.length < 5) return null;
-          const metric_type = cells[0].textContent?.trim().toLowerCase().replace(/\s+/g, '_') || "";
+          const metric_type = cells[0].textContent?.trim()
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(':', '')  // Remove any colons
+            || "";
           const value = parseInt(cells[1].textContent?.replace(/,/g, '') || '0', 10);
           return { metric_type , value };
         }).filter(item => item !== null);
@@ -86,12 +90,15 @@ const _scrapeKworbData = async (
         const stats = Array.from(tables[0].querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
           if (cells.length < 2) return null;
-          const metric = cells[0].textContent?.trim().toLowerCase().replace(/\s+/g, '_') || "";
+          const metric_type = cells[0].textContent?.trim()
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(':', '')  // Remove any colons
+            || "";
           const valueText = cells[1].textContent?.replace(/,/g, '') || "0";
           const value = parseInt(valueText, 10);
-          return { metric, value };
+          return { metric_type, value };
         }).filter(item => item !== null);
-
         // Parse video details table (similar to track rows)
         const videos = Array.from(tables[1].querySelectorAll('tbody tr')).map(row => {
           const cells = row.querySelectorAll('td');
