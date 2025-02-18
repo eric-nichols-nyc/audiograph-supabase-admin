@@ -51,6 +51,8 @@ function ArtistSearchResult({ artist, isProcessing, onSelect }: ArtistSearchResu
         </div>
     )
 }
+
+
 interface SpotifySearchProps {
     onArtistSelect: (artist: SpotifyArtist) => void
 }
@@ -62,6 +64,7 @@ export default function SpotifySearch({ onArtistSelect }: SpotifySearchProps) {
     const [searchResults, setSearchResults] = useState<SpotifyArtist[]>([])
     const [isSearching, setIsSearching] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
+    const [selectedArtist, setSelectedArtist] = useState<SpotifyArtist | null>(null)
 
     /**
    * Debounced function to search Spotify API
@@ -107,7 +110,15 @@ export default function SpotifySearch({ onArtistSelect }: SpotifySearchProps) {
      * Handles the artist selection and creation process
      */
     const handleArtistSelect = async (spotifyArtist: SpotifyArtist) => {
+        setSelectedArtist(spotifyArtist)
+        setSearchQuery('')
+        setSearchResults([])
         onArtistSelect(spotifyArtist)
+    }
+
+    const clearSelection = () => {
+        setSelectedArtist(null)
+        setSearchQuery('')
     }
 
     /**
@@ -155,14 +166,30 @@ export default function SpotifySearch({ onArtistSelect }: SpotifySearchProps) {
         <Card className="flex-1">
             <CardContent>
                 <div className="mb-6">
-                    <Input
-                        placeholder="Search Spotify artists..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full p-2 border rounded"
-                    />
+                    {selectedArtist ? (
+                        <div className="relative">
+                            <ArtistSearchResult
+                                artist={selectedArtist}
+                                isProcessing={isProcessing}
+                                onSelect={() => {}}
+                            />
+                            <button
+                                onClick={clearSelection}
+                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    ) : (
+                        <Input
+                            placeholder="Search Spotify artists..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full p-2 border rounded"
+                        />
+                    )}
                 </div>
-                {renderSearchResults()}
+                {!selectedArtist && renderSearchResults()}
             </CardContent>
         </Card>
     )

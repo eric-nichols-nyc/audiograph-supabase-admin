@@ -34,7 +34,13 @@ export default function MultiStepLoader({ currentStage, error }: MultiStepLoader
   const getCurrentStatus = (stageKey: keyof typeof STAGES) => {
     if (error) return 'error';
     if (!currentStage) return 'pending';
-    if (currentStage.stage === 'COMPLETE' && STAGES[stageKey].order < STAGES.COMPLETE.order) return 'complete';
+    
+    // If the current stage is COMPLETE, mark all stages as complete
+    if (currentStage.stage === 'COMPLETE') {
+      return 'complete';
+    }
+    
+    // For other stages
     if (currentStage.stage === stageKey) return 'current';
     if (STAGES[currentStage.stage].order > STAGES[stageKey].order) return 'complete';
     return 'pending';

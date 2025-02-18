@@ -7,9 +7,10 @@ import MultiStepLoader from "@/components/multi-step-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { SpotifyArtist } from "@/types/artists";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE" | "COMPLETE";
 
@@ -19,6 +20,7 @@ interface StageUpdate {
   details: string;
   progress?: number;
   result?: any;
+  payload?: any;
 }
 
 export default function AddArtist() {
@@ -27,6 +29,7 @@ export default function AddArtist() {
   const [validationErrors, setValidationErrors] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState<SpotifyArtist | null>(null);
+  const [artistSlug, setArtistSlug] = useState<string | null>(null);
   const [finalResult, setFinalResult] = useState<any>(null);
 
   const processArtist = async (spotifyArtist: SpotifyArtist) => {
@@ -69,6 +72,7 @@ export default function AddArtist() {
           if (message.stage === 'COMPLETE') {
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
+            setArtistSlug(message.payload.data.slug);
             setValidationErrors(null);
           }
         }
@@ -144,18 +148,29 @@ export default function AddArtist() {
               currentStage={currentStage}
               error={error}
             />
+            {currentStage?.stage === 'COMPLETE' && currentStage.payload && (
+              <div className="mt-4 flex justify-center">
+                <Button asChild>
+                  <Link 
+                    href={`/artists/${artistSlug}`}
+                    className="flex items-center gap-2"
+                  >
+                    View Artist <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {finalResult && (
+      {/* {finalResult && (
         <ScrollArea className="mt-4 h-60 border rounded">
           <div className="p-4">
             <h3 className="font-semibold mb-2">Final Result</h3>
             <pre>{JSON.stringify(finalResult, null, 2)}</pre>
           </div>
-        </ScrollArea>
-      )}
+        </ScrollArea> */}      
     </div>
   );
 }
