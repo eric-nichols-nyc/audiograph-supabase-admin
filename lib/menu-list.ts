@@ -33,8 +33,8 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "",
       menus: [
         {
-          href: "/dashboard",
-          label: "Dashboard",
+          href: "/artists/add",
+          label: "Add Artist",
           icon: LayoutGrid,
           submenus: []
         }
@@ -44,28 +44,18 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Contents",
       menus: [
         {
-          href: "",
-          label: "Posts",
+          href: "/artists",
+          label: "Artists",
           icon: SquarePen,
-          submenus: [
-            {
-              href: "/posts",
-              label: "All Posts"
-            },
-            {
-              href: "/posts/new",
-              label: "New Post"
-            }
-          ]
         },
         {
-          href: "/categories",
-          label: "Categories",
+          href: "/songs",
+          label: "Songs",
           icon: Bookmark
         },
         {
-          href: "/tags",
-          label: "Tags",
+          href: "/videos",
+          label: "Videos",
           icon: Tag
         }
       ]
