@@ -1,18 +1,41 @@
 import { Artist } from "@/types/artists";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
+import { NotificationService } from './notification-service';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export class RankingService {
+  constructor(private readonly accountId: string) {
+    this.notificationService = new NotificationService(accountId);
+  }
+
+  public notificationService: NotificationService;
+
   async updateRankings(): Promise<void> {
+    const supabase = await createClient();
+
     try {
       const { error } = await supabase.rpc('calculate_artist_rankings');
       if (error) throw error;
+
+      await this.notificationService.createNotification({
+        type: 'success',
+        title: 'Rankings Updated',
+        message: 'Artist rankings have been successfully updated',
+        metadata: {
+          timestamp: new Date().toISOString()
+        }
+      });
     } catch (error) {
-      console.error('Error updating rankings:', error);
+      await this.notificationService.createNotification({
+        type: 'error',
+        title: 'Ranking Update Failed',
+        message: 'Failed to update artist rankings',
+        priority: 1, // Higher priority for errors
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        }
+      });
       throw error;
     }
   }
@@ -22,6 +45,8 @@ export class RankingService {
     timeRange: string = '7 days'
   ): Promise<Artist[]> {
     try {
+      const supabase = await createClient();
+
       const { data, error } = await supabase
         .rpc('get_trending_artists', { 
           limit_count: limit,
@@ -38,6 +63,7 @@ export class RankingService {
 
   async getArtistScore(artistId: string): Promise<number> {
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .rpc('calculate_artist_score', { artist_id: artistId });
 

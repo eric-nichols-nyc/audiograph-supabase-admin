@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { RankingService } from '@/services/ranking-service';
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST() {
-  try {
-    const rankingService = new RankingService();
-    await rankingService.updateAllArtistRankings();
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Rankings updated successfully' 
-    });
-  } catch (error) {
-    console.error('Error updating rankings:', error);
-    return NextResponse.json(
-      { error: 'Failed to update rankings' },
-      { status: 500 }
-    );
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const rankingService = new RankingService(user.id);
+  await rankingService.updateRankings();
+  
+  return NextResponse.json({ 
+    success: true, 
+    message: 'Rankings updated successfully' 
+  });
 } 

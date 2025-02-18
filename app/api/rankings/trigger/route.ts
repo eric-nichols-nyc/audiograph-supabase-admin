@@ -2,20 +2,15 @@ import { NextResponse } from 'next/server';
 import { RankingService } from '@/services/ranking-service';
 import { createClient } from '@/utils/supabase/server';
 
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
-
-// This endpoint will be called daily at midnight UTC
-export const config = {
-  cron: '0 0 * * *'
-};
-
-export async function GET() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     const rankingService = new RankingService(user.id);
@@ -23,12 +18,12 @@ export async function GET() {
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Rankings updated successfully' 
+      message: 'Rankings update triggered successfully' 
     });
   } catch (error) {
-    console.error('Error updating rankings:', error);
+    console.error('Error triggering rankings update:', error);
     return NextResponse.json(
-      { error: 'Failed to update rankings' },
+      { error: 'Failed to trigger rankings update' },
       { status: 500 }
     );
   }

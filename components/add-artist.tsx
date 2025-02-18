@@ -11,6 +11,8 @@ import { Loader2, ArrowRight } from "lucide-react";
 import { SpotifyArtist } from "@/types/artists";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import { RankingService } from '@/services/ranking-service';
+import { supabase } from '@/utils/supabase/client';
 
 type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE" | "COMPLETE";
 
@@ -38,6 +40,11 @@ export default function AddArtist() {
     setCurrentStage(null);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) {
+        throw new Error('Unauthorized');
+      }
+
       const response = await fetch('/api/artists/get-artist-full', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,6 +77,23 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
+            try {
+              const rankingService = new RankingService(user.id);
+              await rankingService.updateRankings();
+              
+              await rankingService.notificationService.createNotification({
+                type: 'artist_added',
+                title: 'New Artist Added',
+                message: `Successfully added artist: ${spotifyArtist.name}`,
+                metadata: {
+                  artistId: message.payload.data.id,
+                  artistName: spotifyArtist.name
+                },
+                link: `/artists/${message.payload.data.slug}`
+              });
+            } catch (error) {
+              console.error('Error in post-artist processing:', error);
+            }
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
             setArtistSlug(message.payload.data.slug);
