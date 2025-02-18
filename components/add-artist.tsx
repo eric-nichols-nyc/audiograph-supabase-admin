@@ -99,6 +99,20 @@ export default function AddArtist() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
+            {validationErrors && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  <pre className="whitespace-pre-wrap">{validationErrors}</pre>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {error && !validationErrors && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <SpotifySearch onArtistSelect={handleArtistSelect} />
             {selectedArtist && (
               <Button 
@@ -116,22 +130,9 @@ export default function AddArtist() {
                 )}
               </Button>
             )}
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
           </div>
         </CardContent>
       </Card>
-
-      {validationErrors && (
-        <div className="mt-4 p-4 border rounded bg-red-100 text-red-700">
-          <h3 className="font-semibold mb-2">Validation Errors</h3>
-          <pre>{validationErrors}</pre>
-        </div>
-      )}
 
       {(isProcessing || currentStage) && (
         <Card>

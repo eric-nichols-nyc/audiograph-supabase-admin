@@ -153,9 +153,6 @@ export default function SpotifySearch({ onArtistSelect }: SpotifySearchProps) {
 
     return (
         <Card className="flex-1">
-            <CardHeader>
-                <CardTitle>Search for an Artist</CardTitle>
-            </CardHeader>
             <CardContent>
                 <div className="mb-6">
                     <Input

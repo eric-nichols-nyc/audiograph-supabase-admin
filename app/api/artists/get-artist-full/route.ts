@@ -52,7 +52,7 @@ const fetchAnalytics = async (artistName: string): Promise<ArtistMetric[]> => {
 }
 
 const getArtistVideoData = async (artistName: string): Promise<{
-  stats: ArtistMetric[],
+  stats: Omit<ArtistMetric, 'id' | 'date'>[],
   videos: Video[]
 }> => {
   try {
@@ -71,7 +71,7 @@ const getArtistVideoData = async (artistName: string): Promise<{
       published_at: video.snippet?.publishedAt || '',
     }));
 
-    const statsMetrics: ArtistMetric = {
+    const statsMetrics: Omit<ArtistMetric, 'id' | 'date'> = {
       platform: 'youtube',
       metric_type: 'total_views' as 'total_views',
       value: stats.find((stat: any) => stat.metric === 'total_views')?.value || 0,
@@ -88,7 +88,7 @@ const getArtistVideoData = async (artistName: string): Promise<{
 }
 
   const fetchTrackData = async (artistName: string): Promise<{
-    stats: ArtistMetric[],
+    stats: Omit<ArtistMetric, 'id'>[],
     tracks: Track[]
   }> => {
     try {
@@ -100,16 +100,19 @@ const getArtistVideoData = async (artistName: string): Promise<{
         thumbnail_url: await spotifyService.getTrackImage(track.track_id)
       })));
 
-      const stats: ArtistMetric[] = [
+      const currentDate = new Date().toISOString();
+      const stats: Omit<ArtistMetric, 'id'>[] = [
         { 
           platform: "spotify",
           metric_type: "total_streams", 
-          value: trackData.stats.find((stat: any) => stat.metric === 'streams')?.value || 0 
+          value: trackData.stats.find((stat: any) => stat.metric === 'streams')?.value || 0,
+          date: currentDate
         },
         { 
           platform: "spotify",
           metric_type: "daily_stream_count", 
-          value: trackData.stats.find((stat: any) => stat.metric === 'daily')?.value || 0 
+          value: trackData.stats.find((stat: any) => stat.metric === 'daily')?.value || 0,
+          date: currentDate
         }
       ];
       return {
@@ -189,20 +192,9 @@ export async function POST(req: Request) {
       result.tracks = trackData.tracks;
       result.metricData = [...result.metricData, ...trackData.stats];
       await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
-      await sendUpdate('WIKIPEDIA', 'Fetching Wikipedia article...', 85);
-      const wikiData = await new Promise(resolve => {
-        new Promise(resolve => {
-          setTimeout(() => {
-            resolve("wikiData done");
-          }, 2000);
-        });
-      });
-      result.wikipedia = wikiData;
-      await sendUpdate('WIKIPEDIA', 'Retrieved Wikipedia data', 90);
-
       // Store Everything
-      await sendUpdate('STORE', 'Saving artist data...', 95);
-     // console.log('RESULT TO SEND TO DATABASE==========================', result);
+      await sendUpdate('STORE', 'Saving artist data...', 80);
+      console.log('RESULT TO SEND TO DATABASE==========================', result.artist);
       const insertedArtist = await addArtistFull(result);
 
       // Complete

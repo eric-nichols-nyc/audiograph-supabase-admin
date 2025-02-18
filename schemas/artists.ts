@@ -15,10 +15,13 @@ export const artistSchema = z.object({
   birth_date: z.string(),
   image_url: z.string(),
   genres: z.array(z.string()).nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
 }) satisfies z.Schema<Artist>;
 
 
 export const artistPlatformIdSchema = z.array(z.object({
+  id: z.string(),
   artist_id: z.string(),
   platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz']),
 })) satisfies z.Schema<ArtistPlatformId[]>;
@@ -30,7 +33,9 @@ export const artistUrlSchema = z.array(z.object({
 })) satisfies z.Schema<ArtistUrl[]>;
 
 export const artistMetricSchema = z.array(z.object({
+  id: z.string(),
   artist_id: z.string().optional(),
+  date: z.string(),
   platform: z.string(),
   metric_type: z.enum(['followers', 'views', 'likes', 'subscribers', 'monthly_listeners', 'daily_view_count', 'daily_stream_count', 'total_views', 'total_streams']),
   value: z.number(),
@@ -40,6 +45,7 @@ export const artistMetricSchema = z.array(z.object({
 
 export const trackSchema = z.array(
   z.object({
+    id: z.string(),
     title: z.string(),
     track_id: z.string(),
     platform: z.enum(['spotify']).optional(),
@@ -47,10 +53,12 @@ export const trackSchema = z.array(
     stream_count_total: z.number().nullable(),
     stream_count_daily: z.number().nullable(),
     thumbnail_url: z.string().nullable(),
+    created_at: z.string(),
   })
 ) satisfies z.Schema<Track[]>;
 
 export const videoSchema = z.array(z.object({
+  id: z.string(),
   title: z.string(),
   video_id: z.string(),
   platform: z.enum(['youtube']).optional(),
@@ -58,6 +66,7 @@ export const videoSchema = z.array(z.object({
   daily_view_count: z.number().nullable(),
   thumbnail_url: z.string().nullable(),
   published_at: z.string().nullable(),
+  created_at: z.string(),
 })) satisfies z.Schema<Video[]>;
 
 export const artistTrackSchema = z.array(z.object({

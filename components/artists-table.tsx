@@ -61,7 +61,7 @@ const defaultColumns: ColumnDef<Person>[] = [
     header: "First Name",
     cell: info => info.getValue(),
     footer: props => props.column.id,
-    size: 180,
+    size: 220,
     enablePinning: true,
     filterFn: 'includesString',
   },
@@ -164,6 +164,9 @@ export default function ArtistsTable() {
       columnPinning: {
         left: ['index', 'firstName']
       },
+      rowPinning: {
+        top: ['#']
+      }
     },
   });
 

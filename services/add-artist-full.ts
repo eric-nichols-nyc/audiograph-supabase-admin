@@ -22,7 +22,7 @@ export const addArtistFull = actionClient
     }
 
     try {
-      // Insert artist record and retrieve the inserted record (assumes the inserted row is returned)
+      // Insert artist record and retrieve the inserted record
       const { data: artistData, error: artistError } = await supabase
         .from("artists")
         .insert(artist)
@@ -36,9 +36,12 @@ export const addArtistFull = actionClient
       const artistId = artistData.id;
       console.log('artistId = ', artistId);
 
-      // Insert platform data
+      // Insert platform data with artist_id
       for (const platform of platformData) {
-        const platformInsert = { ...platform, artist_id: artistId };
+        const platformInsert = { 
+          ...platform, 
+          artist_id: artistId 
+        };
         const { error: platformError } = await supabase
           .from("artist_platform_ids")
           .insert(platformInsert);
@@ -47,18 +50,18 @@ export const addArtistFull = actionClient
         }
       }
       // Insert URL data
-      for (const url of urlData) {
-        const urlInsert = { ...url, artist_id: artistId };
-        const { error: urlError } = await supabase
-          .from("artist_urls")
-          .insert(urlInsert);
-        if (urlError) {
-          throw new Error(`Error inserting artist URL: ${urlError.message}`);
-        }
-      }
+      // for (const url of urlData) {
+      //   const urlInsert = { ...url, artist_id: artistId };
+      //   const { error: urlError } = await supabase
+      //     .from("artist_urls")
+      //     .insert(urlInsert);
+      //   if (urlError) {
+      //     throw new Error(`Error inserting artist URL: ${urlError.message}`);
+      //   }
+      // }
       // Insert metric data
       for (const metric of metricData) {
-        const metricInsert = { ...metric, artist_id: artistId };
+        const metricInsert = { ...metric, artist_id: artistId, date: new Date().toISOString() };
         const { data: metricResult, error: metricError } = await supabase
           .from("artist_metrics")
           .insert(metricInsert)

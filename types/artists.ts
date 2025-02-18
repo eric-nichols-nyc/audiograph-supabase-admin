@@ -1,5 +1,5 @@
 export interface Artist {
-    id: string
+    id?: string
     is_complete?: boolean
     name: string
     slug: string
@@ -17,7 +17,7 @@ export interface Artist {
 }
 
 export interface ArtistPlatformId {
-    id?: string
+    id: string
     artist_id: string
     platform: 'spotify' | 'youtube' | 'musicbrainz' | 'lastfm'
 }
@@ -29,7 +29,7 @@ export interface ArtistUrl {
 }
 
 export interface ArtistMetric {
-    id?: string
+    id: string
     artist_id?: string
     date: string;
     platform: string
@@ -69,6 +69,7 @@ export interface Video {
     platform?: 'youtube'
     view_count: number | null
     monthly_view_count?: number | null
+    daily_view_count?: number | null
     thumbnail_url: string | null | undefined
     published_at: string | null
     created_at?: string

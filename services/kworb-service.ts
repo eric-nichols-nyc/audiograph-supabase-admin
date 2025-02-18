@@ -28,7 +28,7 @@ const _scrapeKworbData = async (
       // Scrape tracks
       const result = await page.evaluate(() => {
         const subcontainers = document.querySelectorAll('.subcontainer');
-        console.log('Found subcontainers:', subcontainers, subcontainers.length);
+        console.log('Found subcontainers:', subcontainers.length);
         if (subcontainers.length < 5) {
           console.log('Not enough subcontainers. Expected at least 5.');
           return { stats: [], tracks: [] };
@@ -79,7 +79,7 @@ const _scrapeKworbData = async (
           console.log('No tables found');
           return { stats: [], videos: [] };
         }else{
-          console.log('tables=================', tables)
+          console.log('tables found =================')
         }
 
         // Parse stats table (e.g., "Total views:" and "Current daily avg:")
