@@ -57,7 +57,7 @@ interface SpotifySearchProps {
     onArtistSelect: (artist: SpotifyArtist) => void
     onClearSelection?: () => void
 }
-export default function SpotifySearch({ onArtistSelect, onClearSelection }: SpotifySearchProps) {
+export function SpotifySearch({ onArtistSelect, onClearSelection }: SpotifySearchProps) {
     const router = useRouter()
     //const profileStore = useArtistProfileStore()
     //const addArtist = useArtistsStore((state) => state.addArtist)

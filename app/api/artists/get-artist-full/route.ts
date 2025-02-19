@@ -11,17 +11,15 @@ import { addFullArtist } from '@/services/add-artist-full';
 //import { addFullArtist } from '@/services/test.service';
 import { unstable_cache } from 'next/cache';
 
+// Simplified stages
 const STAGES = {
-  INIT: 'Initializing artist ingestion',
-  METADATA: 'Fetching metadata',
-  ANALYTICS: 'Fetching analytics data',
-  VIDEO_DATA: 'Fetching video data',
-  TRACK_DATA: 'Fetching track data',
-  WIKIPEDIA: 'Fetching Wikipedia data',
-  COMPLETE: 'Artist ingestion complete',
-  STORE: 'Storing artist data',
-  URL_DATA: 'Fetching URL data',
-  ERROR: 'Error during ingestion'
+  INIT: 'Adding Artist',
+  METADATA: 'Processing Metadata',
+  ANALYTICS: 'Processing Analytics',
+  MEDIA: 'Processing Media',
+  STORE: 'Saving Data',
+  COMPLETE: 'Complete',
+  ERROR: 'Error'
 } as const;
 
 interface Metric {
@@ -179,8 +177,12 @@ export async function POST(req: Request) {
       videos: [],
     };
 
-    // Helper to send updates
-    const sendUpdate = async (stage: keyof typeof STAGES, details: string, progress?: number, payload?: any) => {
+    const sendUpdate = async (
+      stage: keyof typeof STAGES,
+      details: string,
+      progress: number,
+      payload?: any
+    ) => {
       const message = `data: ${JSON.stringify({
         stage,
         message: STAGES[stage],
@@ -191,96 +193,43 @@ export async function POST(req: Request) {
       await writer.write(encoder.encode(message));
     };
 
-    // Process in non-blocking way
+    // Modify the processing section to use fewer, more meaningful updates:
     (async () => {
       try {
-        // Initialize
-        await sendUpdate('INIT', 'Starting artist ingestion process', 0);
-        await new Promise(r => setTimeout(r, 1000)); // Small delay for UX
+        await sendUpdate('INIT', 'Starting process...', 0);
 
-        // Use cached functions
+        // Metadata
         const metadata = await cachedFetchArtistMetadata(name, spotify_id);
         result.artist = metadata.artist;
         result.platformData = metadata.platformData;
         result.metricData = metadata.metricData;
-        await sendUpdate('METADATA', 'Found artist on Spotify', 20);
-        await sendUpdate('ANALYTICS', 'Fetching YouTube channel...', 30);
-        const analyticsData = await cachedFetchAnalytics(name);
-        result.metricData = analyticsData;
-        await sendUpdate('ANALYTICS', 'Retrieved YouTube statistics', 40);
-        await sendUpdate('VIDEO_DATA', 'Fetching YouTube video data...', 50);
-        const videoData = await cachedGetArtistVideoData(name);
-        const {stats, videos} = videoData;
-        result.videos = videos;
-        result.metricData = [...result.metricData, ...stats];
-        await sendUpdate('VIDEO_DATA', 'Retrieved YouTube statistics', 40);
-        await sendUpdate('TRACK_DATA', 'Fetching Spotify track data...', 50);
-        const trackData = await cachedFetchTrackData(spotify_id);
+        await sendUpdate('METADATA', `Found ${name} on Spotify`, 25);
+
+        // Analytics & Media
+        const [analyticsData, videoData, trackData] = await Promise.all([
+          cachedFetchAnalytics(name),
+          cachedGetArtistVideoData(name),
+          cachedFetchTrackData(spotify_id)
+        ]);
+
+        // Combine results
+        result.metricData = [
+          ...analyticsData,
+          ...videoData.stats,
+          ...trackData.stats
+        ];
+        result.videos = videoData.videos;
         result.tracks = trackData.tracks;
-        result.metricData = [...result.metricData, ...trackData.stats];
-        await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
-        // Store Everything
-        await sendUpdate('STORE', 'Saving artist data...', 80);
-        console.log('SENDING RESULT TO DATABASE==========================',result);
+        
+        await sendUpdate('MEDIA', 'Processed all media data', 75);
 
-        // Before calling addFullArtist
-        console.log('Preparing data for validation:', {
-          artistData: result.artist.name,
-          platformDataCount: result.platformData.length,
-          metricDataCount: result.metricData.length,
-          tracksCount: result.tracks.length,
-          videosCount: result.videos.length,
-        });
+        // Store data
+        await sendUpdate('STORE', 'Saving to database...', 90);
+        const insertedArtist = await addFullArtist(result);
 
-        console.log('Sample video data structure:', {
-          totalVideos: result.videos.length,
-          firstVideo: result.videos[0],
-          lastVideo: result.videos[result.videos.length - 1]
-        });
-
-        console.log('Sample track data structure:', {
-          totalTracks: result.tracks.length,
-          firstTrack: result.tracks[0],
-          lastTrack: result.tracks[result.tracks.length - 1]
-        });
-
-        // Before database insertion
-        console.log('Final data structure:', {
-          artist: result.artist,
-          platformDataCount: result.platformData.length,
-          metricDataCount: result.metricData.length,
-          tracksCount: result.tracks.length,
-          videosCount: result.videos.length,
-          sampleVideo: result.videos[0],
-          sampleTrack: result.tracks[0]
-        });
-
-        let insertedArtist;
-        try {
-            insertedArtist = await addFullArtist(result);
-        } catch (error) {
-            console.error('Error inserting artist:', error);
-            await sendUpdate(
-                'ERROR',
-                error instanceof Error ? error.message : 'Failed to insert artist',
-                0
-            );
-            throw error;
-        }
-        console.log('insertedArtist', insertedArtist)
-        // Complete
-        await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
-        console.log('Sample video data:', result.videos[37]); // The one that's failing
-        console.log('Sample track data:', result.tracks[1]); // The one that's failing
-
-        return NextResponse.json(result);
+        await sendUpdate('COMPLETE', 'Successfully added artist', 100, insertedArtist);
       } catch (error) {
-        console.error('Detailed error in artist processing:', {
-          error,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
-          errorStack: error instanceof Error ? error.stack : undefined,
-        });
-
+        console.error('Processing error:', error);
         await sendUpdate(
           'ERROR',
           error instanceof Error ? error.message : 'Failed to process artist',
