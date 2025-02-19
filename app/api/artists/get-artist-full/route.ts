@@ -255,9 +255,21 @@ export async function POST(req: Request) {
           sampleTrack: result.tracks[0]
         });
 
-        const insertedArtist = await addFullArtist(result);
+        let insertedArtist;
+        try {
+            insertedArtist = await addFullArtist(result);
+        } catch (error) {
+            console.error('Error inserting artist:', error);
+            await sendUpdate(
+                'ERROR',
+                error instanceof Error ? error.message : 'Failed to insert artist',
+                0
+            );
+            throw error;
+        }
+        console.log('insertedArtist', insertedArtist)
         // Complete
-        await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist?.data);
+        await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
         console.log('Sample video data:', result.videos[37]); // The one that's failing
         console.log('Sample track data:', result.tracks[1]); // The one that's failing
 

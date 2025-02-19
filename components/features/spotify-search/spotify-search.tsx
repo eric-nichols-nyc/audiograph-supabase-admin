@@ -78,23 +78,23 @@ export default function SpotifySearch({ onArtistSelect, onClearSelection }: Spot
 
         try {
             setIsSearching(true)
-            // const response = await fetch(`/api/spotify/search?q=${query}`)
-            // const data = await response.json()
-            // console.log('spotify search data', data)
-            // setSearchResults(data.artists)
+            const response = await fetch(`/api/spotify/search?q=${query}`)
+            const data = await response.json()
+            console.log('spotify search data', data)
+            setSearchResults(data.artists)
 
             // For testing purposes, we're using a static artist object instead of making an API call.
-            const testArtist: SpotifyArtist = {
-                spotify_id: "7dGJo4pcD2V6oG8kP0tJRR",
-                name: "Eminem",
-                image_url:
-                    "https://i.scdn.co/image/ab6761610000e5eba00b11c129b27a88fc72f36b",
-                genres: ["rap", "hip hop"],
-                popularity: 90,
-                followers: 97262923,
-            }
+            // const testArtist: SpotifyArtist = {
+            //     spotify_id: "7dGJo4pcD2V6oG8kP0tJRR",
+            //     name: "Eminem",
+            //     image_url:
+            //         "https://i.scdn.co/image/ab6761610000e5eba00b11c129b27a88fc72f36b",
+            //     genres: ["rap", "hip hop"],
+            //     popularity: 90,
+            //     followers: 97262923,
+            // }
 
-            setSearchResults([testArtist])
+            // setSearchResults([testArtist])
         } catch (error) {
             console.error('Spotify search error:', error)
         } finally {
@@ -111,6 +111,7 @@ export default function SpotifySearch({ onArtistSelect, onClearSelection }: Spot
      * Handles the artist selection and creation process
      */
     const handleArtistSelect = async (spotifyArtist: SpotifyArtist) => {
+        console.log('spotifyArtist', spotifyArtist)
         setSelectedArtist(spotifyArtist)
         setSearchQuery('')
         setSearchResults([])

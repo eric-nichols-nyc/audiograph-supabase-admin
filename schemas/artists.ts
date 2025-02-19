@@ -58,6 +58,7 @@ export const trackSchema = z.array(
 ) satisfies z.Schema<Track[]>;
 
 export const videoSchema = z.array(z.object({
+  id: z.string(),
   video_id: z.string(),
   title: z.string(),
   platform: z.string().optional(),
@@ -65,6 +66,7 @@ export const videoSchema = z.array(z.object({
   daily_view_count: z.number(),
   published_at: z.string(),
   thumbnail_url: z.string().optional(),
+  created_at: z.string(),
 })) satisfies z.Schema<Video[]>;
 
 export const artistTrackSchema = z.array(z.object({
@@ -83,7 +85,7 @@ export const addArtistFullSchema = z.object({
     platform: z.string()
   })),
   urlData: z.array(z.any()).optional(),
-  metricData: z.array(artistMetricSchema),
-  tracks: z.array(trackSchema.element),
-  videos: z.array(videoSchema.element)
+  metricData: z.array(artistMetricSchema.element.omit({ id: true, date: true })),
+  tracks: z.array(trackSchema.element.omit({ id: true, created_at: true })),
+  videos: z.array(videoSchema.element.omit({ id: true, created_at: true }))
 }); 

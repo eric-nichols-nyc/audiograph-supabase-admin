@@ -58,12 +58,12 @@ export const addFullArtist = actionClient
             .insert(platformInsert);
           if (platformError) {
             console.error('Platform insert error:', platformError);
-            await supabase.rpc("rollback_transaction_proc");
+            await supabase.rpc("rollback_transaction");
             throw new Error(`Error inserting artist platform: ${platformError.message}`);
           }
         } catch (error) {
           console.error('Error in platform insert:', error);
-          await supabase.rpc("rollback_transaction_proc");
+          await supabase.rpc("rollback_transaction");
           throw error;
         }
       }
@@ -127,7 +127,7 @@ export const addFullArtist = actionClient
 
           if (artistTrackError){
             console.error('Artist-track relation error:', artistTrackError);
-            await supabase.rpc("rollback_transaction_proc");
+            await supabase.rpc("rollback_transaction");
             throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
           }
         }
@@ -162,7 +162,7 @@ export const addFullArtist = actionClient
 
           if (videoError) {
             console.error('Video insertion error:', videoError);
-            await supabase.rpc("rollback_transaction_proc");
+            await supabase.rpc("rollback_transaction");
             throw new Error(`Video upsert error: ${videoError.message}`);
           }
           console.log('Video inserted:', videoResult);
@@ -172,14 +172,14 @@ export const addFullArtist = actionClient
             .from("artist_videos")
             .upsert({ 
               artist_id: artistId, 
-              video_id: video.video_id  // Use video_id directly
+              video_id: videoResult.id  // Use video_id directly
             }, {
               onConflict: 'artist_id,video_id'
             });
 
           if (artistVideoError){
             console.error('Artist video relation error:', artistVideoError);
-            await supabase.rpc("rollback_transaction_proc");
+            await supabase.rpc("rollback_transaction");
             throw new Error(`Artist video relation error: ${artistVideoError.message}`);
           }
         }
@@ -236,7 +236,7 @@ export const addFullArtist = actionClient
       return insertedArtist;
     } catch (error) {
       // Rollback the transaction in case of any error during the database operations
-      await supabase.rpc("rollback_transaction_proc");
+      await supabase.rpc("rollback_transaction");
       throw error;
     }
   }); 
