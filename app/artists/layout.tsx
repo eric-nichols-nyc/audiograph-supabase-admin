@@ -1,15 +1,5 @@
 import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
-import { useArtists } from '@/hooks/use-artists';
 
-export default async function Layout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  useArtists();
-  return (
-    <AdminPanelLayout>
-      {children}
-    </AdminPanelLayout>
-  );
+export default function ArtistsLayout({ children }: { children: React.ReactNode }) {
+  return <AdminPanelLayout>{children}</AdminPanelLayout>;
 }
