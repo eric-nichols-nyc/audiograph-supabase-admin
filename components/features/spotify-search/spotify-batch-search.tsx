@@ -86,10 +86,8 @@ export function SpotifyBatchSearch({
 
     const handleSelect = (artist: SpotifyArtist) => {
         onArtistSelect(artist)
-        if (clearOnSelect) {
-            setSearchQuery('')
-            setSearchResults([])
-        }
+        setSearchQuery('')
+        setSearchResults([])
     }
 
     const isArtistSelected = (spotifyId: string) => {
