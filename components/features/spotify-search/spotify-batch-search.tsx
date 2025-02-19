@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { SpotifyArtist } from '@/types/artists'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useArtists } from '@/hooks/use-artists'
 
 interface ArtistSearchResultProps {
     artist: SpotifyArtist
@@ -57,9 +58,17 @@ export function SpotifyBatchSearch({
     selectedArtists = [],
     clearOnSelect = false
 }: SpotifyBatchSearchProps) {
+    const { data: existingArtists } = useArtists()
     const [searchQuery, setSearchQuery] = useState('')
     const [searchResults, setSearchResults] = useState<SpotifyArtist[]>([])
     const [isSearching, setIsSearching] = useState(false)
+
+    const isArtistInDatabase = (spotifyId: string) => {
+        if (!existingArtists?.data?.length) return false;
+        return existingArtists.data.some(
+            (existing: any) => existing.spotify_id === spotifyId
+        );
+    };
 
     const searchSpotify = debounce(async (query: string) => {
         if (!query) {
@@ -71,7 +80,13 @@ export function SpotifyBatchSearch({
             setIsSearching(true)
             const response = await fetch(`/api/spotify/search?q=${query}`)
             const data = await response.json()
-            setSearchResults(data.artists)
+            
+            // Filter out existing artists
+            const filteredResults = data.artists.filter(
+                (artist: SpotifyArtist) => !isArtistInDatabase(artist.spotify_id)
+            );
+            
+            setSearchResults(filteredResults)
         } catch (error) {
             console.error('Spotify search error:', error)
             setSearchResults([])

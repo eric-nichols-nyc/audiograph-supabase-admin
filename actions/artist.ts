@@ -8,21 +8,16 @@ import { z } from "zod";
 import { transformArtistResponse } from '@/utils/transforms/artist';
 
 export const getArtists = actionClient
-.action(async (): Promise<Artist[]> => {
-  // Initialize the Supabase client using our server helper.
-  const supabase = await createClient();
+  .action(async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("artists")
+      .select("*");
+    
+    if (error) throw error;
+    return data;
+  });
 
-  // Query the "artists" table, selecting all columns.
-  const { data, error } = await supabase.from("artists").select("*");
-  
-  // Throw an error if the query fails.
-  if (error) {
-    throw new Error(`Error fetching artists: ${error.message}`);
-  }
-  
-  // Return the fetched artists.
-  return data;
-});
 
 
 export const getArtistData = async(slug:string) => {
