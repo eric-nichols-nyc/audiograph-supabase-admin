@@ -2,8 +2,9 @@ import { createClient } from "@/utils/supabase/server";
 import { actionClient } from "@/lib/safe-action";
 import { addArtistFullSchema } from "@/schemas/artist-full-schema"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
+import { Video } from "@/types/artists";
 
-export const addArtistFull = actionClient
+export const addFullArtist = actionClient
   .schema(addArtistFullSchema)
   .action(async ({ parsedInput }) => {
     // console.log('addFullArtist parsedInput ', parsedInput);
@@ -22,7 +23,7 @@ export const addArtistFull = actionClient
     }
 
     try {
-      // Insert artist record and retrieve the inserted record
+      // Insert artist record and retrieve the inserted record (assumes the inserted row is returned)
       const { data: artistData, error: artistError } = await supabase
         .from("artists")
         .insert(artist)
@@ -36,12 +37,9 @@ export const addArtistFull = actionClient
       const artistId = artistData.id;
       console.log('artistId = ', artistId);
 
-      // Insert platform data with artist_id
+      // Insert platform data
       for (const platform of platformData) {
-        const platformInsert = { 
-          ...platform, 
-          artist_id: artistId 
-        };
+        const platformInsert = { ...platform, artist_id: artistId };
         const { error: platformError } = await supabase
           .from("artist_platform_ids")
           .insert(platformInsert);
@@ -61,7 +59,7 @@ export const addArtistFull = actionClient
       // }
       // Insert metric data
       for (const metric of metricData) {
-        const metricInsert = { ...metric, artist_id: artistId, date: new Date().toISOString() };
+        const metricInsert = { ...metric, artist_id: artistId };
         const { data: metricResult, error: metricError } = await supabase
           .from("artist_metrics")
           .insert(metricInsert)
@@ -115,8 +113,8 @@ export const addArtistFull = actionClient
 
       // Insert videos and create artist_videos entries
       if (videos && videos.length > 0) {
-        for (const video of videos) {
-          // Upsert the video to avoid duplicates based on platform and video_id
+        for (const video of videos as Video[]) {
+          // Upsert the video using just video_id as the conflict key
           const { data: videoResult, error: videoError } = await supabase
             .from("videos")
             .upsert({
@@ -128,19 +126,23 @@ export const addArtistFull = actionClient
               published_at: video.published_at,
               thumbnail_url: video.thumbnail_url,
             }, {
-              onConflict: 'platform,video_id'
+              onConflict: 'platform,video_id'  // Changed from 'platform,video_id'
             })
             .select('id')
             .single();
 
           if (videoError) throw new Error(`Video upsert error: ${videoError.message}`);
 
-          // Upsert the artist video relationship using the obtained video id
+          // Create artist-video relationship
           const { error: artistVideoError } = await supabase
             .from("artist_videos")
-            .upsert({ artist_id: artistId, video_id: videoResult.id }, {
+            .upsert({ 
+              artist_id: artistId, 
+              video_id: videoResult.id 
+            }, {
               onConflict: 'artist_id,video_id'
             });
+
           if (artistVideoError) throw new Error(`Artist video relation error: ${artistVideoError.message}`);
         }
       }

@@ -77,26 +77,15 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
-            try {
-              // const rankingService = new RankingService(user.id);
-              // await rankingService.updateRankings();
-              
-              // await rankingService.notificationService.createNotification({
-              //   type: 'artist_added',
-              //   title: 'New Artist Added',
-              //   message: `Successfully added artist: ${spotifyArtist.name}`,
-              //   metadata: {
-              //     artistId: message.payload.data.id,
-              //     artistName: spotifyArtist.name
-              //   },
-              //   link: `/artists/${message.payload.data.slug}`
-              // });
-            } catch (error) {
-              console.error('Error in post-artist processing:', error);
-            }
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
-            setArtistSlug(message.payload.data.slug);
+            console.log('MESSAGE PAYLOAD==========================', message.payload);
+            if (message.payload?.artist?.slug) {
+              setArtistSlug(message.payload.artist.slug);
+            } else {
+              console.error('Missing slug in response:', message);
+              setError('Failed to get artist URL');
+            }
             setValidationErrors(null);
           }
         }

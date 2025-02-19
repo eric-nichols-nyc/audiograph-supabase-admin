@@ -66,11 +66,11 @@ export interface Video {
     id?: string | undefined | null
     title: string
     video_id: string
-    platform?: 'youtube'
+    platform?: string
     view_count: number | null
     monthly_view_count?: number | null
     daily_view_count?: number | null
-    thumbnail_url: string | null | undefined
+    thumbnail_url?: string | null | undefined
     published_at: string | null
     created_at?: string
 }

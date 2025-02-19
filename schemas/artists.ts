@@ -58,15 +58,13 @@ export const trackSchema = z.array(
 ) satisfies z.Schema<Track[]>;
 
 export const videoSchema = z.array(z.object({
-  id: z.string(),
-  title: z.string(),
   video_id: z.string(),
-  platform: z.enum(['youtube']).optional(),
-  view_count: z.number().nullable(),
-  daily_view_count: z.number().nullable(),
-  thumbnail_url: z.string().nullable(),
-  published_at: z.string().nullable(),
-  created_at: z.string(),
+  title: z.string(),
+  platform: z.string().optional(),
+  view_count: z.number(),
+  daily_view_count: z.number(),
+  published_at: z.string(),
+  thumbnail_url: z.string().optional(),
 })) satisfies z.Schema<Video[]>;
 
 export const artistTrackSchema = z.array(z.object({
