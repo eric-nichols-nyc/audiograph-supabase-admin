@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SpotifySearch } from '@/components/features/spotify-search/spotify-search';
+import { SpotifyBatchSearch } from '@/components/features/spotify-search/spotify-batch-search';
 import { ArtistProgress } from '@/components/features/progress/artist-progress';
 import { Button } from '@/components/ui/button';
 import { SpotifyArtist } from '@/types/artists';
@@ -59,7 +59,11 @@ export function BatchArtistSelect() {
 
   return (
     <div className="space-y-6">
-      <SpotifySearch onArtistSelect={handleArtistSelect} />
+      <SpotifyBatchSearch 
+        onArtistSelect={handleArtistSelect} 
+        selectedArtists={selectedArtists}
+        clearOnSelect={false}
+      />
 
       {selectedArtists.length > 0 && (
         <div className="space-y-4">
