@@ -1,6 +1,6 @@
 // tests/addArtistFullSchema.spec.ts
 import { test, expect } from '@playwright/test';
-import { addArtistFullSchema } from '@/schemas/artist-full-schema';
+import { addArtistFullSchema } from '@/schemas/x-artist-full-schema';
 import * as fs from 'fs';
 import * as path from 'path';
 

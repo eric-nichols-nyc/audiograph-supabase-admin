@@ -44,14 +44,17 @@ export function slugify(artistName: string): string {
 // Cache the individual data fetching functions
 const cachedFetchArtistMetadata = unstable_cache(
   async (artistName: string, artistSpotifyId: string) => {
-    return await getArtistInfo(artistName, artistSpotifyId);
+    console.log('🔍 Fetching artist metadata for:', artistName);
+    const data = await getArtistInfo(artistName, artistSpotifyId);
+    return data;
   },
   ['artist-metadata'],
-  { revalidate: 60 * 60 } // Cache for 1 hour
+  { revalidate: 60 * 60 }
 );
 
 const cachedFetchAnalytics = unstable_cache(
   async (artistName: string) => {
+    console.log('🔍 Fetching analytics for:', artistName);
     const analyticsData = await getViberateData(slugify(artistName));
     return convertViberateResponseToArtistMetrics(analyticsData);
   },
@@ -61,7 +64,9 @@ const cachedFetchAnalytics = unstable_cache(
 
 const cachedGetArtistVideoData = unstable_cache(
   async (artistName: string) => {
+    console.log('🔍 Fetching video data for:', artistName);
     const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
+    console.log('Raw video data:', videoData);
     const {videos, stats} = videoData;
     const videoIds = videos.map((video:Video) => video.video_id);
     
@@ -88,6 +93,8 @@ const cachedGetArtistVideoData = unstable_cache(
       view_count: videoDetails.get(video.video_id)?.view_count || video.view_count,
     }));
 
+    console.log('Enriched videos sample:', enrichedVideos[0]);
+
     const youtube_total_views: Omit<ArtistMetric, 'id' | 'date'> = {
       platform: 'youtube',
       metric_type: 'total_views',
@@ -111,6 +118,7 @@ const cachedGetArtistVideoData = unstable_cache(
 
 const cachedFetchTrackData = unstable_cache(
   async (artistName: string) => {
+    console.log('🔍 Fetching track data for:', artistName);
     const spotifyService = createSpotifyService();
     const trackData = await scrapeKworbData(artistName, 'tracks');
     const tracks = await Promise.all(trackData.tracks.map(async (track: any) => ({
@@ -144,7 +152,7 @@ const cachedFetchTrackData = unstable_cache(
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('Received request body:', body);
+    console.log('API received body:', body);
 
     const { name, spotify_id, image_url, popularity, followers, genres } = body;
     if (!name || !spotify_id) {
@@ -217,7 +225,7 @@ export async function POST(req: Request) {
 
         // Before calling addFullArtist
         console.log('Preparing data for validation:', {
-          artistData: result.artist,
+          artistData: result.artist.name,
           platformDataCount: result.platformData.length,
           metricDataCount: result.metricData.length,
           tracksCount: result.tracks.length,
@@ -234,6 +242,17 @@ export async function POST(req: Request) {
           totalTracks: result.tracks.length,
           firstTrack: result.tracks[0],
           lastTrack: result.tracks[result.tracks.length - 1]
+        });
+
+        // Before database insertion
+        console.log('Final data structure:', {
+          artist: result.artist,
+          platformDataCount: result.platformData.length,
+          metricDataCount: result.metricData.length,
+          tracksCount: result.tracks.length,
+          videosCount: result.videos.length,
+          sampleVideo: result.videos[0],
+          sampleTrack: result.tracks[0]
         });
 
         const insertedArtist = await addFullArtist(result);

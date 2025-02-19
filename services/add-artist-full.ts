@@ -1,13 +1,22 @@
 import { createClient } from "@/utils/supabase/server";
 import { actionClient } from "@/lib/safe-action";
-import { addArtistFullSchema } from "@/schemas/artist-full-schema"; // Adjust path as needed
+import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
-import { Video } from "@/types/artists";
+import { Track, Video } from "@/types/artists";
 
 export const addFullArtist = actionClient
   .schema(addArtistFullSchema)
   .action(async ({ parsedInput }) => {
-    // console.log('addFullArtist parsedInput ', parsedInput);
+    console.log('Starting database insertion with:', {
+      artistName: parsedInput.artist.name,
+      dataStats: {
+        platforms: parsedInput.platformData.length,
+        metrics: parsedInput.metricData.length,
+        tracks: parsedInput.tracks.length,
+        videos: parsedInput.videos.length
+      }
+    });
+
     // Destructure the parsed input
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
 
@@ -39,12 +48,23 @@ export const addFullArtist = actionClient
 
       // Insert platform data
       for (const platform of platformData) {
-        const platformInsert = { ...platform, artist_id: artistId };
-        const { error: platformError } = await supabase
-          .from("artist_platform_ids")
-          .insert(platformInsert);
-        if (platformError) {
-          throw new Error(`Error inserting artist platform: ${platformError.message}`);
+        try {
+          const platformInsert = { 
+            artist_id: artistId,
+            platform: platform.platform  // Just use the platform name (youtube/spotify)
+          };
+          const { error: platformError } = await supabase
+            .from("artist_platform_ids")
+            .insert(platformInsert);
+          if (platformError) {
+            console.error('Platform insert error:', platformError);
+            await supabase.rpc("rollback_transaction_proc");
+            throw new Error(`Error inserting artist platform: ${platformError.message}`);
+          }
+        } catch (error) {
+          console.error('Error in platform insert:', error);
+          await supabase.rpc("rollback_transaction_proc");
+          throw error;
         }
       }
       // Insert URL data
@@ -75,7 +95,7 @@ export const addFullArtist = actionClient
 
       // Insert tracks and create artist_tracks entries
       if (tracks && tracks.length > 0) {
-        for (const track of tracks) {
+        for (const track of tracks as Track[]) {
           // Upsert the track
           const { data: trackResult, error: trackError } = await supabase
             .from("tracks")
@@ -105,7 +125,11 @@ export const addFullArtist = actionClient
               onConflict: 'artist_id,track_id'
             });
 
-          if (artistTrackError) throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
+          if (artistTrackError){
+            console.error('Artist-track relation error:', artistTrackError);
+            await supabase.rpc("rollback_transaction_proc");
+            throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
+          }
         }
       }
       console.log('tracks and artist_tracks added');
@@ -114,7 +138,12 @@ export const addFullArtist = actionClient
       // Insert videos and create artist_videos entries
       if (videos && videos.length > 0) {
         for (const video of videos as Video[]) {
-          // Upsert the video using just video_id as the conflict key
+          console.log('Inserting video:', {
+            video_id: video.video_id,
+            title: video.title,
+            platform: video.platform
+          });
+
           const { data: videoResult, error: videoError } = await supabase
             .from("videos")
             .upsert({
@@ -126,24 +155,33 @@ export const addFullArtist = actionClient
               published_at: video.published_at,
               thumbnail_url: video.thumbnail_url,
             }, {
-              onConflict: 'platform,video_id'  // Changed from 'platform,video_id'
+              onConflict: 'platform,video_id'
             })
             .select('id')
             .single();
 
-          if (videoError) throw new Error(`Video upsert error: ${videoError.message}`);
+          if (videoError) {
+            console.error('Video insertion error:', videoError);
+            await supabase.rpc("rollback_transaction_proc");
+            throw new Error(`Video upsert error: ${videoError.message}`);
+          }
+          console.log('Video inserted:', videoResult);
 
           // Create artist-video relationship
           const { error: artistVideoError } = await supabase
             .from("artist_videos")
             .upsert({ 
               artist_id: artistId, 
-              video_id: videoResult.id 
+              video_id: video.video_id  // Use video_id directly
             }, {
               onConflict: 'artist_id,video_id'
             });
 
-          if (artistVideoError) throw new Error(`Artist video relation error: ${artistVideoError.message}`);
+          if (artistVideoError){
+            console.error('Artist video relation error:', artistVideoError);
+            await supabase.rpc("rollback_transaction_proc");
+            throw new Error(`Artist video relation error: ${artistVideoError.message}`);
+          }
         }
       }
 

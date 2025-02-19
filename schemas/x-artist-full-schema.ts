@@ -14,7 +14,7 @@ import {
 // Create versions of the schemas without required IDs for the input validation
 const platformDataSchema = z.object({
   platform: z.string(),
-  platform_id: z.string()
+  platform_id: z.string()  // This is the actual platform identifier
 });
 
 const urlDataSchema = artistUrlSchema.element.omit({ artist_id: true });

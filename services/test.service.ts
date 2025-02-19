@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { actionClient } from "@/lib/safe-action";
-import { addArtistFullSchema } from "@/schemas/artist-full-schema"; // Adjust path as needed
+import { addArtistFullSchema } from "@/schemas/x-artist-full-schema"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 
 export const addFullArtist = actionClient

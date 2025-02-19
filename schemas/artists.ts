@@ -76,3 +76,14 @@ export const artistVideoSchema = z.array(z.object({
   artist_id: z.string(),
   video_id: z.string(),
 })) satisfies z.Schema<ArtistVideo[]>;
+
+export const addArtistFullSchema = z.object({
+  artist: artistSchema.omit({ id: true, created_at: true, updated_at: true }),
+  platformData: z.array(z.object({
+    platform: z.string()
+  })),
+  urlData: z.array(z.any()).optional(),
+  metricData: z.array(artistMetricSchema),
+  tracks: z.array(trackSchema.element),
+  videos: z.array(videoSchema.element)
+}); 

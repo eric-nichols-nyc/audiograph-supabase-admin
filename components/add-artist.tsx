@@ -35,6 +35,7 @@ export default function AddArtist() {
   const [finalResult, setFinalResult] = useState<any>(null);
 
   const processArtist = async (spotifyArtist: SpotifyArtist) => {
+    console.log('Starting artist process with:', spotifyArtist);
     setIsProcessing(true);
     setError(null);
     setCurrentStage(null);
@@ -67,6 +68,7 @@ export default function AddArtist() {
           .map(msg => JSON.parse(msg.slice(6)));
 
         for (const message of messages) {
+          console.log('Received SSE message:', message);
           if (message.stage === 'ERROR') {
             setError(message.details);
             if (message.details.toLowerCase().includes('validation')) {
@@ -77,6 +79,7 @@ export default function AddArtist() {
           }
           setCurrentStage(message);
           if (message.stage === 'COMPLETE') {
+            console.log('Complete message payload:', message.payload);
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
             console.log('MESSAGE PAYLOAD==========================', message.payload);
@@ -108,6 +111,16 @@ export default function AddArtist() {
     processArtist(selectedArtist);
   };
 
+  const handleClearSelection = () => {
+    setSelectedArtist(null);
+    setCurrentStage(null);
+    setError(null);
+    setValidationErrors(null);
+    setIsProcessing(false);
+    setFinalResult(null);
+    setArtistSlug(null);
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Card>
@@ -130,7 +143,10 @@ export default function AddArtist() {
               </Alert>
             )}
 
-            <SpotifySearch onArtistSelect={handleArtistSelect} />
+            <SpotifySearch 
+              onArtistSelect={handleArtistSelect} 
+              onClearSelection={handleClearSelection}
+            />
             {selectedArtist && (
               <Button 
                 onClick={handleStartProcess} 
