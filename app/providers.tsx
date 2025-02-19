@@ -3,8 +3,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
+import { HydrationBoundary, type DehydratedState } from '@tanstack/react-query'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: React.ReactNode;
+  dehydratedState?: DehydratedState;
+}
+
+export function Providers({ children, dehydratedState }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -16,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <HydrationBoundary state={dehydratedState}>
+        {children}
+      </HydrationBoundary>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
