@@ -77,4 +77,18 @@ export const deleteArtist = actionClient
     return data;
   });
 
+export const getArtistMetrics = actionClient
+  .action(async () => {
+    const supabase = await createClient();
+    const { data: metrics, error } = await supabase
+      .from("artist_metrics")
+      .select("*")
+      .eq('platform', 'youtube')
+      .eq('metric_type', 'subscribers')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return { data: metrics };
+  });
+
 

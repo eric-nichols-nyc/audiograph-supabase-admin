@@ -33,7 +33,7 @@ export interface ArtistMetric {
     artist_id?: string
     date: string;
     platform: string
-    metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners' | 'daily_view_count' | 'daily_stream_count' | 'total_views' | 'total_streams'
+    metric_type: 'followers' | 'views' | 'likes' | 'subscribers' | 'monthly_listeners' | 'daily_view_count' | 'daily_stream_count' | 'total_views' | 'total_streams' | 'popularity'
     value: number
 }
 

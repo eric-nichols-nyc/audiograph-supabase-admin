@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>facebook_white_fill</title>
+    <g id="facebook_white_fill" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="color">
+            <polygon id="Bounds" points="0 0 16 0 16 16 0 16"></polygon>
+            <polygon id="Combined-Shape" fill="#FFFFFF" fill-rule="nonzero" points="4 11 4 3 12 3 12 11 9.7 11 9.7 16 6.7 16 6.7 11"></polygon>
+            <path d="M16,8.04889072 C16,3.60360785 12.4182812,0 8,0 C3.58171875,0 0,3.60360785 0,8.04889072 C0,12.0663247 2.92548437,15.396176 6.75,16 L6.75,10.3755232 L4.71875,10.3755232 L4.71875,8.04889072 L6.75,8.04889072 L6.75,6.27561949 C6.75,4.25836625 7.94434375,3.14409794 9.77171875,3.14409794 C10.6469844,3.14409794 11.5625,3.30130284 11.5625,3.30130284 L11.5625,5.28208454 L10.5537187,5.28208454 C9.55992188,5.28208454 9.25,5.9025251 9.25,6.53904773 L9.25,8.04889072 L11.46875,8.04889072 L11.1140625,10.3755232 L9.25,10.3755232 L9.25,16 C13.0745156,15.396176 16,12.0663247 16,8.04889072" id="Path" fill="#1877F2" fill-rule="nonzero"></path>
+        </g>
+    </g>
+</svg>

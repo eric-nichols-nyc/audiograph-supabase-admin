@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -37,19 +37,38 @@ import {
 } from "@/components/ui/table"
 import { useArtists } from '@/hooks/use-artists'
 import { Artist } from '@/types/artists'
+import { useArtistMetrics } from '@/hooks/use-artist-metrics'
+import { ArtistMetric } from '@/types/artists'
 
 export function ArtistMetricsTable() {
-  const { data: artistsResponse, isLoading } = useArtists()
+  const { data: artistsResponse, isLoading: artistsLoading } = useArtists()
+  const { data: metrics, isLoading: metricsLoading } = useArtistMetrics()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-
-  console.log('Artists response:', artistsResponse)
   
-  const data = artistsResponse?.data ?? []
+  // Add console logs to debug data
+  console.log('Artists:', artistsResponse?.data)
+  console.log('Metrics:', metrics)
+  
+  const data = useMemo(() => {
+    return artistsResponse?.data?.map(artist => {
+      // Access the deeply nested metrics array      
+      const metric = metrics?.find(m => 
+        m.artist_id === artist.id && 
+        m.platform === 'youtube' && 
+        m.metric_type === 'subscribers'
+      );
+
+      return {
+        ...artist,
+        youtube_subscribers: metric?.value ?? null
+      };
+    }) ?? [];
+  }, [artistsResponse?.data, metrics])
 
   const columns: ColumnDef<Artist>[] = [
     {
@@ -89,28 +108,26 @@ export function ArtistMetricsTable() {
       },
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <Link href={`/admin/artists/${row.original.id}/${row.original.slug}`}>
+          <Link href={`/artists/${row.original.slug}`}>
             <div className="h-11 w-11 rounded-md overflow-hidden">
               <Image 
                 src={row.original.image_url || "/images/placeholder.jpg"}
-              alt={row.getValue("name")}
-              width={44}
-              height={44}
-              className="object-cover"
+                alt={row.getValue("name")}
+                width={44}
+                height={44}
+                className="object-cover"
               />
             </div>
-          </Link>
-          <div className="space-y-1">
-            <div className="font-medium">{row.getValue("name")}</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              </div>
+            <div className="space-y-1">
+              <div className="font-medium">{row.getValue("name")}</div>
               {row.original.genres && (
-                <div className="text-xs">
+                <div className="text-xs text-muted-foreground">
                   {row.original.genres.slice(0, 2).join(", ")}
                   {row.original.genres.length > 2 && "..."}
                 </div>
               )}
             </div>
+          </Link>
         </div>
       ),
     },
@@ -183,6 +200,30 @@ export function ArtistMetricsTable() {
       },
     },
     {
+      accessorKey: "youtube_subscribers",
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <Image
+            src="/images/youtube.svg"
+            alt="YouTube"
+            width={16}
+            height={16}
+          />
+          <span>Subscribers</span>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const subscribers = row.getValue("youtube_subscribers") as number | null
+        return subscribers ? (
+          <div className="text-right font-medium">
+            {Intl.NumberFormat('en', { notation: 'compact' }).format(subscribers)}
+          </div>
+        ) : (
+          <div className="text-right text-muted-foreground">-</div>
+        )
+      },
+    },
+    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
@@ -237,9 +278,7 @@ export function ArtistMetricsTable() {
     },
   })
 
-  console.log('Table rows:', table.getRowModel().rows)
-
-  if (isLoading) {
+  if (artistsLoading || metricsLoading) {
     return (
       <div className="flex items-center justify-center h-24">
         <div className="text-muted-foreground">Loading artists...</div>

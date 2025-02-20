@@ -37,7 +37,7 @@ export const artistMetricSchema = z.array(z.object({
   artist_id: z.string().optional(),
   date: z.string(),
   platform: z.string(),
-  metric_type: z.enum(['followers', 'views', 'likes', 'subscribers', 'monthly_listeners', 'daily_view_count', 'daily_stream_count', 'total_views', 'total_streams']),
+  metric_type: z.enum(['followers', 'views', 'likes', 'subscribers', 'monthly_listeners', 'daily_view_count', 'daily_stream_count', 'total_views', 'total_streams', 'popularity']),
   value: z.number(),
 })) satisfies z.Schema<ArtistMetric[]>;
 
