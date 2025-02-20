@@ -158,7 +158,7 @@ export function ArtistMetricsTable() {
       accessorKey: "country",
       header: () => (
         <div className="flex items-center justify-end gap-2">
-          <span>Country</span>
+          <span className="text-[10px]">Country</span>
         </div>
       ),
       cell: ({ row }) => {
@@ -185,7 +185,7 @@ export function ArtistMetricsTable() {
       accessorKey: "is_complete",
       header: () => (
           <div className="flex items-center justify-end gap-2">
-            <span>Completed</span>
+             <span className="text-[10px]">Completed</span>
           </div>
         ),
       cell: ({ row }) => {
@@ -203,7 +203,7 @@ export function ArtistMetricsTable() {
             width={16}
             height={16}
           />
-          <span>Subscribers</span>
+          <span className="text-[10px]">Subscribers</span>
         </div>
       ),
       cell: ({ row }) => {
@@ -227,7 +227,7 @@ export function ArtistMetricsTable() {
             width={16}
             height={16}
           />
-          <span>Popularity</span>
+          <span className="text-[10px]">Popularity</span>
         </div>
       ),
       cell: ({ row }) => {
@@ -357,9 +357,12 @@ export function ArtistMetricsTable() {
                     return (
                       <TableHead 
                         key={header.id}
-                        style={{ ...getCommonPinningStyles(header.column) }}
+                        style={{ 
+                          ...getCommonPinningStyles(header.column),
+                          height: '40px'
+                        }}
                         className={cn(
-                          "px-6",
+                          "px-6 h-[40px]",
                           header.column.getIsPinned() && "bg-background"
                         )}
                       >
@@ -385,9 +388,12 @@ export function ArtistMetricsTable() {
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
                         key={cell.id}
-                        style={{ ...getCommonPinningStyles(cell.column) }}
+                        style={{ 
+                          ...getCommonPinningStyles(cell.column),
+                          height: '40px'
+                        }}
                         className={cn(
-                          "px-6",
+                          "px-6 h-[40px]",
                           cell.column.getIsPinned() && "bg-background"
                         )}
                       >
