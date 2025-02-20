@@ -83,8 +83,8 @@ export const getArtistMetrics = actionClient
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
       .select("*")
-      .eq('platform', 'youtube')
-      .eq('metric_type', 'subscribers')
+      .in('metric_type', ['subscribers', 'popularity'])
+      .in('platform', ['youtube', 'spotify'])
       .order('created_at', { ascending: false });
     
     if (error) throw error;

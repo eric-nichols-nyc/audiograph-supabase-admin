@@ -13,6 +13,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Column,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,25 @@ import { useArtists } from '@/hooks/use-artists'
 import { Artist } from '@/types/artists'
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { ArtistMetric } from '@/types/artists'
+import { cn } from "@/lib/utils"
+import { CSSProperties } from "react"
+
+const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
+  const isPinned = column.getIsPinned();
+  const isLastLeftPinnedColumn = 
+    isPinned === "left" && column.getIsLastColumn("left");
+
+  return {
+    boxShadow: isLastLeftPinnedColumn
+      ? "-4px 0 4px -4px gray inset"
+      : undefined,
+    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
+    opacity: isPinned ? 0.95 : 1,
+    position: isPinned ? "sticky" : "relative",
+    width: column.getSize(),
+    zIndex: isPinned ? 1 : 0,
+  };
+};
 
 export function ArtistMetricsTable() {
   const { data: artistsResponse, isLoading: artistsLoading } = useArtists()
@@ -56,42 +76,44 @@ export function ArtistMetricsTable() {
   
   const data = useMemo(() => {
     return artistsResponse?.data?.map(artist => {
-      // Access the deeply nested metrics array      
-      const metric = metrics?.find(m => 
+      const youtubeMetric = metrics?.find(m => 
         m.artist_id === artist.id && 
         m.platform === 'youtube' && 
         m.metric_type === 'subscribers'
       );
 
+      const spotifyMetric = metrics?.find(m => 
+        m.artist_id === artist.id && 
+        m.platform === 'spotify' && 
+        m.metric_type === 'popularity'
+      );
+
       return {
         ...artist,
-        youtube_subscribers: metric?.value ?? null
+        youtube_subscribers: youtubeMetric?.value ?? null,
+        spotify_popularity: spotifyMetric?.value ?? null
       };
     }) ?? [];
   }, [artistsResponse?.data, metrics])
 
   const columns: ColumnDef<Artist>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
+      accessorKey: "rank",
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <span>Rank</span>
+        </div>
       ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      cell: ({ row }) => {
+        const rank = parseInt(row.getValue("rank"))
+        const formatted = new Intl.NumberFormat().format(rank)
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <span className="font-medium">{formatted}</span>
+          </div>
+        )
+      },
+      size: 80,
     },
     {
       accessorKey: "name",
@@ -130,23 +152,7 @@ export function ArtistMetricsTable() {
           </Link>
         </div>
       ),
-    },
-    {
-      accessorKey: "rank",
-      header: () => (
-        <div className="flex items-center justify-end gap-2">
-          <span>Rank</span>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const rank = parseInt(row.getValue("rank"))
-        const formatted = new Intl.NumberFormat().format(rank)
-        return (
-          <div className="flex items-center justify-end gap-2">
-          <span className="font-medium">{formatted}</span>
-          </div>
-        )
-      },
+      size: 300,
     },
     {
       accessorKey: "country",
@@ -173,18 +179,6 @@ export function ArtistMetricsTable() {
               )}
           </div>
         )
-      },
-    },
-    {
-      accessorKey: "gender",
-      header: () => (
-        <div className="flex items-center justify-end gap-2">
-          <span>Gender</span>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const gender = row.getValue("gender") as string
-        return <div className="text-right font-medium">{gender}</div>
       },
     },
     {
@@ -217,6 +211,30 @@ export function ArtistMetricsTable() {
         return subscribers ? (
           <div className="text-right font-medium">
             {Intl.NumberFormat('en', { notation: 'compact' }).format(subscribers)}
+          </div>
+        ) : (
+          <div className="text-right text-muted-foreground">-</div>
+        )
+      },
+    },
+    {
+      accessorKey: "spotify_popularity",
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <Image
+            src="/images/spotify.svg"
+            alt="Spotify"
+            width={16}
+            height={16}
+          />
+          <span>Popularity</span>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const popularity = row.getValue("spotify_popularity") as number | null
+        return popularity ? (
+          <div className="text-right font-medium">
+            {popularity}
           </div>
         ) : (
           <div className="text-right text-muted-foreground">-</div>
@@ -276,6 +294,11 @@ export function ArtistMetricsTable() {
       columnVisibility,
       rowSelection,
     },
+    initialState: {
+      columnPinning: {
+        left: ['rank', 'name']
+      }
+    },
   })
 
   if (artistsLoading || metricsLoading) {
@@ -332,7 +355,14 @@ export function ArtistMetricsTable() {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead 
+                        key={header.id}
+                        style={{ ...getCommonPinningStyles(header.column) }}
+                        className={cn(
+                          "px-6",
+                          header.column.getIsPinned() && "bg-background"
+                        )}
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -353,7 +383,14 @@ export function ArtistMetricsTable() {
                     data-state={row.getIsSelected() && "selected"}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell 
+                        key={cell.id}
+                        style={{ ...getCommonPinningStyles(cell.column) }}
+                        className={cn(
+                          "px-6",
+                          cell.column.getIsPinned() && "bg-background"
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
