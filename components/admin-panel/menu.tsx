@@ -22,7 +22,7 @@ interface MenuProps {
 
 export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
-  const menuList = getMenuList(pathname);
+  const menuList = getMenuList(pathname ?? "");
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -60,7 +60,7 @@ export function Menu({ isOpen }: MenuProps) {
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname.startsWith(href)) ||
+                                  pathname?.startsWith(href)) ||
                                 active
                                   ? "secondary"
                                   : "ghost"
@@ -102,7 +102,7 @@ export function Menu({ isOpen }: MenuProps) {
                         label={label}
                         active={
                           active === undefined
-                            ? pathname.startsWith(href)
+                            ? pathname?.startsWith(href) ?? false
                             : active
                         }
                         submenus={submenus}

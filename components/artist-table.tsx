@@ -35,29 +35,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useDbArtistsStore } from '@/stores/use-db-artists-store'
+import { useArtists } from '@/hooks/use-artists'
 import { Artist } from '@/types/artists'
 
 export function ArtistMetricsTable() {
-  const { artists, fetchArtists, isLoading } = useDbArtistsStore()
+  const { data: artistsResponse, isLoading } = useArtists()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState<Artist[]>(artists)
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
-  // useEffect(() => {
-  //   if (artists.length === 0) {
-  //     fetchArtists()
-  //   }
-  // }, [fetchArtists])
-
-  useEffect(() => {
-    setData(artists)
-    console.log('artists', artists)
-  }, [artists])
+  console.log('Artists response:', artistsResponse)
+  
+  const data = artistsResponse?.data ?? []
 
   const columns: ColumnDef<Artist>[] = [
     {
@@ -143,7 +135,6 @@ export function ArtistMetricsTable() {
       accessorKey: "country",
       header: () => (
         <div className="flex items-center justify-end gap-2">
-          
           <span>Country</span>
         </div>
       ),
@@ -168,35 +159,12 @@ export function ArtistMetricsTable() {
       },
     },
     {
-      accessorKey: "popularity",
-      header: () => (
-          <div className="flex items-center justify-end gap-2">
-            <Image
-              src="/images/spotify.svg"
-              alt="Spotify"
-              width={16}
-              height={16}
-            />
-            <span>Popularity</span>
-          </div>
-        ),
-      cell: ({ row }) => {
-        const popularity = parseInt(row.getValue("popularity"))
-        return (
-          <div className="text-right font-medium">
-            {popularity}
-            <span className="text-xs text-muted-foreground ml-1">/100</span>
-          </div>
-        )
-      },
-    },
-    {
       accessorKey: "gender",
       header: () => (
-          <div className="flex items-center justify-end gap-2">
-            <span>Gender</span>
-          </div>
-        ),
+        <div className="flex items-center justify-end gap-2">
+          <span>Gender</span>
+        </div>
+      ),
       cell: ({ row }) => {
         const gender = row.getValue("gender") as string
         return <div className="text-right font-medium">{gender}</div>
@@ -268,6 +236,8 @@ export function ArtistMetricsTable() {
       rowSelection,
     },
   })
+
+  console.log('Table rows:', table.getRowModel().rows)
 
   if (isLoading) {
     return (

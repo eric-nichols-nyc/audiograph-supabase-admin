@@ -1,5 +1,5 @@
 import { ContentLayout } from "@/components/admin-panel/content-layout";
-import ArtistsTable from "@/components/artists-table";
+import { ArtistMetricsTable } from "@/components/artist-table";
 import { TriggerRankingUpdate } from '@/components/trigger-ranking-update';
 
 export default function ArtistsPage() {
@@ -10,7 +10,7 @@ export default function ArtistsPage() {
         <TriggerRankingUpdate />
       </div>
       <ContentLayout title="Artists">
-        <ArtistsTable />
+        <ArtistMetricsTable />
       </ContentLayout>
     </div>
   );
