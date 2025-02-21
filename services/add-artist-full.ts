@@ -4,6 +4,32 @@ import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as neede
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 import { Track, Video } from "@/types/artists";
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const beginTransaction = async (supabase: any, attempt = 1): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc("begin_transaction");
+    if (error) {
+      if (error.message.includes('statement timeout') && attempt < MAX_RETRIES) {
+        console.log(`Transaction begin attempt ${attempt} failed, retrying...`);
+        await wait(RETRY_DELAY);
+        return beginTransaction(supabase, attempt + 1);
+      }
+      throw error;
+    }
+  } catch (error) {
+    if (attempt < MAX_RETRIES) {
+      console.log(`Transaction begin attempt ${attempt} failed, retrying...`);
+      await wait(RETRY_DELAY);
+      return beginTransaction(supabase, attempt + 1);
+    }
+    throw error;
+  }
+};
+
 export const addFullArtist = actionClient
   .schema(addArtistFullSchema)
   .action(async ({ parsedInput }) => {
@@ -17,31 +43,37 @@ export const addFullArtist = actionClient
       }
     });
 
-    // Destructure the parsed input
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
-
-    // Example: Get aggregated data from multiple sources
-    const fullArtistData = parsedInput;
-
     const supabase = await createClient();
 
-    // Begin transaction (requires corresponding RPC functions in your database)
-    const { error: txBeginError } = await supabase.rpc("begin_transaction");
-    if (txBeginError) {
-      throw new Error(`Failed to begin transaction: ${txBeginError.message}`);
+    // Begin transaction with retry logic
+    try {
+      await beginTransaction(supabase);
+    } catch (error) {
+      console.error('Failed to begin transaction after retries:', error);
+      throw new Error(`Unable to start transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     try {
-      // Insert artist record and retrieve the inserted record (assumes the inserted row is returned)
+      // Rest of your existing transaction code...
+      
+      // Add more detailed logging throughout the transaction
+      console.log('Transaction started successfully');
+      
       const { data: artistData, error: artistError } = await supabase
         .from("artists")
         .insert(artist)
         .select()
         .single();
+      
       if (artistError) {
+        console.error('Artist insert error:', artistError);
+        await supabase.rpc("rollback_transaction");
         throw new Error(`Error inserting artist: ${artistError.message}`);
       }
 
+      console.log('Artist inserted successfully');
+      
       // Use the generated artist id for all subsequent inserts
       const artistId = artistData.id;
       console.log('artistId = ', artistId);
@@ -86,6 +118,8 @@ export const addFullArtist = actionClient
           .select('id')
           .single();
         if (metricError) {
+          console.error('Metric insert error:', metricError);
+          await supabase.rpc("rollback_transaction");
           throw new Error(`Error inserting artist metric: ${metricError.message}`);
         }
       }
@@ -96,6 +130,9 @@ export const addFullArtist = actionClient
       // Insert tracks and create artist_tracks entries
       if (tracks && tracks.length > 0) {
         for (const track of tracks as Track[]) {
+          console.log('Inserting track:', {
+            title: track.title,
+          });
           // Upsert the track
           const { data: trackResult, error: trackError } = await supabase
             .from("tracks")
@@ -139,9 +176,7 @@ export const addFullArtist = actionClient
       if (videos && videos.length > 0) {
         for (const video of videos as Video[]) {
           console.log('Inserting video:', {
-            video_id: video.video_id,
             title: video.title,
-            platform: video.platform
           });
 
           const { data: videoResult, error: videoError } = await supabase
@@ -187,11 +222,14 @@ export const addFullArtist = actionClient
 
       console.log('videos and artist_videos added');
 
-      // Commit transaction if all operations succeed
+      // Add transaction completion logging
+      console.log('Attempting to commit transaction');
       const { error: txCommitError } = await supabase.rpc("commit_transaction");
       if (txCommitError) {
+        console.error('Transaction commit error:', txCommitError);
         throw new Error(`Failed to commit transaction: ${txCommitError.message}`);
       }
+      console.log('Transaction committed successfully');
 
       // NEW: Trigger Wikipedia service after commit using artist name and artistId.
       try {
@@ -235,8 +273,12 @@ export const addFullArtist = actionClient
 
       return insertedArtist;
     } catch (error) {
-      // Rollback the transaction in case of any error during the database operations
-      await supabase.rpc("rollback_transaction");
+      console.error('Transaction error:', error);
+      try {
+        await supabase.rpc("rollback_transaction");
+      } catch (rollbackError) {
+        console.error('Rollback failed:', rollbackError);
+      }
       throw error;
     }
   }); 

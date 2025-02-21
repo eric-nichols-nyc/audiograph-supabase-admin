@@ -71,8 +71,8 @@ export function ArtistMetricsTable() {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-  console.log('Artists:', artistsResponse?.data)
-  console.log('Metrics:', metrics)
+  // console.log('Artists:', artistsResponse?.data)
+  // console.log('Metrics:', metrics)
   
   const data = useMemo(() => {
     return artistsResponse?.data?.map(artist => {

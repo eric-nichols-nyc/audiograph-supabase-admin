@@ -14,9 +14,18 @@ interface ProcessResult {
   error?: string;
 }
 
+interface ProcessingStatus {
+  stage: string;
+  message: string;
+  details: string;
+  progress: number;
+  error?: string;
+}
+
 export function BatchArtistSelect() {
   const [selectedArtists, setSelectedArtists] = useState<SpotifyArtist[]>([]);
   const [processingArtists, setProcessingArtists] = useState<Map<string, EventSource>>(new Map());
+  const [processingStatuses, setProcessingStatuses] = useState<Map<string, ProcessingStatus>>(new Map());
 
   const handleArtistSelect = (artist: SpotifyArtist) => {
     if (!selectedArtists.find(a => a.spotify_id === artist.spotify_id)) {
@@ -36,33 +45,61 @@ export function BatchArtistSelect() {
         body: JSON.stringify(artist),
       });
 
-      if (response.ok) {
-        const eventSource = new EventSource('/api/artists/get-artist-full');
-        setProcessingArtists(prev => new Map(prev).set(artist.spotify_id, eventSource));
-
-        return new Promise<ProcessResult>((resolve) => {
-          eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.stage === 'COMPLETE' || data.stage === 'ERROR') {
-              eventSource.close();
-              setProcessingArtists(prev => {
-                const next = new Map(prev);
-                next.delete(artist.spotify_id);
-                return next;
-              });
-              setSelectedArtists(prev => prev.filter(a => a.spotify_id !== artist.spotify_id));
-              resolve({ 
-                artist, 
-                success: data.stage === 'COMPLETE', 
-                error: data.stage === 'ERROR' ? data.details : undefined 
-              });
-            }
-          };
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process artist');
       }
-      throw new Error('Failed to start processing');
+
+      const eventSource = new EventSource('/api/artists/get-artist-full');
+      setProcessingArtists(prev => new Map(prev).set(artist.spotify_id, eventSource));
+
+      return new Promise<ProcessResult>((resolve) => {
+        eventSource.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          
+          setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, data));
+
+          if (data.stage === 'COMPLETE' || data.stage === 'ERROR') {
+            eventSource.close();
+            setProcessingArtists(prev => {
+              const next = new Map(prev);
+              next.delete(artist.spotify_id);
+              return next;
+            });
+            setSelectedArtists(prev => prev.filter(a => a.spotify_id !== artist.spotify_id));
+            resolve({ 
+              artist, 
+              success: data.stage === 'COMPLETE', 
+              error: data.stage === 'ERROR' ? data.details : undefined 
+            });
+          }
+        };
+
+        eventSource.onerror = (error) => {
+          eventSource.close();
+          setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, {
+            stage: 'ERROR',
+            message: 'Processing Error',
+            details: 'Connection failed',
+            progress: 0,
+            error: 'EventSource connection failed'
+          }));
+          resolve({ 
+            artist, 
+            success: false, 
+            error: 'EventSource connection failed' 
+          });
+        };
+      });
     } catch (error) {
       console.error(`Error processing artist ${artist.name}:`, error);
+      setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, {
+        stage: 'ERROR',
+        message: 'Processing Error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        progress: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }));
       return { 
         artist, 
         success: false, 
@@ -138,16 +175,28 @@ export function BatchArtistSelect() {
         </div>
       )}
 
-      {/* Progress displays */}
+      {/* Updated Progress displays */}
       <div className="space-y-4">
-        {Array.from(processingArtists.entries()).map(([spotifyId, eventSource]) => (
-          <div key={spotifyId} className="border rounded-lg p-4">
-            <div className="font-medium mb-2">
-              {selectedArtists.find(a => a.spotify_id === spotifyId)?.name}
+        {Array.from(processingStatuses.entries()).map(([spotifyId, status]) => {
+          const eventSource = processingArtists.get(spotifyId);
+          
+          return (
+            <div key={spotifyId} className="border rounded-lg p-4">
+              <div className="font-medium mb-2">
+                {selectedArtists.find(a => a.spotify_id === spotifyId)?.name}
+              </div>
+              {status.error ? (
+                <div className="text-destructive">
+                  Error: {status.error}
+                </div>
+              ) : eventSource ? (
+                <ArtistProgress eventSource={eventSource} />
+              ) : (
+                <div>Initializing...</div>
+              )}
             </div>
-            <ArtistProgress eventSource={eventSource} />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

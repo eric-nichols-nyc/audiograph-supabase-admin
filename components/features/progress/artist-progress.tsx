@@ -11,7 +11,11 @@ interface ProgressState {
   payload?: any;
 }
 
-export function ArtistProgress({ eventSource }: { eventSource: EventSource }) {
+interface ArtistProgressProps {
+  eventSource?: EventSource;  // Make EventSource optional
+}
+
+export function ArtistProgress({ eventSource }: ArtistProgressProps) {
   const [progress, setProgress] = useState<ProgressState>({
     stage: '',
     message: '',
@@ -20,14 +24,16 @@ export function ArtistProgress({ eventSource }: { eventSource: EventSource }) {
   });
 
   useEffect(() => {
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setProgress(data);
-    };
+    if (eventSource) {
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setProgress(data);
+      };
 
-    return () => {
-      eventSource.close();
-    };
+      return () => {
+        eventSource.close();
+      };
+    }
   }, [eventSource]);
 
   return (
