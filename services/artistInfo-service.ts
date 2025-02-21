@@ -72,11 +72,7 @@ export async function getArtistInfo(artistName: string, artistId: string, popula
         : [],
     is_complete: false,
     bio: bioText,
-    popularity: popularity,
-    slug: createSlug(artistName),
-    rank: null,
-    rank_change: null,
-    last_rank_update: null,
+    slug: createSlug(artistName)
   };
 
   // Build additional data arrays as per the API route's transformation.

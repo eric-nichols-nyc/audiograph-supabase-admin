@@ -56,16 +56,16 @@ export const addFullArtist = actionClient
 
     try {
       // Rest of your existing transaction code...
-      
+
       // Add more detailed logging throughout the transaction
       console.log('Transaction started successfully');
-      
+
       const { data: artistData, error: artistError } = await supabase
         .from("artists")
         .insert(artist)
         .select()
         .single();
-      
+
       if (artistError) {
         console.error('Service:Artist insert error:', artistError);
         await supabase.rpc("rollback_transaction");
@@ -76,7 +76,7 @@ export const addFullArtist = actionClient
       }
 
       console.log('Artist inserted successfully');
-      
+
       // Use the generated artist id for all subsequent inserts
       const artistId = artistData.id;
       console.log('artistId = ', artistId);
@@ -84,7 +84,7 @@ export const addFullArtist = actionClient
       // Insert platform data
       for (const platform of platformData) {
         try {
-          const platformInsert = { 
+          const platformInsert = {
             artist_id: artistId,
             platform: platform.platform  // Just use the platform name (youtube/spotify)
           };
@@ -94,7 +94,9 @@ export const addFullArtist = actionClient
           if (platformError) {
             console.error('Platform insert error:', platformError);
             await supabase.rpc("rollback_transaction");
-            throw new Error(`Error inserting artist platform: ${platformError.message}`);
+            return {
+              error: platformError.message
+            }
           }
         } catch (error) {
           console.error('Error in platform insert:', error);
@@ -123,7 +125,9 @@ export const addFullArtist = actionClient
         if (metricError) {
           console.error('Metric insert error:', metricError);
           await supabase.rpc("rollback_transaction");
-          throw new Error(`Error inserting artist metric: ${metricError.message}`);
+          return {
+            error: metricError.message
+          }
         }
       }
 
@@ -165,7 +169,7 @@ export const addFullArtist = actionClient
               onConflict: 'artist_id,track_id'
             });
 
-          if (artistTrackError){
+          if (artistTrackError) {
             console.error('Artist-track relation error:', artistTrackError);
             await supabase.rpc("rollback_transaction");
             throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
@@ -208,14 +212,14 @@ export const addFullArtist = actionClient
           // Create artist-video relationship
           const { error: artistVideoError } = await supabase
             .from("artist_videos")
-            .upsert({ 
-              artist_id: artistId, 
+            .upsert({
+              artist_id: artistId,
               video_id: videoResult.id  // Use video_id directly
             }, {
               onConflict: 'artist_id,video_id'
             });
 
-          if (artistVideoError){
+          if (artistVideoError) {
             console.error('Artist video relation error:', artistVideoError);
             await supabase.rpc("rollback_transaction");
             throw new Error(`Artist video relation error: ${artistVideoError.message}`);

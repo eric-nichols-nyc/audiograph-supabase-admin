@@ -52,7 +52,7 @@ const cachedFetchArtistMetadata = unstable_cache(
     }
     return data;
   },
-  ['artist-metadata'],
+  ['artist-metadata-full'],
   { revalidate: 60 * 60 }
 );
 
