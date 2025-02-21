@@ -28,24 +28,21 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const queryClient = new QueryClient()
-  
-  await queryClient.prefetchQuery({
-    queryKey: ['artists'],
-    queryFn: () => getArtists()
-  })
 
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <Providers dehydratedState={dehydrate(queryClient)}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        <Providers>
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </HydrationBoundary>
         </Providers>
       </body>
     </html>

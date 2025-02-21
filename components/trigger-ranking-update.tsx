@@ -1,12 +1,13 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/utils/supabase/client';  // Use the singleton instance
 
 export function TriggerRankingUpdate() {
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const triggerUpdate = async () => {
     setIsUpdating(true);
@@ -16,24 +17,21 @@ export function TriggerRankingUpdate() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to trigger rankings update');
+        throw new Error('Failed to trigger rankings update');
       }
 
-      console.log('Rankings update triggered successfully');
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['artists'] });
+      await queryClient.invalidateQueries({ queryKey: ['artist-metrics'] });
     } catch (error) {
-      console.error(error instanceof Error ? error.message : 'Failed to trigger rankings update');
+      console.error('Failed to update rankings:', error);
     } finally {
       setIsUpdating(false);
     }
   };
 
   return (
-    <Button 
-      onClick={triggerUpdate} 
-      disabled={isUpdating}
-      variant="outline"
-    >
+    <Button onClick={triggerUpdate} disabled={isUpdating} variant="outline">
       {isUpdating ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
