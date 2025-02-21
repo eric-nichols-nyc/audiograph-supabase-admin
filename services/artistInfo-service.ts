@@ -106,30 +106,30 @@ export async function getArtistInfo(artistName: string, artistId: string, popula
       date: currentDate,
       platform: "youtube",
       metric_type: "views",
-      value: youtube.status === 'fulfilled' ? youtube.value?.youtube_total_views : 0
+      value: youtube.status === 'fulfilled' ? Math.round(youtube.value?.youtube_total_views) : 0
     },
     {
       date: currentDate,
       platform: "youtube",
       metric_type: "subscribers",
-      value: youtube.status === 'fulfilled' ? youtube.value?.youtube_subcribers : 0
+      value: youtube.status === 'fulfilled' ? Math.round(youtube.value?.youtube_subcribers) : 0
     },
     {
       date: currentDate,
       platform: "lastfm",
       metric_type: "monthly_listeners",
-      value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_monthly_listeners) : 0
+      value: lastfm.status === 'fulfilled' ? Math.round(Number(lastfm.value?.lastfm_monthly_listeners)) : 0
     },
     {
       date: currentDate,
       platform: "lastfm",
       metric_type: "play_count",
-      value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_play_count) : 0
+      value: lastfm.status === 'fulfilled' ? Math.round(Number(lastfm.value?.lastfm_play_count)) : 0
     },
     {
       platform: 'spotify',
       metric_type: 'popularity',
-      value: popularity
+      value: Math.round(popularity)
     }
   ];
 

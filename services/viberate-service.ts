@@ -130,7 +130,7 @@ export const getViberateData = async (artistName: string): Promise<ViberateRespo
 
         return {
           artist_analytics: {
-            spotify_monthly_listeners: spotify_monthly_listeners || 0,
+            spotify_monthly_listeners: Math.round(spotify_monthly_listeners) || 0,
             ...parsedStats,
           },
           fromCache: false,
@@ -207,8 +207,8 @@ const analyticsMapping: {
  */
 export function convertViberateResponseToArtistMetrics(
   response: ViberateResponse
-): ArtistMetric[] {
-  const metrics: ArtistMetric[] = [];
+): Omit<ArtistMetric, 'id' | 'date'>[] {
+  const metrics: Omit<ArtistMetric, 'id' | 'date'>[] = [];
 
   // Loop through each analytics field in the response.
   for (const key in response.artist_analytics) {

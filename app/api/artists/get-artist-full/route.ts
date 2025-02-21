@@ -62,7 +62,7 @@ const cachedFetchAnalytics = unstable_cache(
     const analyticsData = await getViberateData(slugify(artistName));
     return convertViberateResponseToArtistMetrics(analyticsData);
   },
-  ['artist-analytics'],
+  ['artist-analytics-1'],
   { revalidate: 60 * 60 }
 );
 
@@ -233,10 +233,11 @@ export async function POST(req: Request) {
         const trackData = await cachedFetchTrackData(spotify_id);
         result.tracks = trackData.tracks;
         result.metricData = [...result.metricData, ...trackData.stats];
+        console.log('trackData', trackData.stats);
         await sendUpdate('TRACK_DATA', 'Retrieved Spotify data', 60);
         // Store Everything
         await sendUpdate('STORE', 'Saving artist data...', 80);
-        // console.log('SENDING RESULT TO DATABASE==========================',result);
+        console.log('SENDING RESULT TO DATABASE==========================',result.metricData);
 
         // Before calling addFullArtist
         // console.log('Preparing data for validation:', {

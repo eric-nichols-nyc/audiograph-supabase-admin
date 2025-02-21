@@ -93,7 +93,7 @@ export function AddArtist() {
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
             console.log('MESSAGE PAYLOAD==========================', message.payload);
-            if (message.payload?.artist?.slug) {
+            if (message.payload?.slug) {
               setArtistSlug(message.payload.artist.slug);
             } else {
               console.error('Missing slug in response:', message);
