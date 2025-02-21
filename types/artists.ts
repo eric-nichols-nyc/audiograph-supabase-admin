@@ -5,6 +5,7 @@ export interface Artist {
     slug: string
     rank?: number | null
     genres?: string[] | null
+    popularity?: number | null
     rank_change?: number | null
     last_rank_update?: string | null
     bio: string | null

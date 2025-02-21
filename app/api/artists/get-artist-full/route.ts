@@ -10,6 +10,7 @@ import { ArtistMetric, Track, Video } from '@/types/artists';
 import { addFullArtist } from '@/services/add-artist-full';
 //import { addFullArtist } from '@/services/test.service';
 import { unstable_cache } from 'next/cache';
+import { sendArtistUpdate } from '../progress/[artistId]/route';
 
 // Simplified stages
 const STAGES = {
@@ -41,10 +42,10 @@ export function slugify(artistName: string): string {
 
 // Cache the individual data fetching functions
 const cachedFetchArtistMetadata = unstable_cache(
-  async (artistName: string, artistSpotifyId: string) => {
+  async (artistName: string, artistSpotifyId: string, popularity: number) => {
     try {
       console.log('🔍 Fetching artist metadata for:', artistName);
-      const data = await getArtistInfo(artistName, artistSpotifyId);
+      const data = await getArtistInfo(artistName, artistSpotifyId, popularity);
       return data;
     } catch (error) {
       console.error('Error fetching artist metadata:', error);
@@ -177,52 +178,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const encoder = new TextEncoder();
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
-    const result: any = {
-      artist: {
-        name: name,
-        spotify_id: spotify_id,
-        image_url: image_url,
-        popularity: popularity,
-        followers: followers,
-        genres: genres
-      },
-      platformData: [],
-      urlData: [],
-      metricData: [],
-      tracks: [],
-      videos: [],
-    };
-
-    const sendUpdate = async (
-      stage: keyof typeof STAGES,
-      details: string,
-      progress: number,
-      payload?: any
-    ) => {
-      const message = `data: ${JSON.stringify({
+    const sendUpdate = async (stage: keyof typeof STAGES, details: string, progress: number, payload?: any) => {
+      await sendArtistUpdate(spotify_id, {
         stage,
         message: STAGES[stage],
         details,
         progress,
         payload
-      })}\n\n`;
-      await writer.write(encoder.encode(message));
+      });
     };
 
-    // Modify the processing section to use fewer, more meaningful updates:
+    // Start the processing in the background
     (async () => {
       try {
         await sendUpdate('INIT', 'Starting process...', 0);
 
         // Metadata
-        const metadata = await cachedFetchArtistMetadata(name, spotify_id);
-        result.artist = metadata.artist;
-        result.platformData = metadata.platformData;
-        result.metricData = metadata.metricData;
-        await sendUpdate('METADATA', `Found ${name} on Spotify`, 25);
+        const metadata = await cachedFetchArtistMetadata(name, spotify_id, popularity);
+        await sendUpdate('METADATA', `Found ${name} on Spotify`, 25, metadata);
 
         // Analytics & Media
         const [analyticsData, videoData, trackData] = await Promise.all([
@@ -232,15 +205,26 @@ export async function POST(req: Request) {
         ]);
 
         // Combine results
-        result.metricData = [
-          ...analyticsData,
-          ...videoData.stats,
-          ...trackData.stats
-        ];
-        result.videos = videoData.videos;
-        result.tracks = trackData.tracks;
+        const result: any = {
+          artist: {
+            name: name,
+            spotify_id: spotify_id,
+            image_url: image_url,
+            popularity: popularity,
+            followers: followers,
+            genres: genres
+          },
+          platformData: metadata.platformData,
+          metricData: [
+            ...analyticsData,
+            ...videoData.stats,
+            ...trackData.stats
+          ],
+          videos: videoData.videos,
+          tracks: trackData.tracks
+        };
         
-        await sendUpdate('MEDIA', 'Processed all media data', 75);
+        await sendUpdate('MEDIA', 'Processed all media data', 75, result);
 
         // Store data
         await sendUpdate('STORE', 'Saving to database...', 90);
@@ -254,18 +238,11 @@ export async function POST(req: Request) {
           error instanceof Error ? error.message : 'Failed to process artist',
           0
         );
-      } finally {
-        await writer.close();
       }
     })();
 
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    // Return immediate success response
+    return NextResponse.json({ message: 'Processing started' });
   } catch (error) {
     console.error('Route error:', error);
     return NextResponse.json(
@@ -273,4 +250,28 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+// Add a new GET route handler
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const artistId = searchParams.get('artistId');
+  
+  if (!artistId) {
+    return new Response('Artist ID is required', { status: 400 });
+  }
+
+  const encoder = new TextEncoder();
+  const stream = new TransformStream();
+  const writer = stream.writable.getWriter();
+
+  // ... rest of your streaming logic ...
+
+  return new Response(stream.readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }

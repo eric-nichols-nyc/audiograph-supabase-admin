@@ -15,6 +15,7 @@ export const artistSchema = z.object({
   birth_date: z.string(),
   image_url: z.string(),
   genres: z.array(z.string()).nullable(),
+  popularity: z.number().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 }) satisfies z.Schema<Artist>;

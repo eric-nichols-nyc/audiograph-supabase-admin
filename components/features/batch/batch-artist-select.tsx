@@ -50,7 +50,7 @@ export function BatchArtistSelect() {
         throw new Error(errorData.error || 'Failed to process artist');
       }
 
-      const eventSource = new EventSource('/api/artists/get-artist-full');
+      const eventSource = new EventSource(`/api/artists/progress/${artist.spotify_id}`);
       setProcessingArtists(prev => new Map(prev).set(artist.spotify_id, eventSource));
 
       return new Promise<ProcessResult>((resolve) => {

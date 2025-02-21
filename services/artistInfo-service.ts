@@ -8,7 +8,7 @@ import { GeminiService } from "@/services/gemini-service";
 
 
 
-export async function getArtistInfo(artistName: string, artistId: string): Promise<{ artist: Artist, platformData: any[], urlData: any[], metricData: any[] }> {
+export async function getArtistInfo(artistName: string, artistId: string, popularity: number): Promise<{ artist: Artist, platformData: any[], urlData: any[], metricData: any[] }> {
   const musicBrainzService = createMusicBrainzService();
   const youtubeService = createYoutubeService();
   const lastfmService = createLastfmService();
@@ -72,6 +72,7 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
         : [],
     is_complete: false,
     bio: bioText,
+    popularity: popularity,
     slug: createSlug(artistName),
     rank: null,
     rank_change: null,
@@ -128,6 +129,11 @@ export async function getArtistInfo(artistName: string, artistId: string): Promi
       platform: "lastfm",
       metric_type: "play_count",
       value: lastfm.status === 'fulfilled' ? Number(lastfm.value?.lastfm_play_count) : 0
+    },
+    {
+      platform: 'spotify',
+      metric_type: 'popularity',
+      value: popularity
     }
   ];
 

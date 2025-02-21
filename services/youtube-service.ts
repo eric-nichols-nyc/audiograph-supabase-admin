@@ -126,6 +126,58 @@ class YoutubeService {
         }
     }, [`youtube-channel-info`]);
 
+    public getArtistYoutubeInfoByChannelId = unstable_cache(async (channelId: string): Promise<any | { error: string }> => {
+        // Check if data is in cache
+        const cacheKey = `youtube-channel-info-${channelId}`;
+        const cachedData = this.memoryCache.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < 24 * 60 * 60 * 1000) {
+            console.log('✅ Found in memory cache:', cacheKey);
+            return cachedData.data;
+        }
+
+        try {
+     
+
+            // Get channel statistics
+            const channelResponse = await this.rateLimitRequest(
+                this.youtube.channels.list({
+                    key: this.API_KEY,
+                    part: ['statistics'],
+                    id: [channelId]
+                })
+            );
+
+            const channelStats = channelResponse.data.items?.[0]?.statistics;
+            if (!channelStats) {
+                console.log('No channel statistics found, returning error.');
+                return { error: 'No channel statistics found' };
+            }
+
+            const result = {
+                youtube_channel_id: channelId,
+                youtube_total_views: parseInt(channelStats.viewCount || '0'),
+                youtube_subcribers: parseInt(channelStats.subscriberCount || '0'),
+                fetchedAt: new Date().toISOString()
+            };
+
+            console.log('YOUTUBE RESULT==========================', result);
+
+            // Store in memory cache
+            // console.log('Storing data in memory cache:', cacheKey);
+            this.memoryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching YouTube channel:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch YouTube channel';
+            return { error: errorMessage };
+        }
+    }, [`youtube-channel-info-by-id`]);
+
+
     public getYoutubeVideos = unstable_cache(async (videoIds: string[]) => {
         try {
             const response = await this.rateLimitRequest(
