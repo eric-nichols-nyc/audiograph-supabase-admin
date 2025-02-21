@@ -67,9 +67,12 @@ export const addFullArtist = actionClient
         .single();
       
       if (artistError) {
-        console.error('Artist insert error:', artistError);
+        console.error('Service:Artist insert error:', artistError);
         await supabase.rpc("rollback_transaction");
-        throw new Error(`Error inserting artist: ${artistError.message}`);
+        //throw new Error(`Service: Error inserting artist: ${artistError.message}`);
+        return {
+          error: artistError.message
+        }
       }
 
       console.log('Artist inserted successfully');
