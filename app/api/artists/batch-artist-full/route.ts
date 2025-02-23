@@ -10,7 +10,7 @@ import { ArtistMetric, Track, Video } from '@/types/artists';
 import { addFullArtist } from '@/services/add-artist-full';
 //import { addFullArtist } from '@/services/test.service';
 import { unstable_cache } from 'next/cache';
-import { sendArtistUpdate } from '../progress/[artistId]/route';
+import { sendArtistUpdate } from '../progress/[spotify_id]/route';
 
 // Simplified stages
 const STAGES = {
@@ -170,84 +170,151 @@ const cachedFetchTrackData = unstable_cache(
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('API received body:', body);
-
     const { name, spotify_id, image_url, popularity, followers, genres } = body;
-    if (!name || !spotify_id) {
-      console.error('Validation error: Missing required fields', { name, spotify_id });
+
+    if (!name || !spotify_id || !popularity) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const sendUpdate = async (stage: keyof typeof STAGES, details: string, progress: number, payload?: any) => {
-      await sendArtistUpdate(spotify_id, {
-        stage,
-        message: STAGES[stage],
-        details,
-        progress,
-        payload
-      });
-    };
-
-    // Start the processing in the background
+    // Start processing in background
     (async () => {
       try {
-        await sendUpdate('INIT', 'Starting process...', 0);
+        await sendArtistUpdate(spotify_id, {
+          stage: 'INIT',
+          message: 'Starting process...',
+          details: `Processing ${name}`,
+          progress: 0
+        });
 
-        // Metadata
-        const metadata = await cachedFetchArtistMetadata(name, spotify_id, popularity);
-        await sendUpdate('METADATA', `Found ${name} on Spotify`, 25, metadata);
+        // Fetch metadata with error handling
+        try {
+          await sendArtistUpdate(spotify_id, {
+            stage: 'METADATA',
+            message: 'Fetching metadata...',
+            details: `Getting data for ${name}`,
+            progress: 25
+          });
+          
+          const metadata = await cachedFetchArtistMetadata(name, spotify_id, popularity);
+          console.log('Metadata fetched:', metadata);
 
-        // Analytics & Media
-        const [analyticsData, videoData, trackData] = await Promise.all([
-          cachedFetchAnalytics(name),
-          cachedGetArtistVideoData(name),
-          cachedFetchTrackData(spotify_id)
-        ]);
+          // Fetch analytics and media data
+          await sendArtistUpdate(spotify_id, {
+            stage: 'ANALYTICS',
+            message: 'Processing analytics...',
+            details: 'Fetching platform data',
+            progress: 50
+          });
 
-        // Combine results
-        const result: any = {
-          artist: {
-            name: name,
-            spotify_id: spotify_id,
-            image_url: image_url,
-            popularity: popularity,
-            followers: followers,
-            genres: genres
-          },
-          platformData: metadata.platformData,
-          metricData: [
-            ...analyticsData,
-            ...videoData.stats,
-            ...trackData.stats
-          ],
-          videos: videoData.videos,
-          tracks: trackData.tracks
-        };
-        
-        await sendUpdate('MEDIA', 'Processed all media data', 75, result);
+          const analyticsPromise = cachedFetchAnalytics(name).catch(error => {
+            console.error('Analytics fetch error:', error);
+            return [];
+          });
 
-        // Store data
-        await sendUpdate('STORE', 'Saving to database...', 90);
-        const insertedArtist = await addFullArtist(result);
+          const videoPromise = cachedGetArtistVideoData(name).catch(error => {
+            console.error('Video fetch error:', error);
+            return { stats: [], videos: [] };
+          });
 
-        await sendUpdate('COMPLETE', 'Successfully added artist', 100, insertedArtist);
+          const trackPromise = cachedFetchTrackData(spotify_id).catch(error => {
+            console.error('Track fetch error:', error);
+            return { stats: [], tracks: [] };
+          });
+
+          const [analyticsData, videoData, trackData] = await Promise.all([
+            analyticsPromise,
+            videoPromise,
+            trackPromise
+          ]);
+
+          await sendArtistUpdate(spotify_id, {
+            stage: 'MEDIA',
+            message: 'Processing media...',
+            details: 'Combining all data',
+            progress: 75
+          });
+
+          // Create the artist object with required fields
+          const artistData = {
+            name,
+            spotify_id,
+            slug: slugify(name),
+            bio: metadata.bio || '',
+            gender: metadata.gender || 'unknown',
+            country: metadata.country || 'US',
+            birth_date: metadata.birth_date || new Date().toISOString(),
+            image_url: image_url || '',
+            genres: genres || [],
+            is_complete: true,
+            followers: followers || 0
+          };
+
+          // Combine all the data
+          const result = {
+            artist: artistData,
+            platformData: metadata.platformData || [],
+            metricData: [
+              ...(analyticsData || []),
+              ...(videoData?.stats || []),
+              ...(trackData?.stats || []),
+              {
+                platform: 'spotify',
+                metric_type: 'popularity',
+                value: popularity || 0
+              }
+            ],
+            videos: videoData?.videos || [],
+            tracks: trackData?.tracks || []
+          };
+
+          // Store the data
+          await sendArtistUpdate(spotify_id, {
+            stage: 'STORE',
+            message: 'Saving to database...',
+            details: 'Finalizing artist data',
+            progress: 90
+          });
+
+          const insertedArtist = await addFullArtist(result);
+          console.log('Artist inserted:', insertedArtist);
+
+          // Complete
+          await sendArtistUpdate(spotify_id, {
+            stage: 'COMPLETE',
+            message: 'Processing complete',
+            details: `Successfully processed ${name}`,
+            progress: 100,
+            payload: insertedArtist
+          });
+
+        } catch (error) {
+          console.error('Metadata fetch error:', error);
+          throw error;
+        }
+
       } catch (error) {
         console.error('Processing error:', error);
-        await sendUpdate(
-          'ERROR',
-          error instanceof Error ? error.message : 'Failed to process artist',
-          0
-        );
+        await sendArtistUpdate(spotify_id, {
+          stage: 'ERROR',
+          message: 'Processing failed',
+          details: error instanceof Error ? error.message : 'Unknown error',
+          progress: 0
+        });
       }
     })();
 
-    // Return immediate success response
+    // Return immediate response
     return NextResponse.json({ message: 'Processing started' });
+
   } catch (error) {
     console.error('Route error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const artistId = searchParams.get('artistId');
+  console.log('Artist ID:', artistId);
+  return NextResponse.json({ message: 'Artist ID received' });
 }

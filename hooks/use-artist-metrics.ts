@@ -16,13 +16,20 @@ export function useArtistMetrics() {
     queryFn: async () => {
       try {
         const result = await getArtistMetrics();
-        return result || { data: { data: [] } };
+        // The error is that the return type of getArtistMetrics() doesn't match MetricsResponse
+        // getArtistMetrics returns SafeActionResult type but we need MetricsResponse
+        // We need to transform the result to match MetricsResponse type
+        return {
+          data: {
+            data: result?.data?.data || []
+          }
+        };
       } catch (error) {
         console.error('Error fetching metrics:', error);
         return { data: { data: [] } };
       }
     }
-  });
+    })
 
   return {
     data: query.data,

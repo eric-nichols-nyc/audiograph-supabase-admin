@@ -39,7 +39,8 @@ export function BatchArtistSelect() {
 
   const processArtist = async (artist: SpotifyArtist): Promise<ProcessResult> => {
     try {
-      const response = await fetch('/api/artists/get-artist-full', {
+      // First API call - initiates processing
+      const response = await fetch('/api/artists/batch-artist-full', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(artist),
@@ -50,15 +51,17 @@ export function BatchArtistSelect() {
         throw new Error(errorData.error || 'Failed to process artist');
       }
 
+      // Second API call - creates EventSource connection to track progress
       const eventSource = new EventSource(`/api/artists/progress/${artist.spotify_id}`);
       setProcessingArtists(prev => new Map(prev).set(artist.spotify_id, eventSource));
 
       return new Promise<ProcessResult>((resolve) => {
+        // Listen for progress updates
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          
           setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, data));
-
+          
+          // When complete, clean up and update UI
           if (data.stage === 'COMPLETE' || data.stage === 'ERROR') {
             eventSource.close();
             setProcessingArtists(prev => {

@@ -8,7 +8,50 @@ import { GeminiService } from "@/services/gemini-service";
 
 
 
-export async function getArtistInfo(artistName: string, artistId: string, popularity: number): Promise<{ artist: Artist, platformData: any[], urlData: any[], metricData: any[] }> {
+export async function getArtistInfo(artistName: string, artistSpotifyId: string, popularity: number) {
+  try {
+    const spotifyService = createSpotifyService();
+    const spotifyArtist = await spotifyService.getArtist(artistName);
+
+    // Get artist info from Claude
+    const artistInfo = await getArtistInfoFromClaude(artistName);
+
+    return {
+      bio: artistInfo.bio || '',
+      gender: artistInfo.gender || 'unknown',
+      country: artistInfo.country || 'US',
+      birth_date: artistInfo.birth_date || new Date().toISOString(),
+      platformData: [
+        {
+          platform: 'spotify',
+          platform_id: artistSpotifyId,
+          url: `https://open.spotify.com/artist/${artistSpotifyId}`
+        }
+      ],
+      // Add popularity to the returned metadata
+      popularity: popularity,
+      urlData: []
+    };
+
+  } catch (error) {
+    console.error('Error in getArtistInfo:', error);
+    throw new Error(`Failed to get artist info: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+export async function getArtistInfoFromClaude(artistName: string): Promise<{ bio: string; gender: string; country: string; birth_date: string; popularity: number }> {
+  // Implementation of getArtistInfoFromClaude function
+  // This is a placeholder and should be replaced with the actual implementation
+  return {
+    bio: '',
+    gender: 'unknown',
+    country: 'US',
+    birth_date: new Date().toISOString(),
+    popularity: 0
+  };
+}
+
+export async function getArtistInfoOld(artistName: string, artistId: string, popularity: number): Promise<{ artist: Artist, platformData: any[], urlData: any[], metricData: any[] }> {
   const musicBrainzService = createMusicBrainzService();
   const youtubeService = createYoutubeService();
   const lastfmService = createLastfmService();
