@@ -3,7 +3,9 @@ import { getArtistMetrics } from '@/actions/artist'
 import { ArtistMetric } from '@/types/artists'
 
 interface MetricsResponse {
-  data: ArtistMetric[]
+  data: {
+    data: ArtistMetric[];
+  };
 }
 
 export function useArtistMetrics() {
@@ -14,10 +16,10 @@ export function useArtistMetrics() {
     queryFn: async () => {
       try {
         const result = await getArtistMetrics();
-        return result || { data: [] };
+        return result || { data: { data: [] } };
       } catch (error) {
         console.error('Error fetching metrics:', error);
-        return { data: [] };
+        return { data: { data: [] } };
       }
     }
   });

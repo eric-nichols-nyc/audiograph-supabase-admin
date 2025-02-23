@@ -37,14 +37,25 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useArtists } from '@/hooks/use-artists'
-import { Artist } from '@/types/artists'
+import { Artist, ArtistMetric } from '@/types/artists'
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
-import { ArtistMetric } from '@/types/artists'
 import { cn } from "@/lib/utils"
 import { CSSProperties } from "react"
 import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
 import { ArtistDropdownMenu } from "./artist-dropdown-menu"
+
+interface ArtistResponse {
+  data: {
+    data: Artist[];
+  };
+}
+
+interface MetricsResponse {
+  data: {
+    data: ArtistMetric[];
+  };
+}
 
 const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
   const isPinned = column.getIsPinned();
@@ -70,8 +81,18 @@ const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
 };
 
 export function ArtistMetricsTable() {
-  const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists()
-  const { data: metrics, isLoading: metricsLoading, mutate: mutateMetrics } = useArtistMetrics()
+  const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists() as { 
+    data: ArtistResponse | undefined;
+    isLoading: boolean;
+    mutate: () => Promise<void>;
+  };
+
+  const { data: metrics, isLoading: metricsLoading, mutate: mutateMetrics } = useArtistMetrics() as {
+    data: MetricsResponse | undefined;
+    isLoading: boolean;
+    mutate: () => Promise<void>;
+  };
+
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -84,7 +105,7 @@ export function ArtistMetricsTable() {
   console.log('Metrics:', metrics?.data?.data)
   
   const data = useMemo(() => {
-    if (!artistsResponse?.data.data || !metrics?.data?.data) {
+    if (!artistsResponse?.data?.data || !metrics?.data?.data) {
       return [];
     }
 
@@ -107,13 +128,43 @@ export function ArtistMetricsTable() {
         spotify_popularity: spotifyMetric?.value ?? null
       };
     });
-  }, [artistsResponse?.data.data, metrics?.data?.data]);
+  }, [artistsResponse?.data?.data, metrics?.data?.data]);
 
   const handleUpdate = async () => {
     await Promise.all([
       mutateArtists(),
       mutateMetrics()
     ]);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!data?.length) {
+      toast.error("No artists found");
+      return;
+    }
+
+    const artists = data.map((artist: Artist & { name: string }) => ({
+      artistName: artist.name
+    }));
+
+    try {
+      const result = await bulkUpdateSpotifyPopularity({ artists });
+      if (!result) {
+        toast.error("Failed to update artists");
+        return;
+      }
+
+      if (result.data) {
+        toast.success(result.data.message);
+        await handleUpdate();
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Failed to update artists"
+      );
+    }
   };
 
   const columns: ColumnDef<Artist>[] = [
@@ -334,35 +385,7 @@ export function ArtistMetricsTable() {
             className="max-w-sm"
           />
           <Button
-            onClick={async () => {
-              if (!data?.length) {
-                toast.error("No artists found");
-                return;
-              }
-
-              const artists = data.map(artist => ({
-                artistName: artist.name
-              }));
-
-              try {
-                const result = await bulkUpdateSpotifyPopularity({ artists });
-                if (!result) {
-                  toast.error("Failed to update artists");
-                  return;
-                }
-
-                if (result.data) {
-                  toast.success(result.data.message);
-                  await handleUpdate();
-                }
-              } catch (error) {
-                toast.error(
-                  error instanceof Error 
-                    ? error.message 
-                    : "Failed to update artists"
-                );
-              }
-            }}
+            onClick={handleBulkUpdate}
             className="ml-2"
           >
             Update All Spotify Popularity

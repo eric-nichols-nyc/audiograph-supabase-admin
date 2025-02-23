@@ -4,7 +4,9 @@ import { getArtists } from '@/actions/artist';
 import { Artist } from '@/types/artists';
 
 interface ArtistsResponse {
-  data: Artist[]
+  data: {
+    data: Artist[];
+  };
 }
 
 export function useArtists() {
@@ -15,10 +17,10 @@ export function useArtists() {
     queryFn: async () => {
       try {
         const result = await getArtists();
-        return result || { data: [] };
+        return result || { data: { data: [] } };
       } catch (error) {
         console.error('Error fetching artists:', error);
-        return { data: [] };
+        return { data: { data: [] } };
       }
     }
   });
