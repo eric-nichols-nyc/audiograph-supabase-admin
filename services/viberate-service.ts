@@ -222,7 +222,7 @@ export function convertViberateResponseToArtistMetrics(
       metrics.push({
         platform: mappingInfo.platform,
         metric_type: mappingInfo.metric_type,
-        value,
+        value: Math.round(value),
       });
     }
   }

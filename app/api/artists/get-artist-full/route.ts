@@ -62,7 +62,7 @@ const cachedFetchAnalytics = unstable_cache(
     const analyticsData = await getViberateData(slugify(artistName));
     return convertViberateResponseToArtistMetrics(analyticsData);
   },
-  ['artist-analytics-1'],
+  ['artist-analytics'],
   { revalidate: 60 * 60 }
 );
 
@@ -211,8 +211,12 @@ export async function POST(req: Request) {
           result.artist = metadata.artist;
           result.platformData = metadata.platformData;
           result.metricData = metadata.metricData;
+
+          // console log the metricData
+          console.log('====metricData=========', result.metricData);
           await sendUpdate('METADATA', 'Found artist on Spotify', 20);
           //console.log('artistData', metadata);
+          return;
         } catch (error) {
           console.error('Route: Metadata fetch error:', error);
           await sendUpdate('ERROR', `Metadata fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 0);
@@ -293,7 +297,7 @@ export async function POST(req: Request) {
             );
             return;
         }
-        console.log('insertedArtist', insertedArtist)
+        // console.log('insertedArtist', insertedArtist)
         // Complete
         await sendUpdate('COMPLETE', 'Successfully added artist to database', 100, insertedArtist);
         //console.log('Sample video data:', result.videos[37]); // The one that's failing

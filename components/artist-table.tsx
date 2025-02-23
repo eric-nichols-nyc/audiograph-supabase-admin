@@ -47,16 +47,22 @@ const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
   const isPinned = column.getIsPinned();
   const isLastLeftPinnedColumn = 
     isPinned === "left" && column.getIsLastColumn("left");
+  const isFirstRightPinnedColumn = 
+    isPinned === "right" && column.getIsFirstColumn("right");
 
   return {
     boxShadow: isLastLeftPinnedColumn
-      ? "-4px 0 4px -4px gray inset"
-      : undefined,
+      ? "4px 0 8px -6px rgba(0,0,0,0.2)"
+      : isFirstRightPinnedColumn
+        ? "-4px 0 8px -6px rgba(0,0,0,0.2)"
+        : undefined,
     left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
-    opacity: isPinned ? 0.95 : 1,
+    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
+    opacity: isPinned ? 1 : 1,
     position: isPinned ? "sticky" : "relative",
     width: column.getSize(),
-    zIndex: isPinned ? 1 : 0,
+    zIndex: isPinned ? 2 : 1,
+    backgroundColor: isPinned ? "var(--background)" : undefined,
   };
 };
 
@@ -99,9 +105,15 @@ export function ArtistMetricsTable() {
   const columns: ColumnDef<Artist>[] = [
     {
       accessorKey: "rank",
-      header: () => (
+      header: ({ column }) => (
         <div className="flex items-center justify-end gap-2">
-          <span>Rank</span>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Rank
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       ),
       cell: ({ row }) => {
@@ -297,7 +309,10 @@ export function ArtistMetricsTable() {
     initialState: {
       columnPinning: {
         left: ['rank', 'name']
-      }
+      },
+      sorting: [
+        { id: 'rank', desc: false }
+      ]
     },
   })
 

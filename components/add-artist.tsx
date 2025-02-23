@@ -11,7 +11,6 @@ import { Loader2, ArrowRight } from "lucide-react";
 import { SpotifyArtist } from "@/types/artists";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
-import { RankingService } from '@/services/ranking-service';
 import { supabase } from '@/utils/supabase/client';
 
 type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE" | "COMPLETE";
@@ -93,8 +92,8 @@ export function AddArtist() {
             setIsProcessing(false);
             setFinalResult(message.payload || message.details);
             console.log('MESSAGE PAYLOAD==========================', message.payload);
-            if (message.payload?.slug) {
-              setArtistSlug(message.payload.artist.slug);
+            if (message.payload?.data.slug) {
+              setArtistSlug(message.payload.data.slug);
             } else {
               console.error('Missing slug in response:', message);
               setError('Failed to get artist URL');

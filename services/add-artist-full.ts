@@ -3,6 +3,7 @@ import { actionClient } from "@/lib/safe-action";
 import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 import { Track, Video } from "@/types/artists";
+import { RankingService } from '@/services/ranking-service';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -32,7 +33,7 @@ const beginTransaction = async (supabase: any, attempt = 1): Promise<void> => {
 
 export const addFullArtist = actionClient
   .schema(addArtistFullSchema)
-  .action(async ({ parsedInput }) => {
+  .action(async ({ parsedInput, user }) => {
     console.log('Starting database insertion with:', {
       artistName: parsedInput.artist.name,
       dataStats: {
@@ -276,6 +277,16 @@ export const addFullArtist = actionClient
 
       if (fetchError) {
         throw new Error(`Error fetching inserted artist: ${fetchError.message}`);
+      }
+
+      // Update rankings with user from context
+      try {
+        if (!user?.id) throw new Error('No user ID available');
+        const rankingService = new RankingService(user.id);
+        await rankingService.updateRankings();
+        console.log('Rankings updated successfully');
+      } catch (rankingError) {
+        console.error('Failed to update rankings:', rankingError);
       }
 
       return insertedArtist;
