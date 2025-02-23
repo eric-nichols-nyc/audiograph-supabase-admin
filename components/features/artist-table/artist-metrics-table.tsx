@@ -57,29 +57,6 @@ interface MetricsResponse {
   };
 }
 
-const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
-  const isPinned = column.getIsPinned();
-  const isLastLeftPinnedColumn = 
-    isPinned === "left" && column.getIsLastColumn("left");
-  const isFirstRightPinnedColumn = 
-    isPinned === "right" && column.getIsFirstColumn("right");
-
-  return {
-    boxShadow: isLastLeftPinnedColumn
-      ? "4px 0 8px -6px rgba(0,0,0,0.2)"
-      : isFirstRightPinnedColumn
-        ? "-4px 0 8px -6px rgba(0,0,0,0.2)"
-        : undefined,
-    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
-    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
-    opacity: isPinned ? 1 : 1,
-    position: isPinned ? "sticky" : "relative",
-    width: column.getSize(),
-    zIndex: isPinned ? 2 : 1,
-    backgroundColor: isPinned ? "var(--background)" : undefined,
-  };
-};
-
 export function ArtistMetricsTable() {
   const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists() as { 
     data: ArtistResponse | undefined;
@@ -138,13 +115,15 @@ export function ArtistMetricsTable() {
   };
 
   const handleBulkUpdate = async () => {
-    if (!data?.length) {
-      toast.error("No artists found");
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    
+    if (selectedRows.length === 0) {
+      toast.error("No artists selected");
       return;
     }
 
-    const artists = data.map((artist: Artist & { name: string }) => ({
-      artistName: artist.name
+    const artists = selectedRows.map((row) => ({
+      artistName: row.original.name
     }));
 
     try {
@@ -157,6 +136,7 @@ export function ArtistMetricsTable() {
       if (result.data) {
         toast.success(result.data.message);
         await handleUpdate();
+        table.toggleAllRowsSelected(false); // Deselect all rows after update
       }
     } catch (error) {
       toast.error(
@@ -168,6 +148,33 @@ export function ArtistMetricsTable() {
   };
 
   const columns: ColumnDef<Artist>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="px-1">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="px-1">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 30,
+    },
     {
       accessorKey: "rank",
       header: ({ column }) => (
@@ -355,13 +362,12 @@ export function ArtistMetricsTable() {
       rowSelection,
     },
     initialState: {
-      columnPinning: {
-        left: ['rank', 'name']
-      },
       sorting: [
         { id: 'rank', desc: false }
-      ]
+      ],
+      columnOrder: ['select', 'rank', 'name', /* other column ids */]
     },
+    enableRowSelection: true,
   })
 
   if (artistsLoading || metricsLoading) {
@@ -426,13 +432,9 @@ export function ArtistMetricsTable() {
                     return (
                       <TableHead 
                         key={header.id}
-                        style={{ 
-                          ...getCommonPinningStyles(header.column),
-                          height: '40px'
-                        }}
                         className={cn(
-                          "px-6 h-[40px]",
-                          header.column.getIsPinned() && "bg-background"
+                          "h-[40px]",
+                          header.id === 'select' ? 'px-1' : 'px-6'
                         )}
                       >
                         {header.isPlaceholder
@@ -457,19 +459,11 @@ export function ArtistMetricsTable() {
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
                         key={cell.id}
-                        style={{ 
-                          ...getCommonPinningStyles(cell.column),
-                          height: '40px'
-                        }}
                         className={cn(
-                          "px-6 h-[40px]",
-                          cell.column.getIsPinned() && "bg-background"
+                          cell.column.id === 'select' ? 'px-1' : 'px-6'
                         )}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
