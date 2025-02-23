@@ -77,8 +77,8 @@ export function ArtistMetricsTable() {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-  console.log('Artists:', artistsResponse?.data.data)
-  console.log('Metrics:', metrics?.data?.data)
+//   console.log('Artists:', artistsResponse?.data.data)
+//   console.log('Metrics:', metrics?.data?.data)
   
   const data = useMemo(() => {
     if (!artistsResponse?.data?.data || !metrics?.data?.data) {
@@ -392,8 +392,9 @@ export function ArtistMetricsTable() {
           <Button
             onClick={handleBulkUpdate}
             className="ml-2"
+            disabled={table.getFilteredSelectedRowModel().rows.length === 0}
           >
-            Update All Spotify Popularity
+            Update Selected ({table.getFilteredSelectedRowModel().rows.length})
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
