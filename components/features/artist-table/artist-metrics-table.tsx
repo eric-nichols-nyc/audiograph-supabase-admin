@@ -42,6 +42,9 @@ import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { ArtistMetric } from '@/types/artists'
 import { cn } from "@/lib/utils"
 import { CSSProperties } from "react"
+import { updateSpotifyPopularity, bulkUpdateSpotifyPopularity } from "@/actions/artist"
+import { toast } from "sonner"
+import { ArtistDropdownMenu } from "./artist-dropdown-menu"
 
 const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
   const isPinned = column.getIsPinned();
@@ -67,8 +70,8 @@ const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
 };
 
 export function ArtistMetricsTable() {
-  const { data: artistsResponse, isLoading: artistsLoading } = useArtists()
-  const { data: metrics, isLoading: metricsLoading } = useArtistMetrics()
+  const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists()
+  const { data: metrics, isLoading: metricsLoading, mutate: mutateMetrics } = useArtistMetrics()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -77,18 +80,21 @@ export function ArtistMetricsTable() {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-  // console.log('Artists:', artistsResponse?.data)
+  console.log('Artists:', artistsResponse?.data)
   // console.log('Metrics:', metrics)
   
   const data = useMemo(() => {
-    return artistsResponse?.data?.map(artist => {
-      const youtubeMetric = metrics?.find(m => 
+    // Handle the nested data structure
+    const artists = artistsResponse?.data?.data ?? [];
+    
+    return artists.map((artist: Artist) => {
+      const youtubeMetric = metrics?.data?.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'youtube' && 
         m.metric_type === 'subscribers'
       );
 
-      const spotifyMetric = metrics?.find(m => 
+      const spotifyMetric = metrics?.data?.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'spotify' && 
         m.metric_type === 'popularity'
@@ -99,8 +105,15 @@ export function ArtistMetricsTable() {
         youtube_subscribers: youtubeMetric?.value ?? null,
         spotify_popularity: spotifyMetric?.value ?? null
       };
-    }) ?? [];
-  }, [artistsResponse?.data, metrics])
+    });
+  }, [artistsResponse?.data?.data, metrics?.data]);
+
+  const handleUpdate = async () => {
+    await Promise.all([
+      mutateArtists(),
+      mutateMetrics()
+    ]);
+  };
 
   const columns: ColumnDef<Artist>[] = [
     {
@@ -257,34 +270,17 @@ export function ArtistMetricsTable() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const artist = row.original
- 
+        const artist = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(artist.id!)}
-              >
-                Copy artist ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>View details</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                setSelectedArtist(artist as unknown as Artist)
-                setSheetOpen(true)
-              }}>
-                Edit artist
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
+          <ArtistDropdownMenu 
+            artist={artist} 
+            onEdit={(artist) => {
+              setSelectedArtist(artist);
+              setSheetOpen(true);
+            }}
+            onUpdate={handleUpdate}
+          />
+        );
       },
     },
   ]
@@ -336,6 +332,40 @@ export function ArtistMetricsTable() {
             }
             className="max-w-sm"
           />
+          <Button
+            onClick={async () => {
+              if (!data?.length) {
+                toast.error("No artists found");
+                return;
+              }
+
+              const artists = data.map(artist => ({
+                artistName: artist.name
+              }));
+
+              try {
+                const result = await bulkUpdateSpotifyPopularity({ artists });
+                if (!result) {
+                  toast.error("Failed to update artists");
+                  return;
+                }
+
+                if (result.data) {
+                  toast.success(result.data.message);
+                  await handleUpdate();
+                }
+              } catch (error) {
+                toast.error(
+                  error instanceof Error 
+                    ? error.message 
+                    : "Failed to update artists"
+                );
+              }
+            }}
+            className="ml-2"
+          >
+            Update All Spotify Popularity
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">

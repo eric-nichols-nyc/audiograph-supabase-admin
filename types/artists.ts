@@ -15,6 +15,10 @@ export interface Artist {
     image_url: string | null
     created_at?: string
     updated_at?: string
+    artist_platform_ids?: Array<{
+        platform: string;
+        platform_id: string;
+    }>;
 }
 
 export interface ArtistPlatformId {

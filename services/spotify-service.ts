@@ -70,17 +70,53 @@ private getAccessToken = unstable_cache(
         }
     );
 
-    const artistData = await artistResponse.json();    
+    const artistData = await artistResponse.json();  
+    console.log('======== artistData', artistData);
     return artist_id;
 
 },['spotify-search-artist'], { tags: ['spotify-search-artist'], revalidate: 60 * 60 * 24 });
-
-
-  public getArtistData = unstable_cache(async (artist_id: string) => {
+ 
+public getArtist = unstable_cache(async (artistName: string) => {
     const accessToken = await this.getAccessToken();
     
     const response = await fetch(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
+        {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        }
+    );
+
+    const data = await response.json();
+    if (!data.artists?.items?.length) {
+        throw new Error('Artist not found');
+    }
+
+    const artist_id = data.artists.items[0].id;
+
+    const artistResponse = await fetch(
         `https://api.spotify.com/v1/artists/${artist_id}`,
+        {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        }
+    );
+
+    const artistData = await artistResponse.json();  
+    console.log('======== artistData', artistData);
+    return artistData;
+
+},['spotify-search-artist'], { tags: ['spotify-search-artist'], revalidate: 60 * 60 * 24 });
+
+// 
+// Returns the artist data from Spotify using the artist spotify id
+  public getArtistData = unstable_cache(async (spotify_id: string) => {
+    const accessToken = await this.getAccessToken();
+    
+    const response = await fetch(
+        `https://api.spotify.com/v1/artists/${spotify_id}`,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
@@ -93,6 +129,7 @@ private getAccessToken = unstable_cache(
     return data;
   }, ['spotify-artist-data'], { tags: ['spotify-artist-data'], revalidate: 60 * 60 * 24 });
 
+  // Returns the tracks from Spotify using the track ids
     public getTracks = unstable_cache(
         async (trackIds: string[]) => {
             const accessToken = await this.getAccessToken();

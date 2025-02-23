@@ -1,5 +1,5 @@
 import { ContentLayout } from "@/components/admin-panel/content-layout";
-import { ArtistMetricsTable } from "@/components/artist-table";
+import { ArtistMetricsTable } from "@/components/features/artist-table/artist-metrics-table";
 import { TriggerRankingUpdate } from '@/components/trigger-ranking-update';
 
 export default function ArtistsPage() {
