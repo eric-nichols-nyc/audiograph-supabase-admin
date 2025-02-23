@@ -394,7 +394,7 @@ export function ArtistMetricsTable() {
             className="ml-2"
             disabled={table.getFilteredSelectedRowModel().rows.length === 0}
           >
-            Update Selected ({table.getFilteredSelectedRowModel().rows.length})
+            Update Spotify Popularity Selected ({table.getFilteredSelectedRowModel().rows.length})
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
