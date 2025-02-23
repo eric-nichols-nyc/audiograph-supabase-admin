@@ -3,19 +3,30 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getArtists } from '@/actions/artist';
 import { Artist } from '@/types/artists';
 
+interface ArtistsResponse {
+  data: Artist[]
+}
+
 export function useArtists() {
   const queryClient = useQueryClient();
 
-  const query = useQuery<{ data: { data: Artist[] } }>({
+  const query = useQuery<ArtistsResponse>({
     queryKey: ['artists'],
     queryFn: async () => {
-      const result = await getArtists();
-      return result;
+      try {
+        const result = await getArtists();
+        return result || { data: [] };
+      } catch (error) {
+        console.error('Error fetching artists:', error);
+        return { data: [] };
+      }
     }
   });
 
   return {
-    ...query,
+    data: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
     mutate: () => queryClient.invalidateQueries({ queryKey: ['artists'] })
   };
 }

@@ -12,18 +12,20 @@ export function useArtistMetrics() {
   const query = useQuery<MetricsResponse>({
     queryKey: ['artist-metrics'],
     queryFn: async () => {
-      const result = await getArtistMetrics()
-      
-      if (!result?.data || !Array.isArray(result.data)) {
-        return { data: [] as ArtistMetric[] }
+      try {
+        const result = await getArtistMetrics();
+        return result || { data: [] };
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+        return { data: [] };
       }
-
-      return { data: result.data as ArtistMetric[] }
     }
-  })
+  });
 
   return {
-    ...query,
+    data: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
     mutate: () => queryClient.invalidateQueries({ queryKey: ['artist-metrics'] })
-  }
+  };
 } 

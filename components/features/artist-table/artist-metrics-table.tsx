@@ -42,7 +42,7 @@ import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { ArtistMetric } from '@/types/artists'
 import { cn } from "@/lib/utils"
 import { CSSProperties } from "react"
-import { updateSpotifyPopularity, bulkUpdateSpotifyPopularity } from "@/actions/artist"
+import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
 import { ArtistDropdownMenu } from "./artist-dropdown-menu"
 
@@ -80,21 +80,22 @@ export function ArtistMetricsTable() {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-  console.log('Artists:', artistsResponse?.data)
-  // console.log('Metrics:', metrics)
+  console.log('Artists:', artistsResponse?.data.data)
+  console.log('Metrics:', metrics?.data?.data)
   
   const data = useMemo(() => {
-    // Handle the nested data structure
-    const artists = artistsResponse?.data?.data ?? [];
-    
-    return artists.map((artist: Artist) => {
-      const youtubeMetric = metrics?.data?.find((m: ArtistMetric) => 
+    if (!artistsResponse?.data.data || !metrics?.data?.data) {
+      return [];
+    }
+
+    return artistsResponse.data.data.map((artist: Artist) => {
+      const youtubeMetric = metrics.data.data.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'youtube' && 
         m.metric_type === 'subscribers'
       );
 
-      const spotifyMetric = metrics?.data?.find((m: ArtistMetric) => 
+      const spotifyMetric = metrics.data.data.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'spotify' && 
         m.metric_type === 'popularity'
@@ -106,7 +107,7 @@ export function ArtistMetricsTable() {
         spotify_popularity: spotifyMetric?.value ?? null
       };
     });
-  }, [artistsResponse?.data?.data, metrics?.data]);
+  }, [artistsResponse?.data.data, metrics?.data?.data]);
 
   const handleUpdate = async () => {
     await Promise.all([

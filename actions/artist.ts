@@ -96,6 +96,10 @@ export const deleteArtist = actionClient
 export const getArtistMetrics = actionClient
   .action(async () => {
     const supabase = await createClient();
+    
+    // Add debug log
+    console.log('Fetching metrics from database...');
+    
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
       .select("*")
@@ -103,8 +107,18 @@ export const getArtistMetrics = actionClient
       .in('platform', ['youtube', 'spotify'])
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
-    return { data: metrics };
+    // Add debug log
+    console.log('Metrics response:', { metrics, error });
+    
+    if (error) {
+      console.error('Error fetching metrics:', error);
+      throw error;
+    }
+
+    // Ensure we return the expected structure
+    return { 
+      data: metrics ?? [] 
+    };
   });
 
 // Update schema to use only artist name
