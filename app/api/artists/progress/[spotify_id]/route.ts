@@ -19,11 +19,12 @@ export interface ProgressUpdate {
 // Helper to send updates that can be called from batch-artist-full
 export async function sendArtistUpdate(spotify_id: string, update: ProgressUpdate) {
   const key = `artist:progress:${spotify_id}`
-  await redis.set(key, JSON.stringify(update))
+  // Stringify the update before storing
+  const stringifiedUpdate = JSON.stringify(update)
+  await redis.set(key, stringifiedUpdate)
   
   // Automatically cleanup after completion or error
   if (update.stage === 'COMPLETE' || update.stage === 'ERROR') {
-    // Keep the status for 5 minutes after completion
     await redis.expire(key, 300)
   }
 }
@@ -46,45 +47,67 @@ export async function GET(
     async start(controller) {
       const key = `artist:progress:${spotify_id}`
       
-      // Check initial status
-      let lastUpdate = await redis.get<string>(key)
-      if (lastUpdate) {
-        controller.enqueue(`data: ${lastUpdate}\n\n`)
-      }
+      try {
+        // Check initial status
+        const lastUpdate = await redis.get(key) as string | null
+        if (lastUpdate) {
+          controller.enqueue(`data: ${lastUpdate}\n\n`)
+        }
 
-      // Poll for updates
-      const interval = setInterval(async () => {
-        try {
-          const update = await redis.get<string>(key)
-          
-          if (!update) {
-            return // No update yet
-          }
+        // Poll for updates
+        const interval = setInterval(async () => {
+          try {
+            const update = await redis.get(key) as string | null
+            
+            if (!update) {
+              controller.enqueue(`data: ${JSON.stringify({
+                stage: 'INIT',
+                message: 'Initializing...',
+                details: 'Waiting for process to start',
+                progress: 0
+              })}\n\n`)
+              return
+            }
 
-          // Only send if different from last update
-          if (update !== lastUpdate) {
-            controller.enqueue(`data: ${update}\n\n`)
-            lastUpdate = update
-          }
+            // Only send if different from last update
+            if (update !== lastUpdate) {
+              controller.enqueue(`data: ${update}\n\n`)
+            }
 
-          // Parse update to check completion
-          const status: ProgressUpdate = JSON.parse(update)
-          if (status.stage === 'COMPLETE' || status.stage === 'ERROR') {
+            // Parse update to check completion
+            const status = JSON.parse(update) as ProgressUpdate
+            if (status.stage === 'COMPLETE' || status.stage === 'ERROR') {
+              clearInterval(interval)
+              controller.close()
+            }
+
+          } catch (error) {
+            console.error('Error polling for updates:', error)
+            controller.enqueue(`data: ${JSON.stringify({
+              stage: 'ERROR',
+              message: 'Connection Error',
+              details: error instanceof Error ? error.message : 'Failed to get updates',
+              progress: 0
+            })}\n\n`)
             clearInterval(interval)
             controller.close()
           }
+        }, 1000)
 
-        } catch (error) {
-          console.error('Error polling for updates:', error)
-          controller.error(error)
+        // Cleanup on client disconnect
+        request.signal.addEventListener('abort', () => {
           clearInterval(interval)
-        }
-      }, 1000)
-
-      // Cleanup on client disconnect
-      request.signal.addEventListener('abort', () => {
-        clearInterval(interval)
-      })
+        })
+      } catch (error) {
+        console.error('Stream start error:', error)
+        controller.enqueue(`data: ${JSON.stringify({
+          stage: 'ERROR',
+          message: 'Connection Error',
+          details: error instanceof Error ? error.message : 'Failed to start progress tracking',
+          progress: 0
+        })}\n\n`)
+        controller.close()
+      }
     }
   })
 

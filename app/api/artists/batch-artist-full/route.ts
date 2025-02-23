@@ -28,6 +28,18 @@ interface Metric {
   value: number;
 }
 
+// Add type for metric types
+type MetricType = 
+  | "popularity" 
+  | "followers" 
+  | "views" 
+  | "likes" 
+  | "subscribers" 
+  | "monthly_listeners" 
+  | "daily_view_count" 
+  | "daily_stream_count" 
+  | "total_views" 
+  | "total_streams";
 
 export function combineArtistName(artistName: string): string {
   // Trim whitespace, remove spaces and dashes, and convert to lowercase
@@ -249,6 +261,13 @@ export async function POST(req: Request) {
             followers: followers || 0
           };
 
+          // Create properly typed metric
+          const spotifyPopularityMetric = {
+            platform: 'spotify' as const,
+            metric_type: 'popularity' as MetricType,
+            value: popularity || 0
+          };
+
           // Combine all the data
           const result = {
             artist: artistData,
@@ -257,11 +276,7 @@ export async function POST(req: Request) {
               ...(analyticsData || []),
               ...(videoData?.stats || []),
               ...(trackData?.stats || []),
-              {
-                platform: 'spotify',
-                metric_type: 'popularity',
-                value: popularity || 0
-              }
+              spotifyPopularityMetric
             ],
             videos: videoData?.videos || [],
             tracks: trackData?.tracks || []

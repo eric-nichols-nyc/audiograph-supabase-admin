@@ -56,20 +56,32 @@ export function BatchArtistSelect() {
       setProcessingArtists(prev => new Map(prev).set(artist.spotify_id, eventSource));
 
       return new Promise<ProcessResult>((resolve) => {
-        // Listen for progress updates
+        let hasReceivedUpdate = false;
+        const timeout = setTimeout(() => {
+          if (!hasReceivedUpdate) {
+            eventSource.close();
+            resolve({ 
+              artist, 
+              success: false, 
+              error: 'Connection timeout - no updates received' 
+            });
+          }
+        }, 10000); // 10 second timeout
+
         eventSource.onmessage = (event) => {
+          hasReceivedUpdate = true;
           const data = JSON.parse(event.data);
-          setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, data));
           
-          // When complete, clean up and update UI
+          setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, data));
+
           if (data.stage === 'COMPLETE' || data.stage === 'ERROR') {
+            clearTimeout(timeout);
             eventSource.close();
             setProcessingArtists(prev => {
               const next = new Map(prev);
               next.delete(artist.spotify_id);
               return next;
             });
-            setSelectedArtists(prev => prev.filter(a => a.spotify_id !== artist.spotify_id));
             resolve({ 
               artist, 
               success: data.stage === 'COMPLETE', 
@@ -79,30 +91,25 @@ export function BatchArtistSelect() {
         };
 
         eventSource.onerror = (error) => {
+          clearTimeout(timeout);
           eventSource.close();
+          console.error('EventSource error:', error);
           setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, {
             stage: 'ERROR',
-            message: 'Processing Error',
-            details: 'Connection failed',
+            message: 'Connection Error',
+            details: 'Failed to connect to progress updates',
             progress: 0,
             error: 'EventSource connection failed'
           }));
           resolve({ 
             artist, 
             success: false, 
-            error: 'EventSource connection failed' 
+            error: 'Failed to connect to progress updates' 
           });
         };
       });
     } catch (error) {
       console.error(`Error processing artist ${artist.name}:`, error);
-      setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, {
-        stage: 'ERROR',
-        message: 'Processing Error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        progress: 0,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }));
       return { 
         artist, 
         success: false, 
