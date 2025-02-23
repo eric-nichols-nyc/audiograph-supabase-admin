@@ -40,7 +40,6 @@ import { useArtists } from '@/hooks/use-artists'
 import { Artist, ArtistMetric } from '@/types/artists'
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { cn } from "@/lib/utils"
-import { CSSProperties } from "react"
 import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
 import { ArtistDropdownMenu } from "./artist-dropdown-menu"
