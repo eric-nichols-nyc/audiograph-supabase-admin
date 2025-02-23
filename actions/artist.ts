@@ -21,7 +21,7 @@ export const getArtists = actionClient
         )
       `);
     
-    console.log('getArtists response:', { data, error }); // Debug log
+    // console.log('getArtists response:', { data, error }); // Debug log
     
     if (error) {
       console.error("Error fetching artists:", error);
@@ -98,7 +98,7 @@ export const getArtistMetrics = actionClient
     const supabase = await createClient();
     
     // Add debug log
-    console.log('Fetching metrics from database...');
+    // console.log('Fetching metrics from database...');
     
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
@@ -108,7 +108,7 @@ export const getArtistMetrics = actionClient
       .order('created_at', { ascending: false });
     
     // Add debug log
-    console.log('Metrics response:', { metrics, error });
+    /// console.log('Metrics response:', { metrics, error });
     
     if (error) {
       console.error('Error fetching metrics:', error);
