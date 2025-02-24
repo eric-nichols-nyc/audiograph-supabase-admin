@@ -1,7 +1,7 @@
 "use server";
 
 import { actionClient } from "@/lib/safe-action";
-import { createClient } from "../utils/supabase/server";
+import { createClient } from "../lib/supabase/server";
 import { ArtistVideo } from "../types/artists";
 import { z } from "zod";
 

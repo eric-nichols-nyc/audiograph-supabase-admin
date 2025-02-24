@@ -1,5 +1,5 @@
 import { ArtistArticle } from '@/types/artists';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { OpenAI } from 'openai';
 
 // You can also import types if needed:

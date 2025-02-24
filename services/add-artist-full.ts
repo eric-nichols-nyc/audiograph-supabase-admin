@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { actionClient } from "@/lib/safe-action";
 import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';

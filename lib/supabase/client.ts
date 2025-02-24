@@ -1,7 +1,6 @@
 // Import the helper function to create a Supabase client
 // that is pre-configured for client-side (browser) usage.
 import { createBrowserClient } from "@supabase/ssr";
-import { createClient } from '@supabase/supabase-js';
 
 // Create the browser client
 export const createBrowserSupabase = () =>

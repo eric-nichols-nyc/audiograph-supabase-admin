@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export type NotificationType = 'artist_added' | 'ranking_updated' | 'ranking_failed' | 'success' | 'error';
 

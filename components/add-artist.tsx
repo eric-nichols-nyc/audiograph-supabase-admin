@@ -11,7 +11,7 @@ import { Loader2, ArrowRight } from "lucide-react";
 import { SpotifyArtist } from "@/types/artists";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 type Stage = "ERROR" | "COMPLETE" | "INIT" | "METADATA" | "ANALYTICS" | "VIDEO_DATA" | "TRACK_DATA" | "URL_DATA" | "WIKIPEDIA" | "STORE" | "COMPLETE";
 
