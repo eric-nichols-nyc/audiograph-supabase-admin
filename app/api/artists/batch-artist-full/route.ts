@@ -11,6 +11,7 @@ import { addFullArtist } from '@/services/add-artist-full';
 //import { addFullArtist } from '@/services/test.service';
 import { unstable_cache } from 'next/cache';
 import { sendArtistUpdate } from '../progress/[spotify_id]/route';
+import { getUser } from '@/lib/supabase/auth/server';
 
 // Simplified stages
 const STAGES = {
@@ -180,6 +181,11 @@ const cachedFetchTrackData = unstable_cache(
 );
 
 export async function POST(req: Request) {
+  const user = await getUser();
+  if (!user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { name, spotify_id, popularity = 0 } = body;

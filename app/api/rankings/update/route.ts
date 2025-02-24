@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { RankingService } from '@/services/ranking-service';
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST() {
   const supabase = await createClient();

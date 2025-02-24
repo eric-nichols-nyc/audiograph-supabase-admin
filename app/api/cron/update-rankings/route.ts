@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { RankingService } from '@/services/ranking-service';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';

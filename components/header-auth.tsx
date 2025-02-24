@@ -3,7 +3,7 @@ import { hasEnvVars } from "@/lib/supabase/check-env-vars";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import NotificationsPopover from "@/components/features/notifications/notifications-popover";
 
 export default async function AuthButton() {

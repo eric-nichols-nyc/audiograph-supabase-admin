@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { actionClient } from "@/lib/safe-action";
 import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
@@ -46,6 +46,9 @@ export const addFullArtist = actionClient
 
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
     const supabase = await createClient();
+
+    // Use userId for rankings
+    const rankingService = new RankingService();
 
     // Begin transaction with retry logic
     try {
@@ -281,12 +284,10 @@ export const addFullArtist = actionClient
 
       // Update rankings with user from context
       // Update rankings asynchronously without blocking
-      // if (user?.id) {
-      //   const rankingService = new RankingService(user.id);
-      //   rankingService.updateRankings()
-      //     .then(() => console.log('Rankings updated successfully'))
-      //     .catch(rankingError => console.error('Failed to update rankings:', rankingError));
-      // }
+      const rankingService = new RankingService();
+      rankingService.updateRankings()
+        .then(() => console.log('Rankings updated successfully'))
+        .catch(rankingError => console.error('Failed to update rankings:', rankingError));
 
       return insertedArtist;
     } catch (error) {

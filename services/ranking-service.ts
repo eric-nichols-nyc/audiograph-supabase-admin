@@ -1,11 +1,12 @@
 import { Artist } from "@/types/artists";
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { NotificationService } from './notification-service';
+import { getUser } from '@/lib/supabase/auth/server';
 
 
 export class RankingService {
-  constructor(private readonly accountId: string) {
-    this.notificationService = new NotificationService(accountId);
+  constructor() {
+    this.notificationService = new NotificationService();
   }
 
   public notificationService: NotificationService;

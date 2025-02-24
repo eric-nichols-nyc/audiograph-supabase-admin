@@ -1,7 +1,7 @@
 "use server";
 
 import { actionClient } from "@/lib/safe-action";
-import { createClient } from "../lib/supabase/server";
+import { createClient } from "../utils/supabase/server";
 import { z } from "zod";
 
 // Define an Article type

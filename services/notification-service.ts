@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
+import { getUser } from '@/lib/supabase/auth/server';
 
 export type NotificationType = 'artist_added' | 'ranking_updated' | 'ranking_failed' | 'success' | 'error';
 
@@ -18,7 +19,13 @@ interface Notification {
 }
 
 export class NotificationService {
-  constructor(private readonly accountId: string) {}
+  private async getAccountId(): Promise<string> {
+    const user = await getUser();
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
+    return user.id;
+  }
 
   async createNotification({
     type,
@@ -37,13 +44,15 @@ export class NotificationService {
     expires_at?: string;
     link?: string;
   }): Promise<string> {
+    const accountId = await this.getAccountId();
+    
     try {
       const supabase = await createClient();
     
       const { data, error } = await supabase
         .from('notifications')
         .upsert([{
-          account_id: this.accountId,
+          account_id: accountId,
           type,
           title,
           message,
@@ -64,12 +73,13 @@ export class NotificationService {
   }
 
   async getUnreadNotifications(): Promise<Notification[]> {
+    const accountId = await this.getAccountId();
     try {
       const supabase = await createClient();
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('account_id', this.accountId)
+        .eq('account_id', accountId)
         .eq('is_read', false)
         .is('read_at', null)
         .order('created_at', { ascending: false });
@@ -83,6 +93,7 @@ export class NotificationService {
   }
 
   async markAsRead(notificationId: string): Promise<void> {
+    const accountId = await this.getAccountId();
     try {
       const supabase = await createClient();
       const { error } = await supabase
@@ -92,12 +103,20 @@ export class NotificationService {
           read_at: new Date().toISOString()
         })
         .eq('id', notificationId)
-        .eq('account_id', this.accountId);
+        .eq('account_id',accountId);
 
       if (error) throw error;
     } catch (error) {
       console.error('Error marking notification as read:', error);
       throw error;
     }
+  }
+
+  async sendNotification() {
+    const user = await getUser();
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
+    // Use user.id for notifications
   }
 }

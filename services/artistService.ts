@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 
 export interface SimilarArtist {
   id: string;            // the article id returned by match_articles
