@@ -6,6 +6,9 @@ const nextConfig = {
   },
   // Disable Pages Router
   pageExtensions: ['tsx', 'ts'],
+  images: {
+    domains: ['i.scdn.co'],
+  },
 }
 
 module.exports = nextConfig 
