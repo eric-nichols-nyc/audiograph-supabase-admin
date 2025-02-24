@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SpotifyBatchSearch } from '@/components/features/spotify-search/spotify-batch-search';
 import { ArtistProgress } from '@/components/features/progress/artist-progress';
 import { Button } from '@/components/ui/button';
 import { SpotifyArtist } from '@/types/artists';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X } from 'lucide-react';
+import { ProgressUpdate } from '@/types/progress';
 
 interface ProcessResult {
   artist: SpotifyArtist;
@@ -14,18 +15,15 @@ interface ProcessResult {
   error?: string;
 }
 
-interface ProcessingStatus {
-  stage: string;
-  message: string;
-  details: string;
-  progress: number;
-  error?: string;
-}
-
 export function BatchArtistSelect() {
   const [selectedArtists, setSelectedArtists] = useState<SpotifyArtist[]>([]);
   const [processingArtists, setProcessingArtists] = useState<Map<string, EventSource>>(new Map());
-  const [processingStatuses, setProcessingStatuses] = useState<Map<string, ProcessingStatus>>(new Map());
+  const [processingStatuses, setProcessingStatuses] = useState<Map<string, ProgressUpdate>>(new Map());
+
+  // log selected artists in useEffect
+  useEffect(() => {
+    console.log('Selected artists:', selectedArtists);
+  }, [selectedArtists]);
 
   const handleArtistSelect = (artist: SpotifyArtist) => {
     if (!selectedArtists.find(a => a.spotify_id === artist.spotify_id)) {
@@ -39,6 +37,8 @@ export function BatchArtistSelect() {
 
   const processArtist = async (artist: SpotifyArtist): Promise<ProcessResult> => {
     try {
+      console.log('Processing artist:', artist);
+
       // First API call - initiates processing
       const response = await fetch('/api/artists/batch-artist-full', {
         method: 'POST',
@@ -48,6 +48,7 @@ export function BatchArtistSelect() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('API error:', errorData);
         throw new Error(errorData.error || 'Failed to process artist');
       }
 
@@ -71,7 +72,7 @@ export function BatchArtistSelect() {
         eventSource.onmessage = (event) => {
           hasReceivedUpdate = true;
           const data = JSON.parse(event.data);
-          
+          console.log('Processing status:', data);
           setProcessingStatuses(prev => new Map(prev).set(artist.spotify_id, data));
 
           if (data.stage === 'COMPLETE' || data.stage === 'ERROR') {
@@ -99,7 +100,6 @@ export function BatchArtistSelect() {
             message: 'Connection Error',
             details: 'Failed to connect to progress updates',
             progress: 0,
-            error: 'EventSource connection failed'
           }));
           resolve({ 
             artist, 
@@ -188,21 +188,17 @@ export function BatchArtistSelect() {
       {/* Updated Progress displays */}
       <div className="space-y-4">
         {Array.from(processingStatuses.entries()).map(([spotifyId, status]) => {
-          const eventSource = processingArtists.get(spotifyId);
-          
           return (
             <div key={spotifyId} className="border rounded-lg p-4">
               <div className="font-medium mb-2">
                 {selectedArtists.find(a => a.spotify_id === spotifyId)?.name}
               </div>
-              {status.error ? (
+              {status.stage === 'ERROR' ? (
                 <div className="text-destructive">
-                  Error: {status.error}
+                  Error: {status.details}
                 </div>
-              ) : eventSource ? (
-                <ArtistProgress eventSource={eventSource} />
               ) : (
-                <div>Initializing...</div>
+                <ArtistProgress status={status} />
               )}
             </div>
           );
