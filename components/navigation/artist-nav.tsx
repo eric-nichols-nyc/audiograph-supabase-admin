@@ -10,7 +10,6 @@ export default function ArtistNav() {
   
   const navItems = [
     { label: 'Overview', href: `${basePath}/overview` },
-    { label: 'Audience', href: `${basePath}/audience` },
     { label: 'Metrics', href: `${basePath}/metrics` },
     { label: 'Videos', href: `${basePath}/videos` },
     { label: 'Songs', href: `${basePath}/songs` },
