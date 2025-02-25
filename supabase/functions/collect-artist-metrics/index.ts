@@ -17,12 +17,48 @@ interface RequestEvent {
   request: Request;
 }
 
+// Add Spotify token fetching function
+async function getSpotifyAccessToken() {
+  const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')
+  const clientSecret = Deno.env.get('SPOTIFY_CLIENT_SECRET')
+  
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing Spotify credentials')
+  }
+
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
+    },
+    body: 'grant_type=client_credentials'
+  })
+
+  const data = await response.json()
+  return data.access_token
+}
+
 serve(async (req: Request) => {
+  // Add check for cron job
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader || !authHeader.includes('Bearer')) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // Get Spotify access token once before processing artists
+    let spotifyAccessToken: string | null = null
+    try {
+      spotifyAccessToken = await getSpotifyAccessToken()
+    } catch (error) {
+      console.error('Failed to get Spotify access token:', error)
+    }
 
     // Get all artists with their platform IDs from database
     const { data: artistPlatforms, error: artistError } = await supabase
@@ -55,10 +91,29 @@ serve(async (req: Request) => {
           }
         }
 
-        // Spotify metrics collection can be added here when ready
-        if (artistPlatform.platform === 'spotify') {
-          // You'll need to call your Spotify service here
-          // For now, let's skip Spotify
+        // Add Spotify metrics collection
+        if (artistPlatform.platform === 'spotify' && spotifyAccessToken) {
+          const response = await fetch(
+            `https://api.spotify.com/v1/artists/${artistPlatform.platform_id}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${spotifyAccessToken}`
+              }
+            }
+          )
+          
+          const data = await response.json()
+          const followerCount = data.followers?.total
+
+          if (followerCount !== undefined) {
+            await supabase.from('artist_metrics').insert({
+              artist_id: artistPlatform.artist_id,
+              platform: 'spotify',
+              metric_type: 'followers',
+              value: followerCount
+            })
+          }
         }
       } catch (platformError) {
         console.error(`Error processing artist ${artistPlatform.artist_id} platform ${artistPlatform.platform}:`, platformError)
@@ -79,14 +134,12 @@ serve(async (req: Request) => {
   }
 })
 
-/* To invoke locally:
+/* To invoke via cron:
 
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/collect-artist-metrics' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
+1. Enable the function in the Supabase dashboard
+2. Go to Database → Functions → Triggers
+3. Create a new cron trigger with:
+   - Name: collect_artist_metrics_cron
+   - Schedule: 0 0 */2 * * (runs at midnight every other day)
+   - Function to trigger: collect-artist-metrics
 */
