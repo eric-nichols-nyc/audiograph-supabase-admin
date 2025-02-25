@@ -13,11 +13,11 @@ export default function ArtistNav() {
     { label: 'Audience', href: `${basePath}/audience` },
     { label: 'Metrics', href: `${basePath}/metrics` },
     { label: 'Videos', href: `${basePath}/videos` },
-    { label: 'Tracks', href: `${basePath}/tracks` },
+    { label: 'Songs', href: `${basePath}/songs` },
   ]
 
   return (
-    <div className="sticky top-0 h-18 w-full border border-white">
+    <div className="sticky top-16 h-18 w-full border border-white">
       <div className="flex flex-col h-full">
         <div className="flex items-center gap-3 px-6 py-3">
           <Avatar>

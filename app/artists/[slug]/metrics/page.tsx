@@ -1,7 +1,7 @@
-export default function AudiencePage() {
+export default function MetricsPage() {
   return (
     <div>
-      <p>Audience</p>
+      <p>Metrics</p>
     </div>
   )
 }

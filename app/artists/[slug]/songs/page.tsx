@@ -1,7 +1,7 @@
-export default function AudiencePage() {
+export default function SongsPage() {
   return (
     <div>
-      <p>Audience</p>
+      <p>songs</p>
     </div>
   )
 }

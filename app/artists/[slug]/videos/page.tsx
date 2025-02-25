@@ -1,7 +1,7 @@
-export default function AudiencePage() {
+export default function VideosPage() {
   return (
     <div>
-      <p>Audience</p>
+      <p>Videos</p>
     </div>
   )
 }
