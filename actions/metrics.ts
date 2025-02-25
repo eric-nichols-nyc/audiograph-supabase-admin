@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ArtistMetric } from "../types/artists";
 
 // Schema for ArtistMetric
-export const metricSchema = z.object({
+const metricSchema = z.object({
   id: z.string().optional(),
   artist_id: z.string(),
   date: z.string(),
@@ -55,4 +55,45 @@ export const deleteMetric = actionClient
     const { data, error } = await supabase.from("metrics").delete().eq("id", parsedInput.id);
     if (error) throw new Error(`Error deleting metric: ${error.message}`);
     return data;
+});
+
+// Add this new action
+export const getArtistMetrics = actionClient.action(async (input: unknown): Promise<ArtistMetric[]> => {
+  // Extract the path from the wrapped input
+  const path = typeof input === 'object' && input !== null ? (input as any).clientInput : input;
+  
+  const supabase = await createClient();
+  
+  if (!path || typeof path !== 'string') {
+    throw new Error('Invalid path');
+  }
+
+  // Extract slug from path (e.g., /artists/artist-slug/metrics)
+  const pathParts = path.split('/').filter(Boolean);
+  const slug = pathParts[pathParts.length - 2];
+  
+  if (!slug) {
+    throw new Error('Could not extract artist slug from path');
+  }
+
+  // First get the artist id from slug
+  const { data: artist } = await supabase
+    .from('artists')
+    .select('id')
+    .eq('slug', slug)
+    .single();
+    
+  if (!artist) throw new Error('Artist not found');
+
+  // Then get their metrics
+  const { data, error } = await supabase
+    .from('artist_metrics')
+    .select('*')
+    .eq('artist_id', artist.id)
+    .order('date', { ascending: false });
+
+  if (error) throw new Error(`Error fetching metrics: ${error.message}`);
+  
+  // Return the array directly instead of wrapping it
+  return Array.isArray(data) ? data : [];
 }); 
