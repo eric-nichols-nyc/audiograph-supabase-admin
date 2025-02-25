@@ -37,10 +37,15 @@ export const updatePlatform = actionClient
   .action(async ({ parsedInput }: { parsedInput: ArtistPlatformId }) => {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from("platformis")
-      .update(parsedInput)
-      .eq("artist_id", parsedInput.artist_id)
-      .eq("platform", parsedInput.platform);
+      .from("artist_platform_ids")
+      .upsert({
+        artist_id: parsedInput.artist_id,
+        platform: parsedInput.platform,
+        platform_id: parsedInput.platform_id
+      }, {
+        onConflict: 'artist_id,platform'
+      });
+
     if (error) throw new Error(`Error updating platform ID: ${error.message}`);
     return data;
 });
@@ -57,4 +62,32 @@ export const deletePlatform = actionClient
       .eq("platform", parsedInput.platform);
     if (error) throw new Error(`Error deleting platform ID: ${error.message}`);
     return data;
-}); 
+});
+
+// Add this to your existing platform.ids.ts file
+export const updateArtistPlatformId = actionClient
+  .schema(z.object({
+    artist_id: z.string(),
+    platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz']),
+    platform_id: z.string()
+  }))
+  .action(async ({ parsedInput }) => {
+    const supabase = await createClient();
+    
+    const { data, error } = await supabase
+      .from('artist_platform_ids')
+      .upsert({
+        artist_id: parsedInput.artist_id,
+        platform: parsedInput.platform,
+        platform_id: parsedInput.platform_id
+      }, {
+        onConflict: 'artist_id,platform'
+      });
+
+    if (error) {
+      console.error('Error updating platform ID:', error);
+      throw new Error(`Failed to update platform ID: ${error.message}`);
+    }
+
+    return { success: true, data };
+  }); 

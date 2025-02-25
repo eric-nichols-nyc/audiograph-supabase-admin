@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, CSSProperties, useMemo, useEffect } from "react";
+import { useState, CSSProperties, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Column,
@@ -10,21 +10,87 @@ import {
   useReactTable,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { faker } from "@faker-js/faker";
-import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { useDebouncedCallback } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
 
-interface Person {
-  firstName: string;
-  lastName: string;
-  age: number;
-  visits: number;
-  status: string;
-  progress: number;
+interface ArtistPlatformId {
+  platform: string;
+  platform_id: string;
 }
 
-const getCommonPinningStyles = (column: Column<Person>): CSSProperties => {
+interface Artist {
+  id: string;
+  name: string;
+  slug: string;
+  artist_platform_ids?: ArtistPlatformId[];
+}
+
+const defaultColumns: ColumnDef<Artist>[] = [
+  {
+    id: "index",
+    header: "#",
+    cell: ({ row }) => row.index + 1,
+    size: 50,
+    enablePinning: true,
+  },
+  {
+    accessorKey: "id",
+    id: "id",
+    header: "Artist ID",
+    cell: info => info.getValue(),
+    size: 220,
+    enablePinning: true,
+  },
+  {
+    accessorKey: "name",
+    id: "name",
+    header: "Name",
+    cell: info => info.getValue(),
+    size: 220,
+    enablePinning: true,
+    filterFn: 'includesString',
+  },
+  {
+    accessorKey: "slug",
+    id: "slug",
+    header: "Slug",
+    cell: info => info.getValue(),
+    size: 180,
+  },
+  {
+    id: "youtube",
+    header: "YouTube Channel",
+    cell: ({ row }) => {
+      const youtubeChannel = row.original.artist_platform_ids?.find(
+        platform => platform.platform === 'youtube'
+      );
+      
+      return youtubeChannel ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-gray-500">{youtubeChannel.platform_id}</span>
+          <a
+            href={`https://youtube.com/channel/${youtubeChannel.platform_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            View Channel
+          </a>
+        </div>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
+    },
+    size: 280,
+  },
+];
+
+interface ArtistsTableProps {
+  artists: Artist[];
+}
+
+const getCommonPinningStyles = (column: Column<Artist>): CSSProperties => {
   const isPinned = column.getIsPinned();
   const isLastLeftPinnedColumn = 
     isPinned === "left" && column.getIsLastColumn("left");
@@ -46,81 +112,20 @@ const getCommonPinningStyles = (column: Column<Person>): CSSProperties => {
   };
 };
 
-const defaultColumns: ColumnDef<Person>[] = [
-  {
-    id: "index",
-    header: "#",
-    cell: ({ row }) => row.index + 1,
-    footer: props => props.column.id,
-    size: 50,
-    enablePinning: true,
-  },
-  {
-    accessorKey: "firstName",
-    id: "firstName",
-    header: "First Name",
-    cell: info => info.getValue(),
-    footer: props => props.column.id,
-    size: 220,
-    enablePinning: true,
-    filterFn: 'includesString',
-  },
-  {
-    accessorFn: row => row.lastName,
-    id: "lastName",
-    cell: info => info.getValue(),
-    header: () => <span>Last Name</span>,
-    footer: props => props.column.id,
-    size: 180,
-  },
-  {
-    accessorKey: "age",
-    id: "age",
-    header: "Age",
-    footer: props => props.column.id,
-    size: 180,
-  },
-  {
-    accessorKey: "visits",
-    id: "visits",
-    header: "Visits",
-    footer: props => props.column.id,
-    size: 180,
-  },
-  {
-    accessorKey: "status",
-    id: "status",
-    header: "Status",
-    footer: props => props.column.id,
-    size: 180,
-  },
-  {
-    accessorKey: "progress",
-    id: "progress",
-    header: "Profile Progress",
-    footer: props => props.column.id,
-    size: 180,
-  },
-];
+export default function ArtistsTable({ artists }: ArtistsTableProps) {
+  // Add more detailed logging
+  console.log('Artists received in table:', {
+    artists,
+    isArray: Array.isArray(artists),
+    length: artists?.length,
+    type: typeof artists
+  });
 
-// Helper function to generate random data
-const makeData = (len: number): Person[] => {
-  return Array(len).fill(null).map(() => ({
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    age: faker.number.int({ min: 18, max: 80 }),
-    visits: faker.number.int(100),
-    status: faker.helpers.shuffle(['relationship', 'complicated', 'single'])[0],
-    progress: faker.number.int(100),
-  }));
-};
-
-export default function ArtistsTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [data, setData] = useState(() => makeData(30));
   const [columns] = useState(() => [...defaultColumns]);
   const [globalFilter, setGlobalFilter] = useState(searchParams?.get("q") || "");
+  
   const updateSearchParams = useDebouncedCallback((search: string) => {
     const params = new URLSearchParams(searchParams?.toString() || "");
     if (search) {
@@ -131,13 +136,11 @@ export default function ArtistsTable() {
     router.push(`?${params.toString()}`);
   }, 300);
 
-  // Handle search change
   const handleSearch = (value: string) => {
     setGlobalFilter(value);
     updateSearchParams(value);
   };
 
-  // Sync URL search param with state on mount and URL changes
   useEffect(() => {
     const searchQuery = searchParams?.get("q");
     if (searchQuery !== globalFilter) {
@@ -145,10 +148,8 @@ export default function ArtistsTable() {
     }
   }, [searchParams]);
 
-  const rerender = () => setData(() => makeData(30));
-
   const table = useReactTable({
-    data,
+    data: Array.isArray(artists) ? artists : [],  // Ensure we always pass an array
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -156,25 +157,13 @@ export default function ArtistsTable() {
       globalFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
-    debugTable: true,
-    debugHeaders: true,
-    debugColumns: true,
     columnResizeMode: "onChange",
     initialState: {
       columnPinning: {
-        left: ['index', 'firstName']
-      },
-      rowPinning: {
-        top: ['#']
+        left: ['index', 'name']
       }
     },
   });
-
-  const randomizeColumns = () => {
-    table.setColumnOrder(
-      faker.helpers.shuffle(table.getAllLeafColumns().map(d => d.id))
-    );
-  };
 
   return (
     <div className="w-full">
@@ -191,51 +180,6 @@ export default function ArtistsTable() {
         </div>
       </div>
 
-      {/* Column visibility controls */}
-      {/* <div className="mb-4 flex items-center gap-4">
-        <div className="rounded-lg border bg-card p-2">
-          <div className="border-b px-2 py-1">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={table.getIsAllColumnsVisible()}
-                onChange={table.getToggleAllColumnsVisibilityHandler()}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="text-sm font-medium">Toggle All</span>
-            </label>
-          </div>
-          <div className="flex flex-wrap gap-2 p-2">
-            {table.getAllLeafColumns().map(column => (
-              <label key={column.id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={column.getIsVisible()}
-                  onChange={column.getToggleVisibilityHandler()}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <span className="text-sm">{column.id}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <button 
-            onClick={rerender} 
-            className="rounded-md border px-3 py-1 text-sm hover:bg-accent"
-          >
-            Regenerate
-          </button>
-          <button 
-            onClick={randomizeColumns} 
-            className="rounded-md border px-3 py-1 text-sm hover:bg-accent"
-          >
-            Shuffle Columns
-          </button>
-        </div>
-      </div> */}
-      
       {/* Table */}
       <div className="rounded-md border">
         <div className="overflow-x-auto">

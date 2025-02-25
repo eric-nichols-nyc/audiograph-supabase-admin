@@ -11,6 +11,10 @@ import { createSpotifyService } from "@/services/spotify-service";
 export const getArtists = actionClient
   .action(async () => {
     const supabase = await createClient();
+    
+    // Add console.log for debugging
+    console.log('Fetching artists...');
+    
     const { data, error } = await supabase
       .from("artists")
       .select(`
@@ -21,14 +25,13 @@ export const getArtists = actionClient
         )
       `);
     
-    // console.log('getArtists response:', { data, error }); // Debug log
+    console.log('Artists data:', data); // Debug log
     
     if (error) {
       console.error("Error fetching artists:", error);
       throw error;
     }
 
-    // Ensure we return an array
     return { 
       data: Array.isArray(data) ? data : [] 
     };
