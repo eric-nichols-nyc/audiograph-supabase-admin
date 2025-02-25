@@ -7,6 +7,8 @@ import { artistSchema } from "@/schemas/artists";
 import { z } from "zod";
 import { transformArtistResponse } from '@/utils/transforms/artist';
 import { createSpotifyService } from "@/services/spotify-service";
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export const getArtists = actionClient
   .action(async () => {
@@ -284,5 +286,27 @@ export const bulkUpdateSpotifyPopularity = actionClient
       results
     };
   });
+
+export async function getArtistBySlug(slug: string) {
+  const supabase = createServerComponentClient({ cookies })
+  
+  // Get basic artist info
+  const { data: artist } = await supabase
+    .from('artists')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  // Get platform IDs
+  const { data: platformIds } = await supabase
+    .from('artist_platform_ids')
+    .select('*')
+    .eq('artist_id', artist.id)
+
+  return {
+    artist,
+    platformIds
+  }
+}
 
 

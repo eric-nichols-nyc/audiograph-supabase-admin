@@ -9,7 +9,7 @@ export default function ArtistNav() {
   const basePath = pathname.split('/').slice(0, 3).join('/')
   
   const navItems = [
-    { label: 'Overview', href: `${basePath}` },
+    { label: 'Overview', href: `${basePath}/overview` },
     { label: 'Audience', href: `${basePath}/audience` },
     { label: 'Metrics', href: `${basePath}/metrics` },
     { label: 'Videos', href: `${basePath}/videos` },
