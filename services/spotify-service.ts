@@ -71,7 +71,6 @@ private getAccessToken = unstable_cache(
     );
 
     const artistData = await artistResponse.json();  
-    console.log('======== artistData', artistData);
     return artist_id;
 
 },['spotify-search-artist'], { tags: ['spotify-search-artist'], revalidate: 60 * 60 * 24 });
