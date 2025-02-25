@@ -6,10 +6,8 @@ export default function ArtistLayout({ children }: { children: React.ReactNode }
       <div className="w-full border-b">
         <ArtistNav />
       </div>
-      <div className="flex w-full px-6">
-        <div className="w-full">
+      <div className="flex w-full">
           {children}
-        </div>
       </div>
     </div>
   )
