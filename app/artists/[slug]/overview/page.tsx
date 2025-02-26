@@ -3,6 +3,8 @@ import { getArtistBySlug } from "@/actions/artist"
 import { PlatformIds } from "@/components/features/artist-detail/data-sources"
 import { ContentLayout } from "@/components/admin-panel/content-layout"
 import { SocialMediaDashboard } from "@/components/features/artist-detail/social-media-dashboard"
+import { SimilarArtists } from "@/components/features/artist-detail/similar-artists"
+
 export default async function OverviewPage({ params }: { params: { slug: string } }) {
   const { artist, platformIds } = await getArtistBySlug(params.slug)
   
@@ -13,6 +15,7 @@ export default async function OverviewPage({ params }: { params: { slug: string 
         <PlatformIds platformIds={platformIds} artistId={artist.id} />
         <p>Social Media Dashboard</p>
         <SocialMediaDashboard artist={artist} />
+        <SimilarArtists />
       </div>
     </ContentLayout>
   )

@@ -7,7 +7,7 @@ const nextConfig = {
   // Disable Pages Router
   pageExtensions: ['tsx', 'ts'],
   images: {
-    domains: ['i.scdn.co','i.ytimg.com'],
+    domains: ['i.scdn.co','i.ytimg.com','hebbkx1anhila5yf.public.blob.vercel-storage.com'],
   },
 }
 
