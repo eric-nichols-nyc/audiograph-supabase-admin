@@ -20,14 +20,14 @@ export const platformConfig = {
   soundcloud: {
     name: 'SoundCloud',
     logo: '/images/platforms/soundcloud-logo.png',
-    placeholder: 'e.g. drake',
+    placeholder: 'e.g. arianagrande',
     getUrl: (id: string) => `https://soundcloud.com/${id}`
   },
   lastfm: {
     name: 'Last.fm',
     logo: '/images/platforms/lastfm-logo.png',
-    placeholder: 'e.g. drake',
-    getUrl: (id: string) => `https://www.last.fm/music/${encodeURIComponent(id)}`
+    placeholder: 'e.g. Ariana+Grande',
+    getUrl: (id: string) => `https://www.last.fm/music/${id}`
   },
   musicbrainz: {
     name: 'MusicBrainz',
@@ -38,44 +38,44 @@ export const platformConfig = {
   instagram: {
     name: 'Instagram',
     logo: '/images/platforms/instagram-logo.png',
-    placeholder: 'e.g. champagnepapi',
+    placeholder: 'e.g. arianagrande',
     getUrl: (id: string) => `https://instagram.com/${id}`
   },
   facebook: {
     name: 'Facebook',
     logo: '/images/platforms/facebook-logo.png',
-    placeholder: 'e.g. drake',
+    placeholder: 'e.g. arianagrande',
     getUrl: (id: string) => `https://facebook.com/${id}`
   },
   tiktok: {
     name: 'TikTok',
     logo: '/images/platforms/tiktok-logo.png',
-    placeholder: 'e.g. drake',
+    placeholder: 'e.g. arianagrande',
     getUrl: (id: string) => `https://tiktok.com/@${id}`
   },
   wikipedia: {
     name: 'Wikipedia',
     logo: '/images/platforms/wikipedia-logo.png',
-    placeholder: 'e.g. Drake_(musician)',
+    placeholder: 'e.g. Ariana_Grande',
     getUrl: (id: string) => `https://en.wikipedia.org/wiki/${id}`
   },
   songstats: {
     name: 'Songstats',
     logo: '/images/platforms/songstats-logo.png',
-    placeholder: 'e.g. drake',
+    placeholder: 'e.g. 7aot8uey/ariana-grande',
     getUrl: (id: string) => `https://songstats.com/artist/${id}`
   },
   viberate: {
     name: 'Viberate',
     logo: '/images/platforms/viberate-logo.png',
-    placeholder: 'e.g. drake',
+    placeholder: 'e.g. ariana-grande',
     getUrl: (id: string) => `https://www.viberate.com/artist/${id}`
   },
   kworb: {
     name: 'Kworb',
     logo: '/images/platforms/kworb-logo.png',
-    placeholder: 'e.g. drake',
-    getUrl: (id: string) => `https://kworb.net/spotify/artist/${id}.html`
+    placeholder: 'e.g. justinbieber',
+    getUrl: (id: string) => `https://kworb.net/youtube/artist/${id}.html`
   }
 };
 
