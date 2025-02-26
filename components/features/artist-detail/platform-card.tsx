@@ -41,8 +41,8 @@ export function PlatformCard({ platform }: PlatformCardProps) {
       </div>
       <div className="flex-1">
         <div className="text-xs text-gray-400 uppercase">{name}</div>
-        <div className="text-xl font-bold">{formattedCount}</div>
-        <div className={`text-sm flex items-center ${growthColor}`}>
+        <div className="text-md font-bold">{formattedCount}</div>
+        <div className={`text-xs flex items-center ${growthColor}`}>
           {growthIndicator}
           <span className="ml-1">{growth !== null ? `${Math.abs((growth || 0) * 100).toFixed(1)}%` : "0%"}</span>
           <span className="ml-1 text-gray-400">
