@@ -16,7 +16,7 @@ export default function ArtistNav() {
   ]
 
   return (
-    <div className="sticky top-16 h-18 w-full border border-white">
+    <div className="sticky top-16 h-18 w-full">
       <div className="flex flex-col h-full">
         <div className="flex items-center gap-3 px-6 py-3">
           <Avatar>
@@ -26,19 +26,24 @@ export default function ArtistNav() {
           <span className="font-medium">Artist Name</span>
         </div>
         <nav className="flex gap-6 px-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm font-medium ${
-                pathname === item.href
-                  ? 'text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            // Check if this nav item matches the current path
+            const isActive = pathname.includes(item.href.split('/').pop() || '')
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-sm font-medium pb-2 ${
+                  isActive
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
     </div>

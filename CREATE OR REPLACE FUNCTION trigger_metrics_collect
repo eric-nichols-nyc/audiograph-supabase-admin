@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION trigger_metrics_collection()
+RETURNS json AS $$
+DECLARE
+  result json;
+BEGIN
+  SELECT content::json INTO result FROM http_post(
+    'https://fwirjtvwqndshynbbbyf.supabase.co/functions/v1/collect_artist_metrics',
+    'application/json',
+    '{}',
+    'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aXJqdHZ3cW5kc2h5bmJiYnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NzA2MjcsImV4cCI6MjA1NDU0NjYyN30.1BGFktH-1E2gJMXQ_XOxKuwvQE7tfR5j0zmAWOPPOKs'
+  );
+  RETURN result;
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('error', SQLERRM);
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT cron.schedule(
+  'collect-artist-metrics',        -- unique job name
+  '0 0 */2 * *',                  -- cron expression (at midnight every 2 days)
+  'SELECT trigger_metrics_collection()'  -- SQL to execute
+);
+
+select cron.schedule(
+  'collect-artist-metrics',  -- name of the scheduled job
+  '0 0 */2 * *',            -- every 2 days at midnight
+  $$ select net.http_post(
+    'https://<your-project-ref>.supabase.co/functions/v1/collect-artist-metrics',
+    '{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aXJqdHZ3cW5kc2h5bmJiYnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NzA2MjcsImV4cCI6MjA1NDU0NjYyN30.1BGFktH-1E2gJMXQ_XOxKuwvQE7tfR5j0zmAWOPPOKs'"}'::jsonb
+  ) $$
+);
+
+
+UPDATE SPOTIFY FOLLOWERS AND YOUTUBE SUBSCRIBERS ANALYTICS EVERY OTHER DAY:
+1. Create an edge function and deploy
+2. Create a database function to trigger the edge function
+3. Schedule a cron job to run at scheduled interval
+
+
+
