@@ -168,6 +168,27 @@ public getArtist = unstable_cache(async (artistName: string) => {
         ['spotify-track-image'],
         { tags: ['spotify-track-image'], revalidate: 60 * 60 * 24 }
     );
+
+    // Returns the track data from Spotify using the track id
+    public getTrackData = unstable_cache(
+        async (trackId: string) => {
+            const accessToken = await this.getAccessToken();
+            
+            const response = await fetch(
+                `https://api.spotify.com/v1/tracks/${trackId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+            return data;
+        },
+        ['spotify-track-data'],
+        { tags: ['spotify-track-data'], revalidate: 60 * 60 * 24 }
+    );
     
 }
 
