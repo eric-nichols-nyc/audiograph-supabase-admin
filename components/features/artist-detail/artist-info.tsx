@@ -28,21 +28,7 @@ export function ArtistInfo({ artist }: ArtistInfoProps) {
       </CardHeader>
       <CardContent>
         <div className="flex gap-6">
-          <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
-            {artist.image_url ? (
-              <img
-                src={artist.image_url}
-                alt={artist.name || 'Artist'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                No Image
-              </div>
-            )}
-          </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">{artist.name || 'Unknown Artist'}</h2>
             <div className="space-y-2 text-sm">
               <p>
                 <span className="font-medium">Country:</span> {artist.country || 'N/A'}
