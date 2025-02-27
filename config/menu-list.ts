@@ -5,7 +5,11 @@ import {
   Bookmark,
   SquarePen,
   LayoutGrid,
-  LucideIcon
+  LucideIcon,
+  CirclePlus,
+  User,
+  Music,
+  SquarePlay
 } from "lucide-react";
 
 type Submenu = {
@@ -35,7 +39,7 @@ export function getMenuList(pathname: string): Group[] {
         {
           href: "/artists/add/batch",
           label: "Add Artist",
-          icon: LayoutGrid,
+          icon: CirclePlus,
           submenus: []
         }
       ]
@@ -46,34 +50,34 @@ export function getMenuList(pathname: string): Group[] {
         {
           href: "/artists",
           label: "Artists",
-          icon: SquarePen,
+          icon: User,
         },
         {
           href: "/songs",
           label: "Songs",
-          icon: Bookmark
+          icon: Music
         },
         {
           href: "/videos",
           label: "Videos",
-          icon: Tag
+          icon: SquarePlay
         }
       ]
     },
-    {
-      groupLabel: "Settings",
-      menus: [
-        {
-          href: "/users",
-          label: "Users",
-          icon: Users
-        },
-        {
-          href: "/account",
-          label: "Account",
-          icon: Settings
-        }
-      ]
-    }
+    // {
+    //   groupLabel: "Settings",
+    //   menus: [
+    //     {
+    //       href: "/users",
+    //       label: "Users",
+    //       icon: Users
+    //     },
+    //     {
+    //       href: "/account",
+    //       label: "Account",
+    //       icon: Settings
+    //     }
+    //   ]
+    // }
   ];
 }

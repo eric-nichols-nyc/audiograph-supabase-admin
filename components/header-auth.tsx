@@ -23,11 +23,6 @@ export default function AuthButton() {
     <div className="flex items-center gap-4">
       Hey, {user.email}!
       <NotificationsPopover />
-      <form action={signOutAction}>
-        <Button type="submit" variant={"outline"}>
-          Sign out
-        </Button>
-      </form>
     </div>
   ) : (
     <div className="flex gap-2">
