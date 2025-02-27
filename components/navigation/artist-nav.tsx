@@ -27,11 +27,11 @@ export default function ArtistNav({ artist }: ArtistNavProps) {
     <div className="sticky top-12 z-20 bg-background w-full border-b">
       <div className="flex flex-col">
         <div className="flex items-center gap-3 px-6 py-3">
-          <Avatar>
-            <AvatarImage src={artist?.image_url || "https://github.com/shadcn.png"} />
-            <AvatarFallback>{artistInitial}</AvatarFallback>
+          <Avatar className="w-10 h-10">
+            <AvatarImage className="w-10 h-10" src={artist?.image_url || "https://github.com/shadcn.png"} />
+            <AvatarFallback className="w-10 h-10">{artistInitial}</AvatarFallback>
           </Avatar>
-          <span className="font-medium text-foreground">{artist?.name || "Artist Name"}</span>
+          <span className="font-medium text-foreground text-lg">{artist?.name || "Artist Name"}</span>
         </div>
         <nav className="flex gap-6 px-6 pb-2">
           {navItems.map((item) => {
