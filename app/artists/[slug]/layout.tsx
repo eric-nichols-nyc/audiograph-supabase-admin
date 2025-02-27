@@ -8,7 +8,7 @@ export default async function ArtistLayout({ children, params }: {
   params: { slug: string }
 }) {
   // Check if user is authenticated
-  const user  = await getUser();
+  const user = await getUser();
   
   // Redirect to sign-in if not authenticated
   if (!user) {
@@ -19,11 +19,9 @@ export default async function ArtistLayout({ children, params }: {
   const { artist, platformIds } = await getArtistBySlug(params.slug)
   
   return (
-    <div className="flex flex-col w-full gap-6 pt-14">
-      <div className="w-full border-b">
-        <ArtistNav artist={artist} />
-      </div>
-      <div className="flex w-full">
+    <div className="flex flex-col w-full min-h-screen">
+      <ArtistNav artist={artist} />
+      <div className="flex-1 p-6 overflow-auto">
         {children}
       </div>
     </div>

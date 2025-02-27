@@ -24,8 +24,8 @@ export default function ArtistNav({ artist }: ArtistNavProps) {
   const artistInitial = artist?.name?.charAt(0) || 'A'
 
   return (
-    <div className="sticky top-16 h-18 w-full">
-      <div className="flex flex-col h-full">
+    <div className="sticky top-12 z-20 bg-white w-full border-b">
+      <div className="flex flex-col">
         <div className="flex items-center gap-3 px-6 py-3">
           <Avatar>
             <AvatarImage src={artist?.image_url || "https://github.com/shadcn.png"} />
@@ -33,7 +33,7 @@ export default function ArtistNav({ artist }: ArtistNavProps) {
           </Avatar>
           <span className="font-medium">{artist?.name || "Artist Name"}</span>
         </div>
-        <nav className="flex gap-6 px-6">
+        <nav className="flex gap-6 px-6 pb-2">
           {navItems.map((item) => {
             // Check if this nav item matches the current path
             const isActive = pathname.includes(item.href.split('/').pop() || '')
