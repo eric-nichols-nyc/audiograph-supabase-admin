@@ -27,7 +27,7 @@ export const getArtists = actionClient
         )
       `);
     
-    console.log('Artists data:', data); // Debug log
+    // console.log('Artists data:', data); // Debug log
     
     if (error) {
       console.error("Error fetching artists:", error);

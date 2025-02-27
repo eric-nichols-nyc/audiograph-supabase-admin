@@ -1,16 +1,23 @@
+"use client";
+import { useState, useEffect } from "react";
 import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
+import { getUser } from "@/lib/supabase/auth/client";
 import NotificationsPopover from "@/components/features/notifications/notifications-popover";
 
-export default async function AuthButton() {
-  const supabase = await createClient();
+export default function AuthButton() {
+  const [user, setUser] = useState<User | null>(null);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
 
   return user ? (
     <div className="flex items-center gap-4">
