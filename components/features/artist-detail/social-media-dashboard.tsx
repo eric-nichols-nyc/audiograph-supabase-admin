@@ -19,7 +19,7 @@ export function SocialMediaDashboard() {
     }, 0) / totalFans
 
   // Data for the donut chart
-  const COLORS = ["#4ade80", "#f87171", "#60a5fa", "#fbbf24", "#a78bfa"]
+  const COLORS = ["#4ade80", "#FF5733", "#60a5fa", "#fbbf24", "#a78bfa"]
   const pieData = data
     .sort((a, b) => b.count - a.count)
     .slice(0, 5)
@@ -52,15 +52,21 @@ export function SocialMediaDashboard() {
         {/* Center donut chart */}
         <div className="lg:col-span-1 flex justify-center items-center">
           <div className="relative w-64 h-64">
-            {/* <ChartContainer className="w-full h-full"> */}
+            <ChartContainer className="w-full h-full" config={{
+              spotify: { color: "#22c55e" },
+              youtube: { color: "#FF5733" },
+              instagram: { color: "#3b82f6" },
+              tiktok: { color: "#f59e0b" },
+              other: { color: "#6b7280" }
+            }}>
               <PieChart width={250} height={250}>
                 <Pie
                   data={pieData}
                   cx={125}
                   cy={125}
-                  innerRadius={80}
-                  outerRadius={110}
-                  paddingAngle={1}
+                  innerRadius={90}
+                  outerRadius={105}
+                  paddingAngle={2}
                   dataKey="value"
                 >
                   {pieData.map((entry, index) => (
@@ -68,9 +74,9 @@ export function SocialMediaDashboard() {
                   ))}
                 </Pie>
               </PieChart>
-            {/* </ChartContainer> */}
+            </ChartContainer>
             <div className="absolute inset-0 flex flex-col justify-center items-center">
-              <div className="text-5xl font-bold">{formattedTotal} M</div>
+              <div className="text-4xl font-medium">{formattedTotal} M</div>
               <div className={`text-sm ${totalGrowth >= 0 ? "text-green-500" : "text-red-500"} flex items-center`}>
                 {totalGrowth >= 0 ? "↑" : "↓"}
                 {Math.abs(totalGrowth * 100).toFixed(1)}%
