@@ -24,14 +24,14 @@ export default function ArtistNav({ artist }: ArtistNavProps) {
   const artistInitial = artist?.name?.charAt(0) || 'A'
 
   return (
-    <div className="sticky top-12 z-20 bg-white w-full border-b">
+    <div className="sticky top-12 z-20 bg-background w-full border-b">
       <div className="flex flex-col">
         <div className="flex items-center gap-3 px-6 py-3">
           <Avatar>
             <AvatarImage src={artist?.image_url || "https://github.com/shadcn.png"} />
             <AvatarFallback>{artistInitial}</AvatarFallback>
           </Avatar>
-          <span className="font-medium">{artist?.name || "Artist Name"}</span>
+          <span className="font-medium text-foreground">{artist?.name || "Artist Name"}</span>
         </div>
         <nav className="flex gap-6 px-6 pb-2">
           {navItems.map((item) => {
@@ -44,8 +44,8 @@ export default function ArtistNav({ artist }: ArtistNavProps) {
                 href={item.href}
                 className={`text-sm font-medium pb-2 ${
                   isActive
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {item.label}

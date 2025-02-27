@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "../utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { actionClient } from "@/lib/safe-action";
 import { Artist, ArtistPlatformId, ArtistUrl, ArtistMetric } from "../types/artists";
 import { artistSchema } from "@/schemas/artists";

@@ -62,7 +62,7 @@ const columns = [
         <Link 
           href={`https://open.spotify.com/track/${info.row.original.track_id}`} 
           target="_blank"
-          className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1 truncate max-w-[300px]"
+          className="text-sm font-medium text-primary hover:underline flex items-center gap-1 truncate max-w-[300px]"
         >
           {info.getValue()}
           <ExternalLink className="w-3 h-3 inline opacity-50" />
@@ -127,7 +127,7 @@ const columns = [
         <div className="text-right font-medium">
           {value ? formatNumber(value) : 'N/A'}
           {value && (
-            <div className={`text-xs ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+            <div className={`text-xs ${isPositive ? 'text-green-600' : 'text-destructive'}`}>
               {isPositive ? '+' : ''}{formatNumber(value)}
             </div>
           )}
@@ -176,18 +176,18 @@ export function TrackTable({ tracks }: TrackTableProps) {
   });
 
   return (
-    <div className="rounded-lg border border-gray-200 shadow-sm">
+    <div className="rounded-lg border shadow-sm">
       <div className="overflow-x-auto max-h-[70vh] relative">
         {/* Fixed header */}
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 sticky top-0 z-10">
+        <table className="min-w-full divide-y">
+          <thead className="bg-muted/50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider shadow-sm"
+                    className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider shadow-sm"
                     style={{ width: header.column.getSize() }}
                   >
                     {flexRender(
@@ -199,17 +199,17 @@ export function TrackTable({ tracks }: TrackTableProps) {
               </tr>
             ))}
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-background divide-y">
             {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row, i) => (
                 <tr 
                   key={row.id} 
-                  className={`hover:bg-gray-50 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                  className={`hover:bg-muted/50 transition-colors ${i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                      className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
@@ -218,7 +218,7 @@ export function TrackTable({ tracks }: TrackTableProps) {
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-10 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-6 py-10 text-center text-muted-foreground">
                   No tracks found for this artist.
                 </td>
               </tr>
@@ -228,7 +228,7 @@ export function TrackTable({ tracks }: TrackTableProps) {
       </div>
       
       {tracks.length > 0 && (
-        <div className="bg-gray-50 px-6 py-3 text-xs text-gray-500 border-t">
+        <div className="bg-muted/50 px-6 py-3 text-xs text-muted-foreground border-t">
           Showing {tracks.length} track{tracks.length !== 1 ? 's' : ''}
         </div>
       )}

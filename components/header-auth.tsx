@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { signOutAction } from "@/app/actions";
+import { signOutAction } from "@/actions/actions";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/auth/client";
 import NotificationsPopover from "@/components/features/notifications/notifications-popover";
 
