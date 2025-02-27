@@ -15,7 +15,10 @@ export default function SongsPage() {
     queryFn: async () => {
       try {
         const tracks = await getArtistTracksBySlug({ slug });
-        return tracks;
+        if (!Array.isArray(tracks.data)) {
+          throw new Error('Tracks are not an array');
+        }
+        return tracks.data;
       } catch (err) {
         throw new Error(`Failed to fetch tracks: ${(err as Error).message}`);
       }
