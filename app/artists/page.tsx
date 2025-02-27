@@ -1,4 +1,4 @@
-import { ContentLayout } from "@/components/admin-panel/content-layout";
+import { ContentLayout } from "@/components/features/admin-panel/content-layout";
 import { ArtistMetricsTable } from "@/components/features/artist-table/artist-metrics-table";
 import { TriggerRankingUpdate } from '@/components/trigger-ranking-update';
 import ArtistsTable from "@/components/artists-table";

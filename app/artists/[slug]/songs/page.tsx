@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getArtistTracksBySlug } from "@/actions/artist.tracks";
 import { TrackTable } from "@/components/tracks/track-table";
-import { ContentLayout } from "@/components/admin-panel/content-layout";
+import { ContentLayout } from "@/components/features/admin-panel/content-layout";
 
 export default function SongsPage() {
   const params = useParams();

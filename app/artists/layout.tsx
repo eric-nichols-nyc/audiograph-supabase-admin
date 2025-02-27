@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import { getArtists } from '@/actions/artist'
-import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout"
+import AdminPanelLayout from "@/components/features/admin-panel/admin-panel-layout"
 
 export default async function ArtistsLayout({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()

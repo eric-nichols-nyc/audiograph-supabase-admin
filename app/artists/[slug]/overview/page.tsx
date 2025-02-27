@@ -1,7 +1,7 @@
 import { ArtistInfo } from "@/components/features/artist-detail/artist-info"
 import { getArtistBySlug } from "@/actions/artist"
 import { PlatformIds } from "@/components/features/artist-detail/data-sources"
-import { ContentLayout } from "@/components/admin-panel/content-layout"
+import { ContentLayout } from "@/components/features/admin-panel/content-layout"
 import { SocialMediaDashboard } from "@/components/features/artist-detail/social-media-dashboard"
 import { SimilarArtists } from "@/components/features/artist-detail/similar-artists"
 

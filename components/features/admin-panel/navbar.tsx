@@ -1,6 +1,6 @@
 import { ModeToggle } from "@/components/mode-toggle";
-import { UserNav } from "@/components/admin-panel/user-nav";
-import { SheetMenu } from "@/components/admin-panel/sheet-menu";
+import { UserNav } from "@/components/features/admin-panel/user-nav";
+import { SheetMenu } from "@/components/features/admin-panel/sheet-menu";
 import HeaderAuth from "@/components/header-auth";
 
 interface NavbarProps {

@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getArtistVideosBySlug } from "@/actions/artist.videos";
 import { VideoTable } from "@/components/videos/video-table";
-import { ContentLayout } from "@/components/admin-panel/content-layout";
+import { ContentLayout } from "@/components/features/admin-panel/content-layout";
 export default function VideosPage() {
   const params = useParams();
   const slug = params.slug as string;
