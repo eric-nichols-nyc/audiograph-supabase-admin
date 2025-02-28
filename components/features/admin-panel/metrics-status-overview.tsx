@@ -8,8 +8,10 @@ import {
   Youtube, 
   Clock, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Users
 } from "lucide-react";
+import Image from "next/image";
 
 type MetricsSummary = {
   totalArtists: number;
@@ -19,6 +21,8 @@ type MetricsSummary = {
   lastYoutubeUpdate: string | null;
   spotifyMetricsCount: number;
   youtubeMetricsCount: number;
+  lastSpotifyFollowersUpdate: string | null;
+  spotifyFollowersCount: number;
 };
 
 export function MetricsStatusOverview() {
@@ -29,7 +33,9 @@ export function MetricsStatusOverview() {
     lastSpotifyUpdate: null,
     lastYoutubeUpdate: null,
     spotifyMetricsCount: 0,
-    youtubeMetricsCount: 0
+    youtubeMetricsCount: 0,
+    lastSpotifyFollowersUpdate: null,
+    spotifyFollowersCount: 0
   });
   
   const [loading, setLoading] = useState(true);
@@ -50,7 +56,9 @@ export function MetricsStatusOverview() {
           lastSpotifyUpdate: "2023-11-15T08:30:00Z",
           lastYoutubeUpdate: "2023-11-14T14:45:00Z",
           spotifyMetricsCount: 1254,
-          youtubeMetricsCount: 987
+          youtubeMetricsCount: 987,
+          lastSpotifyFollowersUpdate: "2023-11-15T10:15:00Z",
+          spotifyFollowersCount: 1120
         });
       } catch (error) {
         console.error("Error fetching metrics summary:", error);
@@ -109,11 +117,21 @@ export function MetricsStatusOverview() {
               </div>
               <div className="text-sm">
                 <div className="flex items-center gap-1">
-                  <Music className="h-4 w-4" />
+                  <Image 
+                    src="/images/spotify.svg" 
+                    alt="Spotify" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span>{formatDate(summary.lastSpotifyUpdate)}</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
-                  <Youtube className="h-4 w-4" />
+                  <Image 
+                    src="/images/youtube.svg" 
+                    alt="YouTube" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span>{formatDate(summary.lastYoutubeUpdate)}</span>
                 </div>
               </div>
@@ -123,7 +141,12 @@ export function MetricsStatusOverview() {
           <div className="grid grid-cols-2 gap-4">
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Music className="h-5 w-5 text-primary" />
+                <Image 
+                  src="/images/spotify.svg" 
+                  alt="Spotify" 
+                  width={16} 
+                  height={16} 
+                />
                 <span className="font-medium">Spotify Coverage</span>
               </div>
               <div className="flex items-center justify-between">
@@ -142,7 +165,12 @@ export function MetricsStatusOverview() {
             
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Youtube className="h-5 w-5 text-primary" />
+                <Image 
+                  src="/images/youtube.svg" 
+                  alt="YouTube" 
+                  width={16} 
+                  height={16} 
+                />
                 <span className="font-medium">YouTube Coverage</span>
               </div>
               <div className="flex items-center justify-between">
@@ -168,11 +196,21 @@ export function MetricsStatusOverview() {
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div className="flex items-center gap-1">
-                  <Music className="h-4 w-4" />
+                  <Image 
+                    src="/images/spotify.svg" 
+                    alt="Spotify" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span className="text-sm">{summary.spotifyMetricsCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Youtube className="h-4 w-4" />
+                  <Image 
+                    src="/images/youtube.svg" 
+                    alt="YouTube" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span className="text-sm">{summary.youtubeMetricsCount}</span>
                 </div>
               </div>
@@ -180,16 +218,38 @@ export function MetricsStatusOverview() {
             
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-2">
+                <Users className="h-5 w-5 text-green-600" />
+                <span className="font-medium">Spotify Followers</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm">{summary.spotifyFollowersCount} followers</span>
+              </div>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-5 w-5 text-amber-500" />
                 <span className="font-medium">Missing Data</span>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div className="flex items-center gap-1">
-                  <Music className="h-4 w-4" />
+                  <Image 
+                    src="/images/spotify.svg" 
+                    alt="Spotify" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span className="text-sm">{summary.totalArtists - summary.artistsWithSpotify} artists</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Youtube className="h-4 w-4" />
+                  <Image 
+                    src="/images/youtube.svg" 
+                    alt="YouTube" 
+                    width={16} 
+                    height={16} 
+                  />
                   <span className="text-sm">{summary.totalArtists - summary.artistsWithYoutube} artists</span>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Ellipsis, LogOut } from "lucide-react";
+import { Ellipsis, LogOut, BarChart, Home, Music, Settings, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -25,10 +25,39 @@ export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname ?? "");
 
+  const menuItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
+    },
+    {
+      name: "Artists",
+      href: "/artists",
+      icon: Music,
+    },
+    {
+      name: "Metrics Admin",
+      href: "/admin/metrics",
+      icon: BarChart,
+    },
+    // Add more menu items as needed
+  ];
+
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
       <nav className="mt-8 h-full w-full">
         <ul className="flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-1 px-2">
+          {menuItems.map((item) => (
+            <MenuItem
+              key={item.href}
+              name={item.name}
+              href={item.href}
+              icon={item.icon}
+              isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+              isOpen={isOpen}
+            />
+          ))}
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn("w-full", groupLabel ? "pt-5" : "")} key={index}>
               {(isOpen && groupLabel) || isOpen === undefined ? (
@@ -151,3 +180,35 @@ export function Menu({ isOpen }: MenuProps) {
     </ScrollArea>
   );
 }
+
+interface MenuItemProps {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  isActive?: boolean;
+  isOpen?: boolean;
+}
+
+function MenuItem({ name, href, icon: Icon, isActive, isOpen }: MenuItemProps) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50",
+        isActive && "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50"
+      )}
+    >
+      <Icon className="h-5 w-5" />
+      <span
+        className={cn(
+          "text-sm font-medium transition-all",
+          !isOpen && "translate-x-96 opacity-0 hidden"
+        )}
+      >
+        {name}
+      </span>
+    </Link>
+  );
+}
+
+Menu.Item = MenuItem;

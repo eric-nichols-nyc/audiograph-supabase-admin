@@ -6,13 +6,13 @@ import { ArtistPlatformStatus } from "@/components/features/admin-panel/artist-p
 
 export default async function MetricsAdminPage() {
   return (
-    <ContentLayout title="Artist Platform Status">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <MetricsStatusOverview />
-          <RecentActivityLog />
+    <ContentLayout title="Metrics Admin Dashboard">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-10">
+        <MetricsStatusOverview />
+        <RecentActivityLog />
       </div>
-        <MetricsControlPanel />
-        <ArtistPlatformStatus />
-      </ContentLayout> 
+      <MetricsControlPanel />
+      <ArtistPlatformStatus />
+    </ContentLayout> 
   );
 } 

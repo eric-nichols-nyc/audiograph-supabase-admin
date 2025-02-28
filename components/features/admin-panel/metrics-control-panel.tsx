@@ -3,21 +3,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 import { 
   AlertCircle, 
   CheckCircle, 
-  Music, 
-  Youtube, 
-  BarChart, 
-  RefreshCw,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 
 type MetricJob = {
   id: string;
   name: string;
-  description: string;
-  icon: React.ReactNode;
+  icon: string;
   endpoint: string;
   lastRun?: string;
   status?: "idle" | "running" | "success" | "error";
@@ -27,18 +24,24 @@ export function MetricsControlPanel() {
   const [jobs, setJobs] = useState<MetricJob[]>([
     {
       id: "spotify-listeners",
-      name: "Spotify Monthly Listeners",
-      description: "Collect monthly listener counts from Spotify",
-      icon: <Music className="h-5 w-5" />,
+      name: "Monthly Listeners",
+      icon: "/images/spotify.svg",
       endpoint: "/api/admin/trigger-spotify-listeners",
       lastRun: "Never",
       status: "idle"
     },
     {
+      id: "spotify-followers",
+      name: "Followers",
+      icon: "/images/spotify.svg",
+      endpoint: "/api/admin/trigger-spotify-followers",
+      lastRun: "Never",
+      status: "idle"
+    },
+    {
       id: "youtube-metrics",
-      name: "YouTube Subscribers",
-      description: "Collect subscriber counts from YouTube",
-      icon: <Youtube className="h-5 w-5" />,
+      name: "Subscribers",
+      icon: "/images/youtube.svg",
       endpoint: "/api/admin/trigger-youtube-metrics",
       lastRun: "Never",
       status: "idle"
@@ -115,15 +118,15 @@ export function MetricsControlPanel() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {jobs.map(job => (
           <Card key={job.id} className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-primary/10 p-2 rounded-full">
-                  {job.icon}
-                </div>
-                <div>
-                  <h3 className="font-medium">{job.name}</h3>
-                  <p className="text-sm text-gray-500">{job.description}</p>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Image 
+                  src={job.icon} 
+                  alt={job.name} 
+                  width={20} 
+                  height={20} 
+                />
+                <h3 className="font-medium">{job.name}</h3>
               </div>
               
               {job.status === "running" ? (

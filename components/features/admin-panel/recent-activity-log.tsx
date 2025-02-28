@@ -10,7 +10,7 @@ import {
   Youtube, 
   RefreshCw 
 } from "lucide-react";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
 type ActivityType = "success" | "error" | "warning" | "info";
 type Platform = "spotify" | "youtube" | "system";
 
@@ -75,6 +75,13 @@ export function RecentActivityLog() {
             type: "info",
             message: "Scheduled metrics collection started",
             platform: "system"
+          },
+          {
+            id: "5",
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+            type: "info",
+            message: "Scheduled metrics collection started",
+            platform: "system"
           }
         ]);
       } catch (error) {
@@ -125,7 +132,7 @@ export function RecentActivityLog() {
     <div className="h-full">
       <Card className="p-4 h-full overflow-hidden flex flex-col">
         <h3 className="font-medium mb-4">Recent Activity</h3>
-        
+        <ScrollArea className="h-[300px]">
         {loading ? (
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -156,6 +163,7 @@ export function RecentActivityLog() {
             ))}
           </div>
         )}
+        </ScrollArea>
       </Card>
     </div>
   );
