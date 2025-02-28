@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
     }
     
     const data = await resultsResponse.json();
+    console.log('/api/scrape/bright-data ', data);
     return NextResponse.json(data);
     
   } catch (error) {
