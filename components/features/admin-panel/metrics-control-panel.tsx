@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import {
   Loader2,
   RefreshCw
 } from "lucide-react";
+import { useQueryClient } from '@tanstack/react-query'
 
 type MetricJob = {
   id: string;
@@ -48,6 +49,74 @@ export function MetricsControlPanel() {
     },
     // Add more metric collection jobs as needed
   ]);
+
+  const queryClient = useQueryClient()
+  
+  useEffect(() => {
+    // Connect to SSE endpoint
+    const eventSource = new EventSource('/api/metrics-sse');
+    
+    // Listen for messages
+    eventSource.addEventListener('message', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        // When a job completes, update UI and refetch data
+        if (data.status === 'completed') {
+          console.log('Job completed:', data);
+          
+          // Update job status in UI
+          setJobs(prev => {
+            const jobIndex = prev.findIndex(job => job.id === data.type);
+            if (jobIndex === -1) return prev;
+            
+            const updated = [...prev];
+            updated[jobIndex] = { 
+              ...updated[jobIndex], 
+              status: "success",
+              lastRun: new Date().toLocaleString() 
+            };
+            return updated;
+          });
+          
+          // Invalidate queries to refetch data
+          queryClient.invalidateQueries(['metrics-summary']);
+          queryClient.invalidateQueries(['artists', 'platform-status']);
+        }
+      } catch (error) {
+        console.error('Error parsing SSE message:', error);
+      }
+    });
+    
+    // Handle connection open
+    eventSource.addEventListener('open', () => {
+      console.log('SSE connection opened');
+    });
+    
+    // Handle errors
+    eventSource.addEventListener('error', (error) => {
+      console.error('SSE connection error:', error);
+      // Optionally implement custom reconnection logic here
+    });
+    
+    // Clean up on unmount
+    return () => {
+      eventSource.close();
+    };
+  }, [queryClient])
+
+  useEffect(() => {
+    // Poll for updates every 10 seconds
+    const pollInterval = setInterval(() => {
+      // Refetch data
+      queryClient.invalidateQueries(['metrics-summary']);
+      queryClient.invalidateQueries(['artists', 'platform-status']);
+    }, 10000);
+    
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [queryClient]);
 
   const triggerJob = async (jobId: string) => {
     // Find the job
