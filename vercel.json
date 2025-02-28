@@ -1,5 +1,8 @@
 {
-  "crons": {
-    "spotify-metrics": "0 2 * * *"
-  }
+  "crons": [
+    {
+      "schedule": "0 2 * * *",
+      "url": "/api/scrape/spotify"
+    }
+  ]
 } 
