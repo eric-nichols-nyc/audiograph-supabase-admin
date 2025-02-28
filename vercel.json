@@ -1,0 +1,5 @@
+{
+  "crons": {
+    "spotify-metrics": "0 2 * * *"
+  }
+} 

@@ -64,12 +64,24 @@ export function MetricsControlPanel() {
     });
     
     try {
-      // STEP 1: Start the Bright Data collection directly
-      const response = await fetch('/api/artists/scrape/bright-data', {
+      // Get artist IDs from database
+      const artistsResponse = await fetch('/api/artists/spotify-ids', {
+        method: 'GET'
+      });
+      
+      if (!artistsResponse.ok) {
+        throw new Error('Failed to fetch artist IDs');
+      }
+      
+      const { artistIds } = await artistsResponse.json();
+      
+      // Call the Playwright scraping endpoint
+      const response = await fetch('/api/scrape/spotify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ artistIds })
       });
       
       if (!response.ok) {
@@ -77,14 +89,29 @@ export function MetricsControlPanel() {
       }
       
       const data = await response.json();
-      console.log('Bright Data collection started:', data);
+      console.log('Scraping results:', data);
       
-      if (!data.datasetId) {
-        throw new Error('No dataset ID returned');
+      // Process the results directly
+      if (data.results && data.results.length > 0) {
+        await processResults(jobId, data.results);
+        
+        // Update job status to success
+        setJobs(prev => {
+          const updated = [...prev];
+          updated[jobIndex] = { 
+            ...updated[jobIndex], 
+            status: "success",
+            lastRun: new Date().toLocaleString() 
+          };
+          return updated;
+        });
+        
+        // Refresh data
+        queryClient.invalidateQueries(['metrics-summary']);
+        queryClient.invalidateQueries(['artists', 'platform-status']);
+      } else {
+        throw new Error('No results returned from scraping');
       }
-      
-      // STEP 2: Start polling for results
-      pollForResults(jobId, data.datasetId);
     } catch (error) {
       console.error(`Error triggering job ${jobId}:`, error);
       
