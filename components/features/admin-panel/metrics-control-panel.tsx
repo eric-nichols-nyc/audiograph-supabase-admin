@@ -121,10 +121,14 @@ export function MetricsControlPanel() {
       const data = await response.json();
       console.log('Poll response:', data);
       
-      // Check if we have results
-      if (data.status === 'success' && data.results) {
+      // Check if we have results - Bright Data specific format
+      if (data.status === 'COMPLETED' || data.status === 'DELIVERED' || 
+          (Array.isArray(data) && data.length > 0)) {
+        // We have results
+        const results = Array.isArray(data) ? data : data.results || [];
+        
         // STEP 4: Process the results
-        await processResults(jobId, data.results);
+        await processResults(jobId, results);
         
         // STEP 5: Update UI to show success
         setJobs(prev => {
@@ -140,10 +144,11 @@ export function MetricsControlPanel() {
         // STEP 6: Refresh data
         queryClient.invalidateQueries(['metrics-summary']);
         queryClient.invalidateQueries(['artists', 'platform-status']);
-      } else if (data.status === 'error') {
-        throw new Error(data.error || 'Unknown error');
+      } else if (data.status === 'FAILED' || data.status === 'ERROR' || data.error) {
+        throw new Error(data.error || 'Collection failed');
       } else {
         // Still processing, poll again in 5 seconds
+        console.log('Still processing, polling again in 5 seconds...');
         setTimeout(() => pollForResults(jobId, datasetId), 5000);
       }
     } catch (error) {
