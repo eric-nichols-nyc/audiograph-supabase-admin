@@ -109,33 +109,6 @@ export function MetricsStatusOverview() {
               </div>
               <span className="text-2xl font-bold">{summary.totalArtists}</span>
             </Card>
-            
-            <Card className="p-4 flex flex-col">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <span className="font-medium">Last Updates</span>
-              </div>
-              <div className="text-sm">
-                <div className="flex items-center gap-1">
-                  <Image 
-                    src="/images/spotify.svg" 
-                    alt="Spotify" 
-                    width={16} 
-                    height={16} 
-                  />
-                  <span>{formatDate(summary.lastSpotifyUpdate)}</span>
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Image 
-                    src="/images/youtube.svg" 
-                    alt="YouTube" 
-                    width={16} 
-                    height={16} 
-                  />
-                  <span>{formatDate(summary.lastYoutubeUpdate)}</span>
-                </div>
-              </div>
-            </Card>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

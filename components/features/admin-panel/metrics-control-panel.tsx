@@ -136,9 +136,7 @@ export function MetricsControlPanel() {
               ) : job.status === "error" ? (
                 <AlertCircle className="h-5 w-5 text-red-500" />
               ) : null}
-            </div>
             
-            <div className="mt-4 flex items-center justify-between">
               <div className="text-xs text-gray-500">
                 Last run: {job.lastRun}
               </div>
