@@ -18,6 +18,8 @@ export function MetricsPageClient() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
+  console.log('metrics from client', metrics);
+
   if (isLoading) return <div>Loading metrics...</div>
   if (error) return <div>Error loading metrics</div>
   if (!metrics?.length) return <div>No metrics available</div>

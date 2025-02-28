@@ -1,7 +1,7 @@
 "use server";
 
 import { actionClient } from "@/lib/safe-action";
-import { createClient } from "../utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { ArtistMetric } from "../types/artists";
 
@@ -57,7 +57,7 @@ export const deleteMetric = actionClient
     return data;
 });
 
-// Add this new action
+// Update this action to return all metrics for the artist
 export const getArtistMetrics = actionClient.action(async (input: unknown): Promise<ArtistMetric[]> => {
   // Extract the path from the wrapped input
   const path = typeof input === 'object' && input !== null ? (input as any).clientInput : input;
@@ -85,12 +85,19 @@ export const getArtistMetrics = actionClient.action(async (input: unknown): Prom
     
   if (!artist) throw new Error('Artist not found');
 
-  // Then get their metrics
+  // Then get their metrics - get all metrics for the past 30 days to calculate growth
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
   const { data, error } = await supabase
     .from('artist_metrics')
     .select('*')
     .eq('artist_id', artist.id)
+    .gte('date', thirtyDaysAgo.toISOString())
     .order('date', { ascending: false });
+
+
+    console.log('metrics data', data);
 
   if (error) throw new Error(`Error fetching metrics: ${error.message}`);
   
