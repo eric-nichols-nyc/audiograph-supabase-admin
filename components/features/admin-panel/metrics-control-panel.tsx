@@ -142,26 +142,21 @@ export function MetricsControlPanel() {
       
       const result = await response.json();
       
-      // Update job status to success
-      setJobs(prev => {
-        const updated = [...prev];
-        updated[jobIndex] = { 
-          ...updated[jobIndex], 
-          status: "success",
-          lastRun: new Date().toLocaleString() 
-        };
-        return updated;
-      });
-      
-      // After 3 seconds, reset status to idle
-      setTimeout(() => {
+      if (result.datasetId) {
+        // If we got a datasetId, start polling for results
+        pollForResults(jobId, result.datasetId);
+      } else {
+        // Update job status to success
         setJobs(prev => {
           const updated = [...prev];
-          updated[jobIndex] = { ...updated[jobIndex], status: "idle" };
+          updated[jobIndex] = { 
+            ...updated[jobIndex], 
+            status: "success",
+            lastRun: new Date().toLocaleString() 
+          };
           return updated;
         });
-      }, 3000);
-      
+      }
     } catch (error) {
       console.error(`Error triggering job ${jobId}:`, error);
       
@@ -175,6 +170,86 @@ export function MetricsControlPanel() {
         };
         return updated;
       });
+    }
+  };
+
+  // Add this new function to poll for results
+  const pollForResults = async (jobId: string, datasetId: string) => {
+    const jobIndex = jobs.findIndex(job => job.id === jobId);
+    if (jobIndex === -1) return;
+    
+    try {
+      const response = await fetch(
+        `${window.location.origin}/api/artists/scrape/bright-data?datasetId=${datasetId}`,
+        { method: 'GET' }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get results: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success' && data.results) {
+        // Process the results
+        await processResults(jobId, data.results);
+        
+        // Update job status to success
+        setJobs(prev => {
+          const updated = [...prev];
+          updated[jobIndex] = { 
+            ...updated[jobIndex], 
+            status: "success",
+            lastRun: new Date().toLocaleString() 
+          };
+          return updated;
+        });
+        
+        // Invalidate queries to refetch data
+        queryClient.invalidateQueries(['metrics-summary']);
+        queryClient.invalidateQueries(['artists', 'platform-status']);
+      } else if (data.status === 'error') {
+        throw new Error(data.error || 'Unknown error');
+      } else {
+        // Still processing, poll again in 5 seconds
+        setTimeout(() => pollForResults(jobId, datasetId), 5000);
+      }
+    } catch (error) {
+      console.error(`Error polling for results for job ${jobId}:`, error);
+      
+      // Update job status to error
+      setJobs(prev => {
+        const updated = [...prev];
+        updated[jobIndex] = { 
+          ...updated[jobIndex], 
+          status: "error",
+          lastRun: new Date().toLocaleString() 
+        };
+        return updated;
+      });
+    }
+  };
+
+  // Add this function to process the results
+  const processResults = async (jobId: string, results: any) => {
+    try {
+      // Call an API to process the results and update the database
+      const response = await fetch('/api/admin/process-spotify-listeners', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ results })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to process results: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error processing results for job ${jobId}:`, error);
+      throw error;
     }
   };
 
