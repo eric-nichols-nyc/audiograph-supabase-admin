@@ -2,7 +2,7 @@
   "crons": [
     {
       "schedule": "0 2 * * *",
-      "url": "/api/scrape/spotify"
+      "path": "/api/scrape/spotify"
     }
   ]
 } 
