@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
@@ -10,13 +10,12 @@ import {
   Loader2,
   RefreshCw
 } from "lucide-react";
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query';
 
 type MetricJob = {
   id: string;
   name: string;
   icon: string;
-  endpoint: string;
   lastRun?: string;
   status?: "idle" | "running" | "success" | "error";
 };
@@ -27,7 +26,6 @@ export function MetricsControlPanel() {
       id: "spotify-listeners",
       name: "Monthly Listeners",
       icon: "/images/spotify.svg",
-      endpoint: "/api/admin/trigger-spotify-listeners",
       lastRun: "Never",
       status: "idle"
     },
@@ -35,7 +33,6 @@ export function MetricsControlPanel() {
       id: "spotify-followers",
       name: "Followers",
       icon: "/images/spotify.svg",
-      endpoint: "/api/admin/trigger-spotify-followers",
       lastRun: "Never",
       status: "idle"
     },
@@ -43,82 +40,18 @@ export function MetricsControlPanel() {
       id: "youtube-metrics",
       name: "Subscribers",
       icon: "/images/youtube.svg",
-      endpoint: "/api/admin/trigger-youtube-metrics",
       lastRun: "Never",
       status: "idle"
     },
     // Add more metric collection jobs as needed
   ]);
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
-  useEffect(() => {
-    // Connect to SSE endpoint
-    const eventSource = new EventSource('/api/metrics-sse');
-    
-    // Listen for messages
-    eventSource.addEventListener('message', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        // When a job completes, update UI and refetch data
-        if (data.status === 'completed') {
-          console.log('Job completed:', data);
-          
-          // Update job status in UI
-          setJobs(prev => {
-            const jobIndex = prev.findIndex(job => job.id === data.type);
-            if (jobIndex === -1) return prev;
-            
-            const updated = [...prev];
-            updated[jobIndex] = { 
-              ...updated[jobIndex], 
-              status: "success",
-              lastRun: new Date().toLocaleString() 
-            };
-            return updated;
-          });
-          
-          // Invalidate queries to refetch data
-          queryClient.invalidateQueries(['metrics-summary']);
-          queryClient.invalidateQueries(['artists', 'platform-status']);
-        }
-      } catch (error) {
-        console.error('Error parsing SSE message:', error);
-      }
-    });
-    
-    // Handle connection open
-    eventSource.addEventListener('open', () => {
-      console.log('SSE connection opened');
-    });
-    
-    // Handle errors
-    eventSource.addEventListener('error', (error) => {
-      console.error('SSE connection error:', error);
-      // Optionally implement custom reconnection logic here
-    });
-    
-    // Clean up on unmount
-    return () => {
-      eventSource.close();
-    };
-  }, [queryClient])
-
-  useEffect(() => {
-    // Poll for updates every 10 seconds
-    const pollInterval = setInterval(() => {
-      // Refetch data
-      queryClient.invalidateQueries(['metrics-summary']);
-      queryClient.invalidateQueries(['artists', 'platform-status']);
-    }, 10000);
-    
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [queryClient]);
-
+  // Simplified job triggering function
   const triggerJob = async (jobId: string) => {
+    console.log(`Triggering job: ${jobId}`);
+    
     // Find the job
     const jobIndex = jobs.findIndex(job => job.id === jobId);
     if (jobIndex === -1) return;
@@ -131,32 +64,27 @@ export function MetricsControlPanel() {
     });
     
     try {
-      // Call the API endpoint to trigger the job
-      const response = await fetch(jobs[jobIndex].endpoint, {
-        method: "POST",
+      // STEP 1: Start the Bright Data collection directly
+      const response = await fetch('/api/artists/scrape/bright-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (!response.ok) {
         throw new Error(`Failed to trigger job: ${response.statusText}`);
       }
       
-      const result = await response.json();
+      const data = await response.json();
+      console.log('Bright Data collection started:', data);
       
-      if (result.datasetId) {
-        // If we got a datasetId, start polling for results
-        pollForResults(jobId, result.datasetId);
-      } else {
-        // Update job status to success
-        setJobs(prev => {
-          const updated = [...prev];
-          updated[jobIndex] = { 
-            ...updated[jobIndex], 
-            status: "success",
-            lastRun: new Date().toLocaleString() 
-          };
-          return updated;
-        });
+      if (!data.datasetId) {
+        throw new Error('No dataset ID returned');
       }
+      
+      // STEP 2: Start polling for results
+      pollForResults(jobId, data.datasetId);
     } catch (error) {
       console.error(`Error triggering job ${jobId}:`, error);
       
@@ -173,28 +101,32 @@ export function MetricsControlPanel() {
     }
   };
 
-  // Add this new function to poll for results
+  // Simplified polling function
   const pollForResults = async (jobId: string, datasetId: string) => {
+    console.log(`Polling for results: ${jobId}, datasetId: ${datasetId}`);
+    
     const jobIndex = jobs.findIndex(job => job.id === jobId);
     if (jobIndex === -1) return;
     
     try {
-      const response = await fetch(
-        `${window.location.origin}/api/artists/scrape/bright-data?datasetId=${datasetId}`,
-        { method: 'GET' }
-      );
+      // STEP 3: Check if results are ready
+      const response = await fetch(`/api/artists/scrape/bright-data?datasetId=${datasetId}`, {
+        method: 'GET'
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to get results: ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('Poll response:', data);
       
+      // Check if we have results
       if (data.status === 'success' && data.results) {
-        // Process the results
+        // STEP 4: Process the results
         await processResults(jobId, data.results);
         
-        // Update job status to success
+        // STEP 5: Update UI to show success
         setJobs(prev => {
           const updated = [...prev];
           updated[jobIndex] = { 
@@ -205,7 +137,7 @@ export function MetricsControlPanel() {
           return updated;
         });
         
-        // Invalidate queries to refetch data
+        // STEP 6: Refresh data
         queryClient.invalidateQueries(['metrics-summary']);
         queryClient.invalidateQueries(['artists', 'platform-status']);
       } else if (data.status === 'error') {
@@ -230,10 +162,12 @@ export function MetricsControlPanel() {
     }
   };
 
-  // Add this function to process the results
+  // Process results function
   const processResults = async (jobId: string, results: any) => {
+    console.log(`Processing results for job: ${jobId}`);
+    
     try {
-      // Call an API to process the results and update the database
+      // STEP 7: Send results to processing endpoint
       const response = await fetch('/api/admin/process-spotify-listeners', {
         method: 'POST',
         headers: {
@@ -246,7 +180,10 @@ export function MetricsControlPanel() {
         throw new Error(`Failed to process results: ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('Processing complete:', data);
+      
+      return data;
     } catch (error) {
       console.error(`Error processing results for job ${jobId}:`, error);
       throw error;
