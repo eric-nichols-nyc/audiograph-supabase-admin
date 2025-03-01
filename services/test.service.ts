@@ -1,6 +1,6 @@
-import { createClient } from "@/utils/supabase/server";
-import { actionClient } from "@/lib/safe-action";
-import { addArtistFullSchema } from "@/schemas/x-artist-full-schema"; // Adjust path as needed
+import { createClient } from '@/lib/supabase/server';
+import { actionClient } from '@/lib/safe-action';
+import { addArtistFullSchema } from '@/schemas/x-artist-full-schema'; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
 
 export const addFullArtist = actionClient
@@ -9,10 +9,10 @@ export const addFullArtist = actionClient
     try {
       console.log('Validating input with schema...');
       const validationResult = addArtistFullSchema.safeParse(parsedInput);
-      
+
       if (!validationResult.success) {
         const formattedErrors = validationResult.error.format();
-        
+
         // Log specific video errors with full details
         if (formattedErrors.videos) {
           console.log('Video validation errors:');
@@ -31,15 +31,13 @@ export const addFullArtist = actionClient
                 view_count: 'number',
                 daily_view_count: 'number',
                 published_at: 'string',
-                thumbnail_url: 'string (optional)'
-              }
+                thumbnail_url: 'string (optional)',
+              },
             });
           }
         }
 
-        return { 
-          validationErrors: JSON.parse(JSON.stringify(formattedErrors)) 
-        };
+        return { validationErrors: JSON.parse(JSON.stringify(formattedErrors)) };
       }
 
       console.log('Input validation passed:', {
@@ -50,16 +48,11 @@ export const addFullArtist = actionClient
         videosCount: parsedInput.videos.length,
       });
 
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         setTimeout(() => {
           resolve({
             message: 'Full artist retrieved',
-            artist: {
-              id: '1',
-              name: 'John Doe',
-              slug: 'john-doe',
-              is_complete: true
-            }
+            artist: { id: '1', name: 'John Doe', slug: 'john-doe', is_complete: true },
           });
         }, 3000);
       });

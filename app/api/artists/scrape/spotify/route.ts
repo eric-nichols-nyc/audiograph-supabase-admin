@@ -11,8 +11,10 @@ export async function GET(request: Request) {
     const page = await context.newPage();
 
     // Navigate to the target page (adjust the URL as needed)
-    await page.goto('https://open.spotify.com/a
-    await page.getByText('London, GB').click();rtist/1uNFoZAHBGtllmzznpCI3s', { waitUntil: 'networkidle' });
+    await page.goto('https://open.spotify.com/artist/1uNFoZAHBGtllmzznpCI3s', {
+      waitUntil: 'networkidle',
+    });
+    await page.getByText('London, GB').click();
 
     // Scroll down dynamically until no new content loads
     let prevHeight = 0;
@@ -22,21 +24,21 @@ export async function GET(request: Request) {
     await page.waitForSelector(divSelector, { timeout: 5000 });
     await page.click(divSelector);
 
-    console.log("Clicked the div!");
+    console.log('Clicked the div!');
 
     // Wait for the dialog to appear
     const dialogSelector = '[data-testid="dialog-body"]'; // Spotify dialog element
     await page.waitForSelector(dialogSelector, { timeout: 5000 }); // Wait for dialog to show
-  
-    console.log("Dialog appeared!");
-  
+
+    console.log('Dialog appeared!');
+
     // Scrape content from the dialog
-    const dialogContent = await page.evaluate((selector) => {
+    const dialogContent = await page.evaluate(selector => {
       const element = document.querySelector(selector);
       return element ? element.innerText.trim() : 'Dialog not found';
     }, dialogSelector);
-  
-    console.log("Scraped Dialog Content:", dialogContent);
+
+    console.log('Scraped Dialog Content:', dialogContent);
 
     await browser.close();
 
@@ -44,7 +46,7 @@ export async function GET(request: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error in Spotify scraper:", error);
+    console.error('Error in Spotify scraper:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Internal Server Error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

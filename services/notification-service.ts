@@ -1,7 +1,12 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/supabase/auth/server';
 
-export type NotificationType = 'artist_added' | 'ranking_updated' | 'ranking_failed' | 'success' | 'error';
+export type NotificationType =
+  | 'artist_added'
+  | 'ranking_updated'
+  | 'ranking_failed'
+  | 'success'
+  | 'error';
 
 interface Notification {
   id: string;
@@ -34,7 +39,7 @@ export class NotificationService {
     priority = 0,
     metadata = {},
     expires_at,
-    link
+    link,
   }: {
     type: NotificationType;
     title: string;
@@ -45,22 +50,15 @@ export class NotificationService {
     link?: string;
   }): Promise<string> {
     const accountId = await this.getAccountId();
-    
+
     try {
       const supabase = await createClient();
-    
+
       const { data, error } = await supabase
         .from('notifications')
-        .upsert([{
-          account_id: accountId,
-          type,
-          title,
-          message,
-          priority,
-          metadata,
-          expires_at,
-          link
-        }])
+        .upsert([
+          { account_id: accountId, type, title, message, priority, metadata, expires_at, link },
+        ])
         .select()
         .single();
 
@@ -98,12 +96,9 @@ export class NotificationService {
       const supabase = await createClient();
       const { error } = await supabase
         .from('notifications')
-        .update({ 
-          is_read: true,
-          read_at: new Date().toISOString()
-        })
+        .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', notificationId)
-        .eq('account_id',accountId);
+        .eq('account_id', accountId);
 
       if (error) throw error;
     } catch (error) {

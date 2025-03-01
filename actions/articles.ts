@@ -1,8 +1,8 @@
-"use server";
+'use server';
 
-import { actionClient } from "@/lib/safe-action";
-import { createClient } from "../utils/supabase/server";
-import { z } from "zod";
+import { actionClient } from '@/lib/safe-action';
+import { createClient } from '../lib/supabase//server';
+import { z } from 'zod';
 
 // Define an Article type
 export interface Article {
@@ -29,7 +29,7 @@ export const articleSchema = z.object({
 // Fetch articles
 export const getArticles = actionClient.action(async (): Promise<Article[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase.from<Article>("articles").select("*");
+  const { data, error } = await supabase.from<Article>('articles').select('*');
   if (error) throw new Error(`Error fetching articles: ${error.message}`);
   return data;
 });
@@ -39,10 +39,10 @@ export const addArticle = actionClient
   .schema(articleSchema)
   .action(async ({ parsedInput }: { parsedInput: Article }) => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("articles").insert(parsedInput);
+    const { data, error } = await supabase.from('articles').insert(parsedInput);
     if (error) throw new Error(`Error adding article: ${error.message}`);
     return data;
-});
+  });
 
 // Update an article
 export const updateArticle = actionClient
@@ -50,19 +50,19 @@ export const updateArticle = actionClient
   .action(async ({ parsedInput }: { parsedInput: Article }) => {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from("articles")
+      .from('articles')
       .update(parsedInput)
-      .eq("id", parsedInput.id);
+      .eq('id', parsedInput.id);
     if (error) throw new Error(`Error updating article: ${error.message}`);
     return data;
-});
+  });
 
 // Delete an article
 export const deleteArticle = actionClient
   .schema(z.object({ id: z.string() }))
   .action(async ({ parsedInput }: { parsedInput: { id: string } }) => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("articles").delete().eq("id", parsedInput.id);
+    const { data, error } = await supabase.from('articles').delete().eq('id', parsedInput.id);
     if (error) throw new Error(`Error deleting article: ${error.message}`);
     return data;
-}); 
+  });

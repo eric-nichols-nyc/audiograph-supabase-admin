@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { actionClient } from "@/lib/safe-action";
-import { createClient } from "../utils/supabase/server";
-import { z } from "zod";
-import { ArtistTrack } from "../types/artists";
+import { actionClient } from '@/lib/safe-action';
+import { createClient } from '../lib/supabase//server';
+import { z } from 'zod';
+import { ArtistTrack } from '../types/artists';
 
 // Schema for tracks (ArtistTrack)
 export const trackSchema = z.object({
@@ -26,7 +26,7 @@ export const trackSchema = z.object({
 // Fetch all tracks
 export const getTracks = actionClient.action(async (): Promise<ArtistTrack[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase.from<ArtistTrack>("tracks").select("*");
+  const { data, error } = await supabase.from<ArtistTrack>('tracks').select('*');
   if (error) throw new Error(`Error fetching tracks: ${error.message}`);
   return data;
 });
@@ -36,10 +36,10 @@ export const addTrack = actionClient
   .schema(trackSchema)
   .action(async ({ parsedInput }: { parsedInput: ArtistTrack }) => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("tracks").insert(parsedInput);
+    const { data, error } = await supabase.from('tracks').insert(parsedInput);
     if (error) throw new Error(`Error adding track: ${error.message}`);
     return data;
-});
+  });
 
 // Update a track
 export const updateTrack = actionClient
@@ -47,19 +47,19 @@ export const updateTrack = actionClient
   .action(async ({ parsedInput }: { parsedInput: ArtistTrack }) => {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from("tracks")
+      .from('tracks')
       .update(parsedInput)
-      .eq("id", parsedInput.id);
+      .eq('id', parsedInput.id);
     if (error) throw new Error(`Error updating track: ${error.message}`);
     return data;
-});
+  });
 
 // Delete a track
 export const deleteTrack = actionClient
   .schema(z.object({ id: z.string() }))
   .action(async ({ parsedInput }: { parsedInput: { id: string } }) => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("tracks").delete().eq("id", parsedInput.id);
+    const { data, error } = await supabase.from('tracks').delete().eq('id', parsedInput.id);
     if (error) throw new Error(`Error deleting track: ${error.message}`);
     return data;
-}); 
+  });

@@ -1,13 +1,11 @@
 import { ArtistArticle } from '@/types/artists';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { OpenAI } from 'openai';
 
 // You can also import types if needed:
 // import { Database } from '@/types/supabase';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 interface WikipediaResponse {
   query: {
@@ -38,7 +36,6 @@ interface ProcessedArticle extends WikipediaArticle {
   relevanceScore: number;
 }
 
-
 // Main function to scrape and store Wikipedia articles
 export async function scrapeAndStoreWikipedia(artistName: string, artistId: string) {
   try {
@@ -47,10 +44,7 @@ export async function scrapeAndStoreWikipedia(artistName: string, artistId: stri
     // Fetch Wikipedia article
     const article = await fetchWikipediaArticle(artistName);
     if (!article) {
-      return {
-        success: false as const,
-        error: 'No Wikipedia article found'
-      };
+      return { success: false as const, error: 'No Wikipedia article found' };
     }
 
     // Clean and process the article
@@ -62,16 +56,12 @@ export async function scrapeAndStoreWikipedia(artistName: string, artistId: stri
     // Update artist similarities
     await updateArtistSimilarities(artistId, processedArticle);
 
-    return {
-      success: true as const,
-      data: processedArticle
-    };
-
+    return { success: true as const, data: processedArticle };
   } catch (error) {
     console.error('Error in scrapeAndStoreWikipedia:', error);
     return {
       success: false as const,
-      error: error instanceof Error ? error.message : 'Failed to process Wikipedia article'
+      error: error instanceof Error ? error.message : 'Failed to process Wikipedia article',
     };
   }
 }
@@ -88,7 +78,7 @@ async function fetchWikipediaArticle(artistName: string): Promise<WikipediaArtic
     explaintext: '1',
     cllimit: '500',
     rvprop: 'timestamp',
-    rvlimit: '1'
+    rvlimit: '1',
   }).toString();
 
   try {
@@ -106,7 +96,7 @@ async function fetchWikipediaArticle(artistName: string): Promise<WikipediaArtic
       categories: page.categories?.map(c => c.title) || [],
       links: page.links?.map(l => l.title) || [],
       lastUpdated: page.revisions?.[0]?.timestamp || new Date().toISOString(),
-      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
     };
   } catch (error) {
     console.error('Error fetching Wikipedia article:', error);
@@ -135,7 +125,7 @@ async function processArticle(article: WikipediaArticle): Promise<ProcessedArtic
 
   // Generate embedding using OpenAI
   const embeddingResponse = await openai.embeddings.create({
-    model: "text-embedding-3-small",
+    model: 'text-embedding-3-small',
     input: `${article.title}\n${cleanedContent}`,
   });
 
@@ -145,29 +135,34 @@ async function processArticle(article: WikipediaArticle): Promise<ProcessedArtic
     ...article,
     content: cleanedContent,
     embedding: embeddingResponse.data[0].embedding,
-    relevanceScore
+    relevanceScore,
   };
 }
 
 // Calculate article relevance score
 function calculateRelevanceScore(article: WikipediaArticle): number {
   const musicCategories = [
-    'musicians', 'singer', 'artist', 'band', 'composer',
-    'songwriter', 'rapper', 'producer', 'dj'
+    'musicians',
+    'singer',
+    'artist',
+    'band',
+    'composer',
+    'songwriter',
+    'rapper',
+    'producer',
+    'dj',
   ];
 
   // Count music-related categories
   const relevantCategories = article.categories.filter(category =>
-    musicCategories.some(term =>
-      category.toLowerCase().includes(term.toLowerCase())
-    )
+    musicCategories.some(term => category.toLowerCase().includes(term.toLowerCase()))
   ).length;
 
   // Basic scoring formula: content length score (max 1) and category relevance (max 1)
   const contentScore = Math.min(article.content.length / 1000, 1);
   const categoryScore = Math.min(relevantCategories / 5, 1);
 
-  return (contentScore * 0.6) + (categoryScore * 0.4);
+  return contentScore * 0.6 + categoryScore * 0.4;
 }
 
 // Store article in our database
@@ -185,8 +180,8 @@ async function storeArticle(artistId: string, article: ProcessedArticle) {
       categories: article.categories,
       links: article.links,
       last_updated: article.lastUpdated,
-      relevance_score: article.relevanceScore
-    }
+      relevance_score: article.relevanceScore,
+    },
   } as ArtistArticle;
   const supabase = await createClient();
 
@@ -210,10 +205,7 @@ async function storeArticle(artistId: string, article: ProcessedArticle) {
     return data;
   } else {
     // Insert new article
-    const { data, error } = await supabase
-      .from('artist_articles')
-      .insert(articleData)
-      .select();
+    const { data, error } = await supabase.from('artist_articles').insert(articleData).select();
 
     if (error) throw error;
     return data;
@@ -222,13 +214,13 @@ async function storeArticle(artistId: string, article: ProcessedArticle) {
 
 // Update artist similarities based on the new article
 async function updateArtistSimilarities(artistId: string, article: ProcessedArticle) {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
   // Call a stored procedure ("match_articles") in Supabase to find similar articles
   const { data: similarArticles } = await supabase.rpc('match_articles', {
     query_embedding: article.embedding,
     match_threshold: 0.7,
-    match_count: 10
+    match_count: 10,
   });
 
   if (!similarArticles?.length) return;
@@ -244,19 +236,20 @@ async function updateArtistSimilarities(artistId: string, article: ProcessedArti
       metadata: {
         source: 'wikipedia',
         shared_categories: findSharedCategories(article, similar),
-        content_similarity: similar.similarity
-      }
+        content_similarity: similar.similarity,
+      },
     }));
 
   if (similarityRecords.length > 0) {
-    await supabase
-      .from('artist_similarities')
-      .upsert(similarityRecords);
+    await supabase.from('artist_similarities').upsert(similarityRecords);
   }
 }
 
 // Helper function to compute shared categories between two articles
-function findSharedCategories(article1: ProcessedArticle, article2: { categories: string[] }): string[] {
+function findSharedCategories(
+  article1: ProcessedArticle,
+  article2: { categories: string[] }
+): string[] {
   const categories1 = new Set(article1.categories);
   return article2.categories.filter((category: string) => categories1.has(category));
 }
@@ -267,13 +260,13 @@ function findSharedCategories(article1: ProcessedArticle, article2: { categories
 //     const { searchParams } = new URL(request.url);
 //     const artistId = searchParams.get('artistId');
 //     const artistName = searchParams.get('artistName');
-    
+
 //     console.log('API Route - Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
 //     console.log('API Route - Service Key (first 10 chars):', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10));
 
 //     if (!artistId || !artistName) {
 //       return new Response(
-//         JSON.stringify({ error: 'Artist ID and artist name are required' }), 
+//         JSON.stringify({ error: 'Artist ID and artist name are required' }),
 //         { status: 400, headers: { 'Content-Type': 'application/json' } }
 //       );
 //     }

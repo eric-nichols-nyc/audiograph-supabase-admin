@@ -1,8 +1,7 @@
-import { Artist } from "@/types/artists";
-import { createClient } from '@/utils/supabase/server';
+import { Artist } from '@/types/artists';
+import { createClient } from '@/lib/supabase/server';
 import { NotificationService } from './notification-service';
 import { getUser } from '@/lib/supabase/auth/server';
-
 
 export class RankingService {
   constructor() {
@@ -22,9 +21,7 @@ export class RankingService {
         type: 'success',
         title: 'Rankings Updated',
         message: 'Artist rankings have been successfully updated',
-        metadata: {
-          timestamp: new Date().toISOString()
-        }
+        metadata: { timestamp: new Date().toISOString() },
       });
     } catch (error) {
       await this.notificationService.createNotification({
@@ -34,25 +31,21 @@ export class RankingService {
         priority: 1, // Higher priority for errors
         metadata: {
           error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
       throw error;
     }
   }
 
-  async getTrendingArtists(
-    limit: number = 10,
-    timeRange: string = '7 days'
-  ): Promise<Artist[]> {
+  async getTrendingArtists(limit: number = 10, timeRange: string = '7 days'): Promise<Artist[]> {
     try {
       const supabase = await createClient();
 
-      const { data, error } = await supabase
-        .rpc('get_trending_artists', { 
-          limit_count: limit,
-          time_range: timeRange 
-        });
+      const { data, error } = await supabase.rpc('get_trending_artists', {
+        limit_count: limit,
+        time_range: timeRange,
+      });
 
       if (error) throw error;
       return data as Artist[];
@@ -65,8 +58,7 @@ export class RankingService {
   async getArtistScore(artistId: string): Promise<number> {
     try {
       const supabase = await createClient();
-      const { data, error } = await supabase
-        .rpc('calculate_artist_score', { artist_id: artistId });
+      const { data, error } = await supabase.rpc('calculate_artist_score', { artist_id: artistId });
 
       if (error) throw error;
       return data as number;
@@ -75,4 +67,4 @@ export class RankingService {
       throw error;
     }
   }
-} 
+}

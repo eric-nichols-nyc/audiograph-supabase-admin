@@ -1,8 +1,8 @@
-import { createClient } from "@/utils/supabase/server";
-import { actionClient } from "@/lib/safe-action";
-import { addArtistFullSchema } from "@/schemas/artists"; // Adjust path as needed
+import { createClient } from '@/lib/supabase/server';
+import { actionClient } from '@/lib/safe-action';
+import { addArtistFullSchema } from '@/schemas/artists'; // Adjust path as needed
 import { scrapeAndStoreWikipedia } from '@/services/wikipedia-service';
-import { Track, Video } from "@/types/artists";
+import { Track, Video } from '@/types/artists';
 import { RankingService } from '@/services/ranking-service';
 
 const MAX_RETRIES = 3;
@@ -12,7 +12,7 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const beginTransaction = async (supabase: any, attempt = 1): Promise<void> => {
   try {
-    const { error } = await supabase.rpc("begin_transaction");
+    const { error } = await supabase.rpc('begin_transaction');
     if (error) {
       if (error.message.includes('statement timeout') && attempt < MAX_RETRIES) {
         console.log(`Transaction begin attempt ${attempt} failed, retrying...`);
@@ -40,8 +40,8 @@ export const addFullArtist = actionClient
         platforms: parsedInput.platformData.length,
         metrics: parsedInput.metricData.length,
         tracks: parsedInput.tracks.length,
-        videos: parsedInput.videos.length
-      }
+        videos: parsedInput.videos.length,
+      },
     });
 
     const { artist, platformData, urlData, metricData, tracks, videos } = parsedInput;
@@ -55,7 +55,9 @@ export const addFullArtist = actionClient
       await beginTransaction(supabase);
     } catch (error) {
       console.error('Failed to begin transaction after retries:', error);
-      throw new Error(`Unable to start transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Unable to start transaction: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     try {
@@ -65,18 +67,16 @@ export const addFullArtist = actionClient
       console.log('Transaction started successfully');
 
       const { data: artistData, error: artistError } = await supabase
-        .from("artists")
+        .from('artists')
         .insert(artist)
         .select()
         .single();
 
       if (artistError) {
         console.error('Service:Artist insert error:', artistError);
-        await supabase.rpc("rollback_transaction");
+        await supabase.rpc('rollback_transaction');
         //throw new Error(`Service: Error inserting artist: ${artistError.message}`);
-        return {
-          error: artistError.message
-        }
+        return { error: artistError.message };
       }
 
       console.log('Artist inserted successfully');
@@ -90,21 +90,19 @@ export const addFullArtist = actionClient
         try {
           const platformInsert = {
             artist_id: artistId,
-            platform: platform.platform  // Just use the platform name (youtube/spotify)
+            platform: platform.platform, // Just use the platform name (youtube/spotify)
           };
           const { error: platformError } = await supabase
-            .from("artist_platform_ids")
+            .from('artist_platform_ids')
             .insert(platformInsert);
           if (platformError) {
             console.error('Platform insert error:', platformError);
-            await supabase.rpc("rollback_transaction");
-            return {
-              error: platformError.message
-            }
+            await supabase.rpc('rollback_transaction');
+            return { error: platformError.message };
           }
         } catch (error) {
           console.error('Error in platform insert:', error);
-          await supabase.rpc("rollback_transaction");
+          await supabase.rpc('rollback_transaction');
           throw error;
         }
       }
@@ -122,110 +120,102 @@ export const addFullArtist = actionClient
       for (const metric of metricData) {
         const metricInsert = { ...metric, artist_id: artistId };
         const { data: metricResult, error: metricError } = await supabase
-          .from("artist_metrics")
+          .from('artist_metrics')
           .insert(metricInsert)
           .select('id')
           .single();
         if (metricError) {
           console.error('Metric insert error:', metricError);
-          await supabase.rpc("rollback_transaction");
-          return {
-            error: metricError.message
-          }
+          await supabase.rpc('rollback_transaction');
+          return { error: metricError.message };
         }
       }
 
       console.log('artist_metrics added');
 
-
       // Insert tracks and create artist_tracks entries
       if (tracks && tracks.length > 0) {
         for (const track of tracks as Track[]) {
-          console.log('Inserting track:', {
-            title: track.track_id,
-          });
+          console.log('Inserting track:', { title: track.track_id });
           // Upsert the track
           const { data: trackResult, error: trackError } = await supabase
-            .from("tracks")
-            .upsert({
-              track_id: track.track_id,
-              title: track.title,
-              platform: track.platform,
-              thumbnail_url: track.thumbnail_url,
-              stream_count_total: track.stream_count_total,
-              stream_count_daily: track.stream_count_daily, // Renamed to match schema
-            }, {
-              onConflict: 'platform,track_id'
-            })
+            .from('tracks')
+            .upsert(
+              {
+                track_id: track.track_id,
+                title: track.title,
+                platform: track.platform,
+                thumbnail_url: track.thumbnail_url,
+                stream_count_total: track.stream_count_total,
+                stream_count_daily: track.stream_count_daily, // Renamed to match schema
+              },
+              { onConflict: 'platform,track_id' }
+            )
             .select('id')
             .single();
 
           if (trackError) throw new Error(`Track upsert error: ${trackError.message}`);
 
           // Insert or update the artist-track relationship
-          const { error: artistTrackError } = await supabase
-            .from("artist_tracks")
-            .upsert({
+          const { error: artistTrackError } = await supabase.from('artist_tracks').upsert(
+            {
               artist_id: artistId,
               track_id: trackResult.id,
-              role: 'primary' // or whatever role is appropriate
-            }, {
-              onConflict: 'artist_id,track_id'
-            });
+              role: 'primary', // or whatever role is appropriate
+            },
+            { onConflict: 'artist_id,track_id' }
+          );
 
           if (artistTrackError) {
             console.error('Artist-track relation error:', artistTrackError);
-            await supabase.rpc("rollback_transaction");
+            await supabase.rpc('rollback_transaction');
             throw new Error(`Artist-track relation error: ${artistTrackError.message}`);
           }
         }
       }
       console.log('tracks and artist_tracks added');
 
-
       // Insert videos and create artist_videos entries
       if (videos && videos.length > 0) {
         for (const video of videos as Video[]) {
-          console.log('Inserting video:', {
-            title: video.video_id,
-          });
+          console.log('Inserting video:', { title: video.video_id });
 
           const { data: videoResult, error: videoError } = await supabase
-            .from("videos")
-            .upsert({
-              video_id: video.video_id,
-              title: video.title,
-              platform: video.platform,
-              view_count: video.view_count,
-              daily_view_count: video.daily_view_count,
-              published_at: video.published_at,
-              thumbnail_url: video.thumbnail_url,
-            }, {
-              onConflict: 'platform,video_id'
-            })
+            .from('videos')
+            .upsert(
+              {
+                video_id: video.video_id,
+                title: video.title,
+                platform: video.platform,
+                view_count: video.view_count,
+                daily_view_count: video.daily_view_count,
+                published_at: video.published_at,
+                thumbnail_url: video.thumbnail_url,
+              },
+              { onConflict: 'platform,video_id' }
+            )
             .select('id')
             .single();
 
           if (videoError) {
             console.error('Video insertion error:', videoError);
-            await supabase.rpc("rollback_transaction");
+            await supabase.rpc('rollback_transaction');
             throw new Error(`Video upsert error: ${videoError.message}`);
           }
           console.log('Video inserted:', videoResult);
 
           // Create artist-video relationship
-          const { error: artistVideoError } = await supabase
-            .from("artist_videos")
-            .upsert({
+          const { error: artistVideoError } = await supabase.from('artist_videos').upsert(
+            {
               artist_id: artistId,
-              video_id: videoResult.id  // Use video_id directly
-            }, {
-              onConflict: 'artist_id,video_id'
-            });
+              video_id: videoResult.id, // Use video_id directly
+            },
+            { onConflict: 'artist_id,video_id' }
+          );
 
           if (artistVideoError) {
             console.error('Artist video relation error:', artistVideoError);
-            await supabase.rpc("rollback_transaction");
+            await supabase.rpc('rollback_transaction');
             throw new Error(`Artist video relation error: ${artistVideoError.message}`);
           }
         }
@@ -235,7 +225,7 @@ export const addFullArtist = actionClient
 
       // Add transaction completion logging
       console.log('Attempting to commit transaction');
-      const { error: txCommitError } = await supabase.rpc("commit_transaction");
+      const { error: txCommitError } = await supabase.rpc('commit_transaction');
       if (txCommitError) {
         console.error('Transaction commit error:', txCommitError);
         throw new Error(`Failed to commit transaction: ${txCommitError.message}`);
@@ -247,7 +237,7 @@ export const addFullArtist = actionClient
         await scrapeAndStoreWikipedia(artist.name, artistId);
         console.log('Wikipedia service completed');
       } catch (wikiError) {
-        console.error("Error in Wikipedia service:", wikiError);
+        console.error('Error in Wikipedia service:', wikiError);
         // Ideally, we should not rollback here since the main transaction is already committed.
         // Instead, log the error and consider scheduling a retry or marking the record for update.
       }
@@ -255,9 +245,9 @@ export const addFullArtist = actionClient
 
       // set artist isComplete to true and throw an error if it fails
       const { error: updateError } = await supabase
-        .from("artists")
+        .from('artists')
         .update({ is_complete: true })
-        .eq("id", artistId);
+        .eq('id', artistId);
       if (updateError) {
         throw new Error(`Error updating artist is_complete: ${updateError.message}`);
       }
@@ -266,16 +256,18 @@ export const addFullArtist = actionClient
 
       // Now query the database for the inserted artist with related data.
       const { data: insertedArtist, error: fetchError } = await supabase
-        .from("artists")
-        .select(`
+        .from('artists')
+        .select(
+          `
           *,
           artist_platform_ids(*),
           artist_urls(*),
           artist_metrics(*),
           artist_tracks(*),
           artist_videos(*)
-        `)
-        .eq("id", artistId)
+        `
+        )
+        .eq('id', artistId)
         .single();
 
       if (fetchError) {
@@ -285,7 +277,8 @@ export const addFullArtist = actionClient
       // Update rankings with user from context
       // Update rankings asynchronously without blocking
       const rankingService = new RankingService();
-      rankingService.updateRankings()
+      rankingService
+        .updateRankings()
         .then(() => console.log('Rankings updated successfully'))
         .catch(rankingError => console.error('Failed to update rankings:', rankingError));
 
@@ -293,10 +286,10 @@ export const addFullArtist = actionClient
     } catch (error) {
       console.error('Transaction error:', error);
       try {
-        await supabase.rpc("rollback_transaction");
+        await supabase.rpc('rollback_transaction');
       } catch (rollbackError) {
         console.error('Rollback failed:', rollbackError);
       }
       throw error;
     }
-  }); 
+  });

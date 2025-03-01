@@ -1,10 +1,10 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export interface SimilarArtist {
-  id: string;            // the article id returned by match_articles
-  artist_id: string;     // the similar artist's id
-  title: string;         // the Wikipedia article title
-  similarity: number;    // the computed similarity score
+  id: string; // the article id returned by match_articles
+  artist_id: string; // the similar artist's id
+  title: string; // the Wikipedia article title
+  similarity: number; // the computed similarity score
   // Additional fields from the artists table:
   name?: string;
   genre?: string;
@@ -55,7 +55,7 @@ export class ArtistService {
     const similar: SimilarArtist[] = similarArticles as SimilarArtist[];
 
     // Extract the list of similar artist IDs from the RPC response.
-    const similarArtistIds = similar.map((sa) => sa.artist_id);
+    const similarArtistIds = similar.map(sa => sa.artist_id);
 
     // Retrieve additional data (e.g. name, genre, popularity, image) from your artists table.
     const { data: artistsInfo, error: artistError } = await supabase
@@ -81,4 +81,4 @@ export class ArtistService {
 
     return enrichedSimilarArtists;
   }
-} 
+}
