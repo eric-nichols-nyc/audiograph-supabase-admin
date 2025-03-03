@@ -1,7 +1,8 @@
-import { ModeToggle } from "@/components/mode-toggle";
-import { UserNav } from "@/components/features/admin-panel/user-nav";
-import { SheetMenu } from "@/components/features/admin-panel/sheet-menu";
-import HeaderAuth from "@/components/header-auth";
+import { ModeToggle } from '@/components/mode-toggle';
+import { UserNav } from '@/components/features/admin-panel/user-nav';
+import { SheetMenu } from '@/components/features/admin-panel/sheet-menu';
+import HeaderAuth from '@/components/header-auth';
+import { NotificationBell } from '@/components/notification-bell';
 
 interface NavbarProps {
   title: string;
@@ -18,6 +19,7 @@ export function Navbar({ title }: NavbarProps) {
         <div className="flex flex-1 items-center justify-end">
           <ModeToggle />
           <HeaderAuth />
+          {/* <NotificationBell /> */}
         </div>
       </div>
     </header>

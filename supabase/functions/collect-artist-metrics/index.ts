@@ -3,17 +3,16 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 // Import Supabase Edge Function types
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-
-import { google } from 'npm:googleapis'
+import { google } from 'npm:googleapis';
 
 // Initialize YouTube client
-const youtube = google.youtube('v3')
+const youtube = google.youtube('v3');
 
 interface RequestEvent {
   request: Request;
@@ -21,60 +20,60 @@ interface RequestEvent {
 
 // Add Spotify token fetching function
 async function getSpotifyAccessToken() {
-  const clientId = Deno.env.get('SPOTIFY_CLIENT_ID')
-  const clientSecret = Deno.env.get('SPOTIFY_CLIENT_SECRET')
-  
+  const clientId = Deno.env.get('SPOTIFY_CLIENT_ID');
+  const clientSecret = Deno.env.get('SPOTIFY_CLIENT_SECRET');
+
   if (!clientId || !clientSecret) {
-    throw new Error('Missing Spotify credentials')
+    throw new Error('Missing Spotify credentials');
   }
 
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
     },
-    body: 'grant_type=client_credentials'
-  })
+    body: 'grant_type=client_credentials',
+  });
 
-  const data = await response.json()
-  return data.access_token
+  const data = await response.json();
+  return data.access_token;
 }
 
 const BATCH_SIZE = 10; // Process 10 artists at a time
 
 serve(async (req: Request) => {
   try {
-    console.log('Function invoked - START')
-    
+    console.log('Function invoked - START');
+
     // Immediately check and log env vars
     const envVars = {
       SUPABASE_URL: Deno.env.get('SUPABASE_URL'),
       SUPABASE_SERVICE_ROLE_KEY: 'exists: ' + !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
       YOUTUBE_API_KEY: 'exists: ' + !!Deno.env.get('YOUTUBE_API_KEY'),
       SPOTIFY_CLIENT_ID: 'exists: ' + !!Deno.env.get('SPOTIFY_CLIENT_ID'),
-      SPOTIFY_CLIENT_SECRET: 'exists: ' + !!Deno.env.get('SPOTIFY_CLIENT_SECRET')
-    }
-    
-    console.log('Environment variables check:', envVars)
-    
+      SPOTIFY_CLIENT_SECRET: 'exists: ' + !!Deno.env.get('SPOTIFY_CLIENT_SECRET'),
+    };
+
+    console.log('Environment variables check:', envVars);
+
     if (!envVars.SUPABASE_URL || !Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
-      throw new Error('Missing required Supabase environment variables')
+      throw new Error('Missing required Supabase environment variables');
     }
 
     // Check authorization
-    const authHeader = req.headers.get('Authorization')
-    console.log('Auth header:', authHeader ? 'present' : 'missing')
+    const authHeader = req.headers.get('Authorization');
+    console.log('Auth header:', authHeader ? 'present' : 'missing');
 
     if (!authHeader || !authHeader.includes('Bearer')) {
-      throw new Error('Unauthorized: Missing or invalid auth header')
+      throw new Error('Unauthorized: Missing or invalid auth header');
     }
 
-    console.log('Starting metrics collection...')
+    console.log('Starting metrics collection...');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
     // Log environment variables (without revealing sensitive data)
     console.log('Environment check:', {
@@ -82,76 +81,83 @@ serve(async (req: Request) => {
       hasServiceKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
       hasYoutubeKey: !!Deno.env.get('YOUTUBE_API_KEY'),
       hasSpotifyId: !!Deno.env.get('SPOTIFY_CLIENT_ID'),
-      hasSpotifySecret: !!Deno.env.get('SPOTIFY_CLIENT_SECRET')
-    })
+      hasSpotifySecret: !!Deno.env.get('SPOTIFY_CLIENT_SECRET'),
+    });
 
     // Get all artists but process in batches
-    console.log('Fetching artist platforms...')
+    console.log('Fetching artist platforms...');
     const { data: artistPlatforms, error: artistError } = await supabase
       .from('artist_platform_ids')
       .select('artist_id, platform_id, platform')
-      .not('platform_id', 'is', null)
-    
+      .not('platform_id', 'is', null);
+
     console.log('Artist platforms query result:', {
       hasData: !!artistPlatforms,
       count: artistPlatforms?.length ?? 0,
-      error: artistError
-    })
+      error: artistError,
+    });
 
     if (artistError) {
-      console.error('Error fetching artist platforms:', artistError)
-      throw artistError
+      console.error('Error fetching artist platforms:', artistError);
+      throw artistError;
     }
 
     if (!artistPlatforms || artistPlatforms.length === 0) {
-      console.log('No artist platforms found')
-      return new Response('No artist platforms to process', { 
+      console.log('No artist platforms found');
+      return new Response('No artist platforms to process', {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Get Spotify token once for all batches
-    let spotifyAccessToken: string | null = null
+    let spotifyAccessToken: string | null = null;
     try {
-      spotifyAccessToken = await getSpotifyAccessToken()
+      spotifyAccessToken = await getSpotifyAccessToken();
     } catch (error) {
-      console.error('Failed to get Spotify access token:', error)
+      console.error('Failed to get Spotify access token:', error);
     }
+
+    // Add counters at the beginning of your function
+    let youtubeCount = 0;
+    let spotifyCount = 0;
 
     // Process in batches
     for (let i = 0; i < artistPlatforms.length; i += BATCH_SIZE) {
-      console.log(`Processing batch ${i/BATCH_SIZE + 1}`)
-      const batch = artistPlatforms.slice(i, i + BATCH_SIZE)
-      
+      console.log(`Processing batch ${i / BATCH_SIZE + 1}`);
+      const batch = artistPlatforms.slice(i, i + BATCH_SIZE);
+
       // Process each artist in the batch
       for (const artistPlatform of batch) {
         try {
           // Get YouTube subscribers
           if (artistPlatform.platform === 'youtube') {
-            console.log(`Fetching YouTube metrics for artist ${artistPlatform.artist_id} with platform ID ${artistPlatform.platform_id}`);
-            
+            console.log(
+              `Fetching YouTube metrics for artist ${artistPlatform.artist_id} with platform ID ${artistPlatform.platform_id}`
+            );
+
             const response = await fetch(
               `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${artistPlatform.platform_id}&key=${Deno.env.get('YOUTUBE_API_KEY')}`,
               { method: 'GET' }
-            )
-            
-            const data = await response.json()
+            );
+
+            const data = await response.json();
             console.log('YouTube API response:', data);
-            
-            const subscriberCount = data.items?.[0]?.statistics?.subscriberCount
+
+            const subscriberCount = data.items?.[0]?.statistics?.subscriberCount;
             console.log('Subscriber count:', subscriberCount);
 
             if (subscriberCount) {
-              const timestamp = new Date().toISOString()
+              const timestamp = new Date().toISOString();
               const result = await supabase.from('artist_metrics').insert({
                 artist_id: artistPlatform.artist_id,
                 platform: 'youtube',
                 metric_type: 'subscribers',
                 value: parseInt(subscriberCount),
-                date: timestamp
-              })
+                date: timestamp,
+              });
               console.log('Insert result:', result);
+              youtubeCount++;
             } else {
               console.log('No subscriber count found for this channel');
             }
@@ -164,44 +170,81 @@ serve(async (req: Request) => {
               {
                 method: 'GET',
                 headers: {
-                  'Authorization': `Bearer ${spotifyAccessToken}`
-                }
+                  Authorization: `Bearer ${spotifyAccessToken}`,
+                },
               }
-            )
-            
-            const data = await response.json()
-            const followerCount = data.followers?.total
+            );
+
+            const data = await response.json();
+            const followerCount = data.followers?.total;
 
             if (followerCount !== undefined) {
-              const timestamp = new Date().toISOString()
+              const timestamp = new Date().toISOString();
               await supabase.from('artist_metrics').insert({
                 artist_id: artistPlatform.artist_id,
                 platform: 'spotify',
                 metric_type: 'followers',
                 value: followerCount,
-                date: timestamp
-              })
+                date: timestamp,
+              });
+              spotifyCount++;
             }
           }
         } catch (platformError) {
-          console.error(`Error processing artist ${artistPlatform.artist_id} platform ${artistPlatform.platform}:`, platformError)
-          continue
+          console.error(
+            `Error processing artist ${artistPlatform.artist_id} platform ${artistPlatform.platform}:`,
+            platformError
+          );
+          continue;
         }
       }
     }
 
-    console.log('Metrics collection completed successfully')
-    return new Response('Metrics collected successfully', { 
+    // At the end of your function, log the activity
+    await supabase.from('activity_logs').insert({
+      timestamp: new Date().toISOString(),
+      type: 'success',
+      message: 'Artist metrics collection completed',
+      platform: 'system',
+      details: `Processed ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount})`,
+    });
+
+    // After logging the activity for successful collection
+    await supabase.from('notifications').insert({
+      title: 'Metrics Collection Complete',
+      message: `Successfully collected metrics for ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount})`,
+      type: 'success',
+      created_at: new Date().toISOString(),
+    });
+
+    console.log('Metrics collection completed successfully');
+    return new Response('Metrics collected successfully', {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    console.error('Error collecting metrics:', error)
-    return new Response(JSON.stringify({ error: 'Failed to collect metrics' }), { 
+    console.error('Error collecting metrics:', error);
+
+    // Log the error to activity_logs
+    await supabase.from('activity_logs').insert({
+      timestamp: new Date().toISOString(),
+      type: 'error',
+      message: 'Artist metrics collection failed',
+      platform: 'system',
+      details: error.message,
+    });
+
+    // For errors
+    await supabase.from('notifications').insert({
+      title: 'Metrics Collection Failed',
+      message: `Error collecting metrics: ${error.message}`,
+      type: 'error',
+      created_at: new Date().toISOString(),
+    });
+
+    return new Response(JSON.stringify({ error: 'Failed to collect metrics' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    })
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-})
-
-
+});
