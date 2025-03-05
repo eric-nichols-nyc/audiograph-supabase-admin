@@ -34,16 +34,16 @@ export async function GET(request: Request) {
           const titleCell = cells[0];
           const link = titleCell.querySelector('a');
           if (!link) return null;
-          
+
           const href = link.getAttribute('href') || '';
           // Extract the Spotify track ID from the URL
           const trackIdMatch = href.match(/\/track\/([^/?]+)/);
           const trackId = trackIdMatch ? trackIdMatch[1] : '';
-          
+
           const title = link.textContent.trim();
           // Determine if the track is a collaboration based on asterisk prefix in the text of the first cell
           const isCollaboration = titleCell.textContent.trim().startsWith('*');
-          
+
           const streamsText = cells[1].textContent.trim();
           const dailyText = cells[2].textContent.trim();
           const streams = parseInt(streamsText.replace(/,/g, ''), 10);

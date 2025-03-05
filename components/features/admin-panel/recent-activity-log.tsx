@@ -1,23 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertTriangle, Music, Youtube, RefreshCw } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createBrowserSupabase } from '@/lib/supabase/client';
-
-type ActivityType = 'success' | 'error' | 'warning' | 'info';
-type Platform = 'spotify' | 'youtube' | 'system';
-
-interface Activity {
-  id: string;
-  timestamp: string;
-  type: ActivityType;
-  message: string;
-  platform: Platform;
-  details?: string;
-}
+import useFetchActivityLogs, { ActivityLog } from '@/hooks/useFetchActivityLogs';
 
 // Loading fallback component
 export function ActivityLogSkeleton() {
@@ -35,65 +21,10 @@ export function ActivityLogSkeleton() {
 
 // The actual activity log content
 export function ActivityLogContent() {
-  const queryClient = useQueryClient();
-
-  // Use React Query to fetch and cache the data
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['activity-logs'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/activity-logs');
-      if (!response.ok) {
-        throw new Error('Failed to fetch activity logs');
-      }
-      const data = await response.json();
-      return data.activities as Activity[];
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  // Set up real-time subscription
-  useEffect(() => {
-    const supabase = createBrowserSupabase();
-
-    // Subscribe to changes in the activity_logs table
-    const subscription = supabase
-      .channel('activity_logs_changes')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'activity_logs' },
-        payload => {
-          // Use React Query's cache to add the new activity
-          queryClient.setQueryData(['activity-logs'], (oldData: Activity[] = []) => {
-            return [payload.new as Activity, ...oldData].slice(0, 20);
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [queryClient]);
-
-  // Format relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) {
-      return `${diffInSeconds} seconds ago`;
-    } else if (diffInSeconds < 3600) {
-      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    } else if (diffInSeconds < 86400) {
-      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    } else {
-      return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    }
-  };
+  const { activities, isLoading, error, formatRelativeTime } = useFetchActivityLogs();
 
   // Get icon for activity
-  const getActivityIcon = (activity: Activity) => {
+  const getActivityIcon = (activity: ActivityLog) => {
     if (activity.type === 'success') {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     } else if (activity.type === 'error') {
@@ -120,11 +51,11 @@ export function ActivityLogContent() {
             </div>
           ) : error ? (
             <div className="text-center py-8 text-red-500">Error loading activity logs</div>
-          ) : !data || data.length === 0 ? (
+          ) : !activities || activities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No recent activity found</div>
           ) : (
             <div className="space-y-4 overflow-y-auto flex-grow">
-              {data.map(activity => (
+              {activities.map(activity => (
                 <div key={activity.id} className="flex gap-3">
                   <div className="flex-shrink-0 mt-1">{getActivityIcon(activity)}</div>
                   <div className="flex-grow">
@@ -148,7 +79,7 @@ export function ActivityLogContent() {
   );
 }
 
-// Main component with Suspense
+// Main component
 export function RecentActivityLog() {
   return <ActivityLogContent />;
 }

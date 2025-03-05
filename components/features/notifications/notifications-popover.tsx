@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import useFetchNotification from "@/hooks/useFetchNotification";
-import { BellIcon } from "lucide-react";
-import NotificationItem from "@/components/features/notifications/notification-item";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import useFetchNotification from '@/hooks/useFetchNotification';
+import { BellIcon } from 'lucide-react';
+import NotificationItem from '@/components/features/notifications/notification-item';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Notification {
   id: string;
@@ -15,25 +15,24 @@ interface Notification {
   link?: string;
   is_read: boolean;
   created_at: string;
-  // ... include other fields if needed
 }
 
 export default function NotificationsPopover() {
   const { notifications, loading } = useFetchNotification();
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <Popover>
       <PopoverTrigger>
-          <div className="relative">
-            <BellIcon className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </div>
+        <div className="relative">
+          <BellIcon className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </div>
       </PopoverTrigger>
       <PopoverContent>
         {loading ? (
@@ -41,7 +40,7 @@ export default function NotificationsPopover() {
         ) : notifications.length > 0 ? (
           <ScrollArea className="h-[300px] w-full">
             <ul className="w-full">
-              {notifications.map((notification) => (
+              {notifications.map(notification => (
                 <NotificationItem key={notification.id} notification={notification} />
               ))}
             </ul>
