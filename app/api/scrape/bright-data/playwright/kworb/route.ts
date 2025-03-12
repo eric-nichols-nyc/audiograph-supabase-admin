@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Log a few sample records to verify data
     if (scrapedData.length > 0) {
-      console.log('Sample scraped data:', scrapedData.slice(0, 3));
+      console.log('kworb route: Sample scraped data:', scrapedData.slice(0, 3));
     }
 
     // Step 2: Get Supabase client (using service client for API routes)

@@ -6,11 +6,10 @@ import { z } from 'zod';
 import { ArtistPlatformId } from '../types/artists';
 
 // Schema for ArtistPlatformId
-export const platformSchema = z.object({
+const platformSchema = z.object({
   artist_id: z.string(),
-  platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz']),
+  platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz', 'deezer']),
   platform_id: z.string(),
-  created_at: z.string().optional(),
 });
 
 // Fetch platform IDs
@@ -36,16 +35,14 @@ export const updatePlatform = actionClient
   .schema(platformSchema)
   .action(async ({ parsedInput }: { parsedInput: ArtistPlatformId }) => {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('artist_platform_ids')
-      .upsert(
-        {
-          artist_id: parsedInput.artist_id,
-          platform: parsedInput.platform,
-          platform_id: parsedInput.platform_id,
-        },
-        { onConflict: 'artist_id,platform' }
-      );
+    const { data, error } = await supabase.from('artist_platform_ids').upsert(
+      {
+        artist_id: parsedInput.artist_id,
+        platform: parsedInput.platform,
+        platform_id: parsedInput.platform_id,
+      },
+      { onConflict: 'artist_id,platform' }
+    );
 
     if (error) throw new Error(`Error updating platform ID: ${error.message}`);
     return data;
@@ -84,23 +81,21 @@ export const updateArtistPlatformId = actionClient
   .schema(
     z.object({
       artist_id: z.string(),
-      platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz']),
+      platform: z.enum(['spotify', 'youtube', 'lastfm', 'musicbrainz', 'deezer']),
       platform_id: z.string(),
     })
   )
   .action(async ({ parsedInput }) => {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('artist_platform_ids')
-      .upsert(
-        {
-          artist_id: parsedInput.artist_id,
-          platform: parsedInput.platform,
-          platform_id: parsedInput.platform_id,
-        },
-        { onConflict: 'artist_id,platform' }
-      );
+    const { data, error } = await supabase.from('artist_platform_ids').upsert(
+      {
+        artist_id: parsedInput.artist_id,
+        platform: parsedInput.platform,
+        platform_id: parsedInput.platform_id,
+      },
+      { onConflict: 'artist_id,platform' }
+    );
 
     if (error) {
       console.error('Error updating platform ID:', error);

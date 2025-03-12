@@ -97,8 +97,55 @@ The batch artist processing system enables real-time tracking of multiple artist
 
 ### Types
 
-# audiograph-supabase-admin
-# audiograph-supabase-admin
-# audiograph-supabase-admin
-# audiograph-supabase-admin
-# audiograph-supabase-admin
+## Deezer Metrics Update Flow
+
+The Deezer metrics update process fetches fan counts for artists and stores them in the metrics database.
+
+```mermaid
+flowchart TD
+    A[GET Request to /api/deezer/batch-update-atists-metrics] --> B[Fetch Artists with Deezer IDs]
+    B --> C{Artists Found?}
+    C -->|No| D[Return 404 Response]
+    C -->|Yes| E[Generate Current Timestamp]
+    E --> F[For Each Artist]
+    F --> G[Fetch Artist Data from Deezer API]
+    G --> H{Artist Found?}
+    H -->|No| I[Log Failure]
+    H -->|Yes| J[Extract Fan Count]
+    J --> K{Fan Count Valid?}
+    K -->|No| L[Log Failure]
+    K -->|Yes| M[Update artist_metrics Table]
+    M --> N{Update Successful?}
+    N -->|No| O[Log Error]
+    N -->|Yes| P[Log Success]
+    P --> Q[Continue to Next Artist]
+    Q --> F
+    I --> Q
+    L --> Q
+    O --> Q
+    F -->|All Artists Processed| R[Compile Results]
+    R --> S[Return JSON Response with Summary]
+```
+
+### Key Components:
+
+1. **Data Retrieval**
+   - Fetches artists with Deezer platform IDs from the database
+   - Calls Deezer API to get current fan counts
+
+2. **Data Processing**
+   - Extracts fan count from Deezer API response
+   - Validates data before database insertion
+
+3. **Database Update**
+   - Stores fan counts as 'followers' metric type
+   - Uses upsert with conflict resolution for idempotent updates
+
+4. **Error Handling**
+   - Handles missing artists
+   - Manages API failures
+   - Tracks individual artist update status
+
+5. **Response**
+   - Returns summary statistics
+   - Includes detailed success/failure information

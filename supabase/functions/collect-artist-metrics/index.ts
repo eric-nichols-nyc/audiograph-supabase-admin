@@ -121,6 +121,7 @@ serve(async (req: Request) => {
     // Add counters at the beginning of your function
     let youtubeCount = 0;
     let spotifyCount = 0;
+    let deezerCount = 0;
 
     // Process in batches
     for (let i = 0; i < artistPlatforms.length; i += BATCH_SIZE) {
@@ -190,6 +191,49 @@ serve(async (req: Request) => {
               spotifyCount++;
             }
           }
+
+          // Add Deezer metrics collection
+          if (artistPlatform.platform === 'deezer') {
+            console.log(
+              `Fetching Deezer metrics for artist ${artistPlatform.artist_id} with platform ID ${artistPlatform.platform_id}`
+            );
+
+            try {
+              const response = await fetch(
+                `https://api.deezer.com/artist/${artistPlatform.platform_id}`,
+                { method: 'GET' }
+              );
+
+              if (!response.ok) {
+                console.error(`Deezer API error: ${response.status} ${response.statusText}`);
+                continue;
+              }
+
+              const data = await response.json();
+              console.log('Deezer API response:', data);
+
+              // Extract fan count - nb_fan is directly on the artist object
+              const fanCount = data.nb_fan;
+              console.log('Fan count:', fanCount);
+
+              if (typeof fanCount === 'number') {
+                const timestamp = new Date().toISOString();
+                const result = await supabase.from('artist_metrics').insert({
+                  artist_id: artistPlatform.artist_id,
+                  platform: 'deezer',
+                  metric_type: 'followers',
+                  value: fanCount,
+                  date: timestamp,
+                });
+                console.log('Insert result:', result);
+                deezerCount++;
+              } else {
+                console.log('No fan count found for this artist');
+              }
+            } catch (deezerError) {
+              console.error(`Error fetching Deezer data: ${deezerError.message}`);
+            }
+          }
         } catch (platformError) {
           console.error(
             `Error processing artist ${artistPlatform.artist_id} platform ${artistPlatform.platform}:`,
@@ -206,13 +250,13 @@ serve(async (req: Request) => {
       type: 'success',
       message: 'Artist metrics collection completed',
       platform: 'system',
-      details: `Processed ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount})`,
+      details: `Processed ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount})`,
     });
 
     // After logging the activity for successful collection
     await supabase.from('notifications').insert({
       title: 'Metrics Collection Complete',
-      message: `Successfully collected metrics for ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount})`,
+      message: `Successfully collected metrics for ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount})`,
       type: 'success',
       created_at: new Date().toISOString(),
     });
