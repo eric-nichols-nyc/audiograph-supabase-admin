@@ -1,6 +1,7 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from "next/image"
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -65,6 +66,9 @@ interface MetricsResponse {
 }
 
 export function ArtistMetricsTable() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists() as { 
     data: ArtistResponse | undefined;
     isLoading: boolean;
@@ -113,6 +117,46 @@ export function ArtistMetricsTable() {
       };
     });
   }, [artistsResponse?.data?.data, metrics?.data?.data]);
+
+  // Function to update URL with artist ID query parameter
+  const updateUrlWithArtistId = (artist: ArtistWithMetrics | null) => {
+    if (!searchParams) return;
+    
+    if (!artist) {
+      // Remove the query parameter if no artist is selected
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('artistId');
+      router.replace(`?${params.toString()}`, { scroll: false });
+      return;
+    }
+    
+    // Add or update the artistId query parameter
+    const params = new URLSearchParams(searchParams.toString());
+    // Ensure artist.id is a string
+    if (typeof artist.id === 'string') {
+      params.set('artistId', artist.id);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  };
+  
+  // Check for artistId in URL on component mount and when data changes
+  useEffect(() => {
+    if (!searchParams) return;
+    
+    const artistId = searchParams.get('artistId');
+    if (artistId && data.length > 0 && !selectedArtist) {
+      const artist = data.find(a => a.id === artistId);
+      if (artist) {
+        setSelectedArtist(artist);
+        setSheetOpen(true);
+      }
+    }
+  }, [searchParams, data, selectedArtist]);
+  
+  // Update URL when selected artist changes
+  useEffect(() => {
+    updateUrlWithArtistId(selectedArtist);
+  }, [selectedArtist, searchParams]);
 
   const handleUpdate = async () => {
     await Promise.all([
