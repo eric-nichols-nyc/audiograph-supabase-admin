@@ -10,8 +10,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { ArtistWithMetrics } from './types'
-
+import { ArtistWithMetrics } from '../types'
+import {SimilarArtists} from './similar-sheet-artists'
 interface ArtistDetailsSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -111,6 +111,7 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                     </div>
                   </div>
                 </div>
+                <SimilarArtists />
               </div>
               
               {/* Actions */}

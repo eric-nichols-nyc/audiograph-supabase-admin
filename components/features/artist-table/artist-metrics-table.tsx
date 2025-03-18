@@ -47,7 +47,7 @@ import { Artist, ArtistMetric } from '@/types/artists'
 
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { ArtistWithMetrics } from './types'
-import { ArtistDetailsSheet } from './artist-details-sheet'
+import { ArtistDetailsSheet } from './sheet/artist-details-sheet'
 import { cn } from "@/lib/utils"
 import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
