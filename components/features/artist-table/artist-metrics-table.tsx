@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import Image from "next/image"
 import {
   ColumnDef,
@@ -12,9 +12,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Column,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -23,7 +22,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetClose,
 } from "@/components/ui/sheet"
 import {
   DropdownMenu,
@@ -46,12 +44,9 @@ import {
 import { useArtists } from '@/hooks/use-artists'
 import { Artist, ArtistMetric } from '@/types/artists'
 
-// Extended Artist interface with metrics data
-interface ArtistWithMetrics extends Artist {
-  youtube_subscribers: number | null;
-  spotify_popularity: number | null;
-}
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
+import { ArtistWithMetrics } from './types'
+import { ArtistDetailsSheet } from './artist-details-sheet'
 import { cn } from "@/lib/utils"
 import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
@@ -384,7 +379,10 @@ export function ArtistMetricsTable() {
       sorting: [
         { id: 'rank', desc: false }
       ],
-      columnOrder: ['select', 'rank', 'name', /* other column ids */]
+      columnOrder: ['select', 'rank', 'name', /* other column ids */],
+      pagination: {
+        pageSize: 1000, // Set a very large page size to show all artists
+      }
     },
     enableRowSelection: true,
   })
@@ -399,121 +397,11 @@ export function ArtistMetricsTable() {
 
   return (
     <>
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="overflow-y-auto">
-          {selectedArtist && (
-            <>
-              <SheetHeader className="mb-6">
-                <SheetTitle className="text-2xl">{selectedArtist.name}</SheetTitle>
-                <SheetDescription>
-                  {selectedArtist.genres && selectedArtist.genres.join(", ")}
-                </SheetDescription>
-              </SheetHeader>
-              
-              <div className="space-y-6">
-                {/* Artist Image */}
-                <div className="flex justify-center mb-6">
-                  <div className="h-32 w-32 rounded-md overflow-hidden">
-                    <Image 
-                      src={selectedArtist.image_url || "/images/placeholder.jpg"}
-                      alt={selectedArtist.name}
-                      width={128}
-                      height={128}
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-                
-                {/* Artist Details */}
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-2 items-center">
-                    <span className="text-muted-foreground">Rank:</span>
-                    <span>{selectedArtist.rank}</span>
-                  </div>
-                  
-                  {selectedArtist.country && (
-                    <div className="grid grid-cols-2 gap-2 items-center">
-                      <span className="text-muted-foreground">Country:</span>
-                      <div className="flex items-center gap-1.5">
-                        <Image
-                          src={`/flags/${selectedArtist.country.toLowerCase()}.svg`}
-                          alt={selectedArtist.country}
-                          width={16}
-                          height={12}
-                          className="rounded-sm"
-                        />
-                        <span>{selectedArtist.country}</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-2 items-center">
-                    <span className="text-muted-foreground">Completed:</span>
-                    <span>{selectedArtist.is_complete ? "Yes" : "No"}</span>
-                  </div>
-                  
-                  {/* Platform Metrics */}
-                  <div className="border-t pt-4 mt-2">
-                    <h3 className="font-medium mb-3">Platform Metrics</h3>
-                    
-                    <div className="space-y-3">
-                      {/* YouTube */}
-                      <div className="grid grid-cols-2 gap-2 items-center">
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src="/images/youtube.svg"
-                            alt="YouTube"
-                            width={16}
-                            height={16}
-                          />
-                          <span className="text-muted-foreground">Subscribers:</span>
-                        </div>
-                        <span>
-                          {selectedArtist.youtube_subscribers 
-                            ? Intl.NumberFormat('en', { notation: 'compact' }).format(selectedArtist.youtube_subscribers)
-                            : "-"}
-                        </span>
-                      </div>
-                      
-                      {/* Spotify */}
-                      <div className="grid grid-cols-2 gap-2 items-center">
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src="/images/spotify.svg"
-                            alt="Spotify"
-                            width={16}
-                            height={16}
-                          />
-                          <span className="text-muted-foreground">Popularity:</span>
-                        </div>
-                        <span>{selectedArtist.spotify_popularity || "-"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Actions */}
-                <div className="flex justify-between mt-8">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setSheetOpen(false)}
-                  >
-                    Close
-                  </Button>
-                  <Button 
-                    variant="default"
-                    onClick={() => {
-                      window.open(`/artists/${selectedArtist.slug}`, '_blank');
-                    }}
-                  >
-                    View Full Profile
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <ArtistDetailsSheet 
+        open={sheetOpen} 
+        onOpenChange={setSheetOpen} 
+        artist={selectedArtist} 
+      />
       
       <div className="w-full">
         <div className="flex items-center py-4">
@@ -625,24 +513,7 @@ export function ArtistMetricsTable() {
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
+          {/* Pagination controls removed to show all artists at once */}
         </div>
       </div>
     </>
