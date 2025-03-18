@@ -53,33 +53,29 @@ import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
 import { toast } from "sonner"
 import { ArtistDropdownMenu } from "./artist-dropdown-menu"
 
-interface ArtistResponse {
-  data: {
-    data: Artist[];
-  };
-}
-
 interface MetricsResponse {
   data: {
     data: ArtistMetric[];
   };
 }
 
-export function ArtistMetricsTable() {
+interface ArtistMetricsTableProps {
+  artists: Artist[];
+}
+
+export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const { data: artistsResponse, isLoading: artistsLoading, mutate: mutateArtists } = useArtists() as { 
-    data: ArtistResponse | undefined;
-    isLoading: boolean;
-    mutate: () => Promise<void>;
-  };
-
+  // Only fetch metrics, not artists (since they're passed as props)
   const { data: metrics, isLoading: metricsLoading, mutate: mutateMetrics } = useArtistMetrics() as {
     data: MetricsResponse | undefined;
     isLoading: boolean;
     mutate: () => Promise<void>;
   };
+  
+  // No longer need to fetch artists
+  const mutateArtists = () => Promise.resolve();
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -89,15 +85,20 @@ export function ArtistMetricsTable() {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-//   console.log('Artists:', artistsResponse?.data.data)
-//   console.log('Metrics:', metrics?.data?.data)
+  console.log('ArtistMetricsTable - artists from props:', artists);
+  console.log('ArtistMetricsTable - metrics from hook:', metrics);
   
   const data = useMemo<ArtistWithMetrics[]>(() => {
-    if (!artistsResponse?.data?.data || !metrics?.data?.data) {
+    console.log('data useMemo - artists:', artists);
+    console.log('data useMemo - metrics?.data?.data:', metrics?.data?.data);
+    
+    if (!artists || !metrics?.data?.data) {
+      console.log('data useMemo - returning empty array because data is missing');
       return [];
     }
 
-    return artistsResponse.data.data.map((artist: Artist): ArtistWithMetrics => {
+    console.log('data useMemo - mapping artists:', artists.length);
+    return artists.map((artist: Artist): ArtistWithMetrics => {
       const youtubeMetric = metrics.data.data.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'youtube' && 
@@ -116,7 +117,7 @@ export function ArtistMetricsTable() {
         spotify_popularity: spotifyMetric?.value ?? null
       };
     });
-  }, [artistsResponse?.data?.data, metrics?.data?.data]);
+  }, [artists, metrics?.data?.data]);
 
   // Function to update URL with artist ID query parameter
   const updateUrlWithArtistId = (artist: ArtistWithMetrics | null) => {
@@ -431,7 +432,7 @@ export function ArtistMetricsTable() {
     enableRowSelection: true,
   })
 
-  if (artistsLoading || metricsLoading) {
+  if (metricsLoading) {
     return (
       <div className="flex items-center justify-center h-24">
         <div className="text-muted-foreground">Loading artists...</div>

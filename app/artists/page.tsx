@@ -5,15 +5,18 @@ import ArtistsTable from "@/components/artists-table";
 import { getArtists } from "@/actions/artist";
 
 export default async function ArtistsPage() {
-  <p>Artist page</p>
    try {
+    console.log('ArtistsPage - Before calling getArtists()');
     const result = await getArtists();
+    console.log('ArtistsPage - getArtists() result:', JSON.stringify(result, null, 2));
 
     const artists = result?.data;
     
-    console.log('Artists in page:', {
+    console.log('ArtistsPage - Artists in page:', {
       artists,
-      isArray: Array.isArray(artists?.data),
+      isArray: Array.isArray(artists),
+      hasDataProperty: artists && 'data' in artists,
+      dataIsArray: artists?.data && Array.isArray(artists.data),
       length: artists?.data?.length,
       type: typeof artists
     });
@@ -39,7 +42,7 @@ export default async function ArtistsPage() {
           <TriggerRankingUpdate />
         </div>
         <ContentLayout title="Artists">
-          <ArtistMetricsTable />
+          <ArtistMetricsTable artists={artists.data} />
         </ContentLayout>
       </div>
     );
