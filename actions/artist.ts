@@ -13,10 +13,33 @@ import { cookies } from 'next/headers'
 export const getArtists = actionClient
   .action(async () => {
     const supabase = await createClient();
-    
+
     // Add console.log for debugging
     console.log('Fetching artists...');
-    
+
+    const { data, error } = await supabase
+      .from("artists")
+      .select(`
+        *
+      `);
+
+    if (error) {
+      console.error("Error fetching artists:", error);
+      throw error;
+    }
+
+    return {
+      data: Array.isArray(data) ? data : []
+    };
+  });
+
+export const getArtistsWithPlatformIds = actionClient
+  .action(async () => {
+    const supabase = await createClient();
+
+    // Add console.log for debugging
+    console.log('Fetching artists...');
+
     const { data, error } = await supabase
       .from("artists")
       .select(`
@@ -26,22 +49,23 @@ export const getArtists = actionClient
           platform_id
         )
       `);
-    
+
     // console.log('Artists data:', data); // Debug log
-    
+
     if (error) {
       console.error("Error fetching artists:", error);
       throw error;
     }
 
-    return { 
-      data: Array.isArray(data) ? data : [] 
+    return {
+      data: Array.isArray(data) ? data : []
     };
   });
 
 
 
-export const getArtistData = async(slug:string) => {
+
+export const getArtistData = async (slug: string) => {
   const supabase = await createClient();
   const { data: artist, error } = await supabase
     .from("artists")
@@ -61,7 +85,7 @@ export const getArtistData = async(slug:string) => {
     .single();
 
   if (error) throw new Error(error.message);
-  
+
   return transformArtistResponse(artist);
 }
 
@@ -101,28 +125,28 @@ export const deleteArtist = actionClient
 export const getArtistMetrics = actionClient
   .action(async () => {
     const supabase = await createClient();
-    
+
     // Add debug log
     // console.log('Fetching metrics from database...');
-    
+
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
       .select("*")
       .in('metric_type', ['subscribers', 'popularity'])
       .in('platform', ['youtube', 'spotify'])
       .order('created_at', { ascending: false });
-    
+
     // Add debug log
     /// console.log('Metrics response:', { metrics, error });
-    
+
     if (error) {
       console.error('Error fetching metrics:', error);
       throw error;
     }
 
     // Ensure we return the expected structure
-    return { 
-      data: metrics ?? [] 
+    return {
+      data: metrics ?? []
     };
   });
 
@@ -137,7 +161,7 @@ export const updateSpotifyPopularity = actionClient
     const supabase = await createClient();
     const spotifyService = createSpotifyService();
     const { artistName } = parsedInput;
-    
+
     // First get the artist from name
     const { data: artist, error: artistError } = await supabase
       .from("artists")
@@ -194,9 +218,9 @@ export const updateSpotifyPopularity = actionClient
       throw new Error(`Error updating spotify popularity: ${error.message}`);
     }
 
-    return { 
-      success: true, 
-      data, 
+    return {
+      success: true,
+      data,
       platform: platformData,
       message: `Updated Spotify popularity to ${spotifyData.popularity}`
     };
@@ -214,7 +238,7 @@ export const bulkUpdateSpotifyPopularity = actionClient
     const supabase = await createClient();
     const spotifyService = createSpotifyService();
     const timestamp = new Date().toISOString();
-    
+
     const results = await Promise.all(
       parsedInput.artists.map(async ({ artistName }) => {
         try {
@@ -263,15 +287,15 @@ export const bulkUpdateSpotifyPopularity = actionClient
 
           if (metricsError) throw metricsError;
 
-          return { 
-            artistName, 
-            success: true, 
-            popularity: spotifyData.popularity 
+          return {
+            artistName,
+            success: true,
+            popularity: spotifyData.popularity
           };
         } catch (error) {
-          return { 
-            artistName, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          return {
+            artistName,
+            error: error instanceof Error ? error.message : 'Unknown error'
           };
         }
       })
@@ -289,7 +313,7 @@ export const bulkUpdateSpotifyPopularity = actionClient
 
 export async function getArtistBySlug(slug: string) {
   const supabase = createServerComponentClient({ cookies })
-  
+
   // Get basic artist info
   const { data: artist } = await supabase
     .from('artists')

@@ -136,7 +136,7 @@ class YoutubeService {
         }
 
         try {
-     
+
 
             // Get channel statistics
             const channelResponse = await this.rateLimitRequest(
@@ -194,6 +194,26 @@ class YoutubeService {
             return [];
         }
     }, ['youtube-videos'], { tags: ['youtube-videos'], revalidate: 60 * 60 * 24 });
+
+    // return video info by video id
+    public getVideoInfo = unstable_cache(async (videoId: string) => {
+        try {
+            const response = await this.rateLimitRequest(
+                this.youtube.videos.list({
+                    key: this.API_KEY,
+                    part: ['snippet', 'statistics'],
+                    id: [videoId]
+
+                })
+            );
+            return response.data.items || [];
+
+        } catch (error) {
+            console.error('Error fetching video data:', error);
+            return [];
+
+        }
+    }, ['youtube-video'], { tags: ['youtube-video'], revalidate: 60 * 60 * 24 });
 }
 
 

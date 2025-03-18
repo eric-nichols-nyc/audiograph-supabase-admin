@@ -5,12 +5,15 @@ import ArtistsTable from "@/components/artists-table";
 import { getArtists } from "@/actions/artist";
 
 export default async function ArtistsPage() {
-  try {
-    const { data: artists } = await getArtists();
+  <p>Artist page</p>
+   try {
+    const result = await getArtists();
+
+    const artists = result?.data;
     
     console.log('Artists in page:', {
       artists,
-      isArray: Array.isArray(artists.data),
+      isArray: Array.isArray(artists?.data),
       length: artists?.data?.length,
       type: typeof artists
     });
@@ -36,16 +39,16 @@ export default async function ArtistsPage() {
           <TriggerRankingUpdate />
         </div>
         <ContentLayout title="Artists">
-          <ArtistsTable artists={artists.data} />
+          <ArtistMetricsTable />
         </ContentLayout>
       </div>
     );
-  } catch (error) {
+   } catch (error) {
     console.error('Error loading artists:', error);
     return (
       <div className="container mx-auto py-6">
         <div>Error loading artists</div>
       </div>
     );
-  }
+   }
 }
