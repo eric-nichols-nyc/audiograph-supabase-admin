@@ -21,7 +21,8 @@ export const getArtists = actionClient
       .from("artists")
       .select(`
         *
-      `);
+      `)
+      .order("rank", { ascending: true });
 
     if (error) {
       console.error("Error fetching artists:", error);
@@ -48,7 +49,8 @@ export const getArtistsWithPlatformIds = actionClient
           platform,
           platform_id
         )
-      `);
+      `)
+      .order("rank", { ascending: true });
 
     // console.log('Artists data:', data); // Debug log
 
@@ -129,6 +131,18 @@ export const getArtistMetrics = actionClient
     // Add debug log
     // console.log('Fetching metrics from database...');
 
+    // First, get the artists with their ranks
+    const { data: artists, error: artistsError } = await supabase
+      .from("artists")
+      .select("id, rank")
+      .order("rank", { ascending: true });
+
+    if (artistsError) {
+      console.error('Error fetching artists:', artistsError);
+      throw artistsError;
+    }
+
+    // Then get the metrics for these artists
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
       .select("*")
@@ -137,16 +151,29 @@ export const getArtistMetrics = actionClient
       .order('created_at', { ascending: false });
 
     // Add debug log
-    /// console.log('Metrics response:', { metrics, error });
+    // console.log('Metrics response:', { metrics, error });
 
     if (error) {
       console.error('Error fetching metrics:', error);
       throw error;
     }
 
+    // Sort metrics by artist rank
+    const sortedMetrics = metrics ? [...metrics].sort((a, b) => {
+      const artistA = artists?.find(artist => artist.id === a.artist_id);
+      const artistB = artists?.find(artist => artist.id === b.artist_id);
+
+      // If we can't find the artist, put it at the end
+      if (!artistA) return 1;
+      if (!artistB) return -1;
+
+      // Sort by rank (ascending)
+      return parseInt(artistA.rank) - parseInt(artistB.rank);
+    }) : [];
+
     // Ensure we return the expected structure
     return {
-      data: metrics ?? []
+      data: sortedMetrics
     };
   });
 
@@ -332,5 +359,3 @@ export async function getArtistBySlug(slug: string) {
     platformIds
   }
 }
-
-
