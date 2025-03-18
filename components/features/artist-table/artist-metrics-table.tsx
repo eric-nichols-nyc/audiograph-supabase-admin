@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState, useMemo } from 'react'
 import Image from "next/image"
-import Link from "next/link"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -18,6 +17,14 @@ import {
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from "@/components/ui/sheet"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -38,6 +45,12 @@ import {
 } from "@/components/ui/table"
 import { useArtists } from '@/hooks/use-artists'
 import { Artist, ArtistMetric } from '@/types/artists'
+
+// Extended Artist interface with metrics data
+interface ArtistWithMetrics extends Artist {
+  youtube_subscribers: number | null;
+  spotify_popularity: number | null;
+}
 import { useArtistMetrics } from '@/hooks/use-artist-metrics'
 import { cn } from "@/lib/utils"
 import { bulkUpdateSpotifyPopularity } from "@/actions/artist"
@@ -73,19 +86,19 @@ export function ArtistMetricsTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null)
+  const [selectedArtist, setSelectedArtist] = useState<ArtistWithMetrics | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
 //   console.log('Artists:', artistsResponse?.data.data)
 //   console.log('Metrics:', metrics?.data?.data)
   
-  const data = useMemo(() => {
+  const data = useMemo<ArtistWithMetrics[]>(() => {
     if (!artistsResponse?.data?.data || !metrics?.data?.data) {
       return [];
     }
 
-    return artistsResponse.data.data.map((artist: Artist) => {
+    return artistsResponse.data.data.map((artist: Artist): ArtistWithMetrics => {
       const youtubeMetric = metrics.data.data.find((m: ArtistMetric) => 
         m.artist_id === artist.id && 
         m.platform === 'youtube' && 
@@ -146,7 +159,7 @@ export function ArtistMetricsTable() {
     }
   };
 
-  const columns: ColumnDef<Artist>[] = [
+  const columns: ColumnDef<ArtistWithMetrics>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -213,7 +226,13 @@ export function ArtistMetricsTable() {
       },
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <Link href={`/artists/${row.original.slug}`}>
+          <div 
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => {
+              setSelectedArtist(row.original);
+              setSheetOpen(true);
+            }}
+          >
             <div className="h-11 w-11 rounded-md overflow-hidden">
               <Image 
                 src={row.original.image_url || "/images/placeholder.jpg"}
@@ -232,7 +251,7 @@ export function ArtistMetricsTable() {
                 </div>
               )}
             </div>
-          </Link>
+          </div>
         </div>
       ),
       size: 300,
@@ -333,7 +352,8 @@ export function ArtistMetricsTable() {
           <ArtistDropdownMenu 
             artist={artist} 
             onEdit={(artist) => {
-              setSelectedArtist(artist);
+              // Cast the artist to ArtistWithMetrics since we know it has these properties
+              setSelectedArtist(artist as unknown as ArtistWithMetrics);
               setSheetOpen(true);
             }}
             onUpdate={handleUpdate}
@@ -379,6 +399,122 @@ export function ArtistMetricsTable() {
 
   return (
     <>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="overflow-y-auto">
+          {selectedArtist && (
+            <>
+              <SheetHeader className="mb-6">
+                <SheetTitle className="text-2xl">{selectedArtist.name}</SheetTitle>
+                <SheetDescription>
+                  {selectedArtist.genres && selectedArtist.genres.join(", ")}
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="space-y-6">
+                {/* Artist Image */}
+                <div className="flex justify-center mb-6">
+                  <div className="h-32 w-32 rounded-md overflow-hidden">
+                    <Image 
+                      src={selectedArtist.image_url || "/images/placeholder.jpg"}
+                      alt={selectedArtist.name}
+                      width={128}
+                      height={128}
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+                
+                {/* Artist Details */}
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-2 items-center">
+                    <span className="text-muted-foreground">Rank:</span>
+                    <span>{selectedArtist.rank}</span>
+                  </div>
+                  
+                  {selectedArtist.country && (
+                    <div className="grid grid-cols-2 gap-2 items-center">
+                      <span className="text-muted-foreground">Country:</span>
+                      <div className="flex items-center gap-1.5">
+                        <Image
+                          src={`/flags/${selectedArtist.country.toLowerCase()}.svg`}
+                          alt={selectedArtist.country}
+                          width={16}
+                          height={12}
+                          className="rounded-sm"
+                        />
+                        <span>{selectedArtist.country}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-2 items-center">
+                    <span className="text-muted-foreground">Completed:</span>
+                    <span>{selectedArtist.is_complete ? "Yes" : "No"}</span>
+                  </div>
+                  
+                  {/* Platform Metrics */}
+                  <div className="border-t pt-4 mt-2">
+                    <h3 className="font-medium mb-3">Platform Metrics</h3>
+                    
+                    <div className="space-y-3">
+                      {/* YouTube */}
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/images/youtube.svg"
+                            alt="YouTube"
+                            width={16}
+                            height={16}
+                          />
+                          <span className="text-muted-foreground">Subscribers:</span>
+                        </div>
+                        <span>
+                          {selectedArtist.youtube_subscribers 
+                            ? Intl.NumberFormat('en', { notation: 'compact' }).format(selectedArtist.youtube_subscribers)
+                            : "-"}
+                        </span>
+                      </div>
+                      
+                      {/* Spotify */}
+                      <div className="grid grid-cols-2 gap-2 items-center">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/images/spotify.svg"
+                            alt="Spotify"
+                            width={16}
+                            height={16}
+                          />
+                          <span className="text-muted-foreground">Popularity:</span>
+                        </div>
+                        <span>{selectedArtist.spotify_popularity || "-"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex justify-between mt-8">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSheetOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    variant="default"
+                    onClick={() => {
+                      window.open(`/artists/${selectedArtist.slug}`, '_blank');
+                    }}
+                  >
+                    View Full Profile
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+      
       <div className="w-full">
         <div className="flex items-center py-4">
           <Input
