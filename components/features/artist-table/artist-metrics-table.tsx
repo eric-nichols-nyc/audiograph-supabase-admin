@@ -85,12 +85,12 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
   
   // Add console logs to debug data
-  console.log('ArtistMetricsTable - artists from props:', artists);
-  console.log('ArtistMetricsTable - metrics from hook:', metrics);
+  //console.log('ArtistMetricsTable - artists from props:', artists);
+  //console.log('ArtistMetricsTable - metrics from hook:', metrics);
   
   const data = useMemo<ArtistWithMetrics[]>(() => {
-    console.log('data useMemo - artists:', artists);
-    console.log('data useMemo - metrics?.data?.data:', metrics?.data?.data);
+    //console.log('data useMemo - artists:', artists);
+    //console.log('data useMemo - metrics?.data?.data:', metrics?.data?.data);
     
     if (!artists || !metrics?.data?.data) {
       console.log('data useMemo - returning empty array because data is missing');

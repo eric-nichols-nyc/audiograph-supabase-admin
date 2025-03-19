@@ -1,7 +1,6 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import OpenAI from 'openai';
-
+import { SimilarArtist } from '@/types/artists'
 // Represents an artist with their associated article data
 interface ArtistWithArticle {
   id: string;
@@ -48,9 +47,20 @@ interface SimilarArtistResult {
   score: number;
 }
 
+interface SimilarArtistResponse {
+  similarity_score: number;
+  similar_artist: {
+    id: string;
+    name: string;
+    image_url: string;
+    genres: string[];
+  };
+}
+
+
 export class ArtistSimilarityService {
   private supabase;
-  
+
   constructor() {
     this.supabase = createServerComponentClient({ cookies });
   }
@@ -69,7 +79,7 @@ export class ArtistSimilarityService {
    */
   async findSimilarArtists(artistId: string, limit = 10): Promise<ArtistWithArticle[]> {
     console.log('Finding similar artists for:', artistId);
-    
+
     const { data: sourceArtist, error: sourceError } = await this.supabase
       .from('artists')
       .select(`
@@ -132,7 +142,7 @@ export class ArtistSimilarityService {
       genres: this.calculateGenreSimilarity(artist1.genres, artist2.genres),
       name: this.calculateNameSimilarity(artist1.name, artist2.name),
       contentSimilarity: await this.calculateContentSimilarity(
-        artist1.artist_articles?.[0], 
+        artist1.artist_articles?.[0],
         artist2.artist_articles?.[0]
       )
     };
@@ -173,7 +183,7 @@ export class ArtistSimilarityService {
    * @returns Number of character edits needed to transform str1 into str2
    */
   private levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => 
+    const matrix = Array(str2.length + 1).fill(null).map(() =>
       Array(str1.length + 1).fill(null)
     );
 
@@ -264,7 +274,7 @@ export class ArtistSimilarityService {
   // Modify the method to return simplified data
   async findSimilarArtistsWithScores(artistId: string, limit = 10): Promise<SimilarArtistResult[]> {
     console.log('Finding similar artists for:', artistId);
-    
+
     // Update query to select only needed fields
     const { data: sourceArtist, error: sourceError } = await this.supabase
       .from('artists')
@@ -332,5 +342,38 @@ export class ArtistSimilarityService {
     return artistsWithScores
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
+  }
+
+
+  async getSimilarArtists(artistId: string, limit = 5) {
+    const { data, error } = await this.supabase
+      .from('artist_similarities')
+      .select(`
+    similarity_score,
+    similar_artist:artist2_id(
+      id, 
+      name,
+      image_url,
+      genres
+    )
+  `)
+      .eq('artist1_id', artistId)
+      .order('similarity_score', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching similar artists:', error.message);
+      //return { success: false, message: error.message };
+      throw new Error(error.message)
+    }
+
+    return (data as unknown as SimilarArtistResponse[]).map((item: SimilarArtistResponse): SimilarArtist => ({
+      id: item.similar_artist.id,
+      name: item.similar_artist.name,
+      image_url: item.similar_artist.image_url,
+      genres: item.similar_artist.genres,
+      similarity_score: item.similarity_score
+    }));
+
   }
 } 

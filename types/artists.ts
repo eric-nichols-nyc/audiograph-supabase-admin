@@ -39,16 +39,16 @@ export interface ArtistMetric {
   date: string;
   platform: string;
   metric_type:
-    | 'followers'
-    | 'views'
-    | 'likes'
-    | 'subscribers'
-    | 'monthly_listeners'
-    | 'daily_view_count'
-    | 'daily_stream_count'
-    | 'total_views'
-    | 'total_streams'
-    | 'popularity';
+  | 'followers'
+  | 'views'
+  | 'likes'
+  | 'subscribers'
+  | 'monthly_listeners'
+  | 'daily_view_count'
+  | 'daily_stream_count'
+  | 'total_views'
+  | 'total_streams'
+  | 'popularity';
   value: number;
 }
 
@@ -125,4 +125,13 @@ export interface ArtistArticle {
   embedding: number[] | null; // Assuming "public.vector" is a vector of numbers
   sentiment_score: number | null;
   metadata: Record<string, any> | null; // JSONB field
+}
+
+
+export interface SimilarArtist {
+  id: string;
+  name: string;
+  image_url: string;
+  genres: string[];
+  similarity_score: number;
 }

@@ -8,12 +8,12 @@ export default async function ArtistsPage() {
    try {
     console.log('ArtistsPage - Before calling getArtists()');
     const result = await getArtists();
-    console.log('ArtistsPage - getArtists() result:', JSON.stringify(result, null, 2));
+    //console.log('ArtistsPage - getArtists() result:', JSON.stringify(result, null, 2));
 
     const artists = result?.data;
     
     console.log('ArtistsPage - Artists in page:', {
-      artists,
+     // artists,
       isArray: Array.isArray(artists),
       hasDataProperty: artists && 'data' in artists,
       dataIsArray: artists?.data && Array.isArray(artists.data),
