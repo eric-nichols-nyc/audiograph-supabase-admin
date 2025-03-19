@@ -1,8 +1,21 @@
 "use client"
+/**
+ * SimilarArtists Component
+ * 
+ * Data Flow:
+ * 1. Component extracts artistId from URL search parameters
+ * 2. Makes a fetch request to /api/artists/get-similar-artists?id={artistId}
+ * 3. The API endpoint uses ArtistSimilarityService to query the database
+ * 4. ArtistSimilarityService fetches data from the artist_similarities table in Supabase
+ * 5. The component receives and displays similar artists with their similarity scores
+ * 
+ * The similarity is calculated based on genres, name similarity, and content analysis
+ * stored in the database.
+ */
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import { useSearchParams } from "next/navigation";
-import Image from "next/image"
 import { SimilarArtist } from "@/types/artists";
 
 export function SimilarArtists() {
