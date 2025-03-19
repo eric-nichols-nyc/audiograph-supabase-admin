@@ -1,3 +1,28 @@
+/**
+ * Artist Similarity Service
+ * 
+ * This service calculates and manages similarity between artists using a multi-factor approach:
+ * 
+ * 1. Similarity Calculation:
+ *    - Genre Similarity (60%): Uses Jaccard similarity to compare genre sets
+ *    - Name Similarity (10%): Uses Levenshtein distance to find similar artist names
+ *    - Content Similarity (30%): Uses vector similarity between article embeddings
+ * 
+ * 2. Key Features:
+ *    - Find similar artists for a given artist ID
+ *    - Calculate direct similarity scores between two artists
+ *    - Update stale similarity scores in the database
+ *    - Return simplified artist data with similarity scores
+ * 
+ * 3. Database Integration:
+ *    - Uses Supabase for data storage and retrieval
+ *    - Leverages PostgreSQL's vector_similarity function for content comparison
+ *    - Stores calculated similarities in artist_similarities table
+ * 
+ * The service provides both comprehensive and simplified interfaces for accessing
+ * artist similarity data depending on the use case requirements.
+ */
+
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { SimilarArtist } from '@/types/artists'
@@ -376,4 +401,4 @@ export class ArtistSimilarityService {
     }));
 
   }
-} 
+}
