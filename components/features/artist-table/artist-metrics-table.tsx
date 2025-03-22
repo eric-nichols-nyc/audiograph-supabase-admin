@@ -66,14 +66,14 @@ interface ArtistMetricsTableProps {
 export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Only fetch metrics, not artists (since they're passed as props)
   const { data: metrics, isLoading: metricsLoading, mutate: mutateMetrics } = useArtistMetrics() as {
     data: MetricsResponse | undefined;
     isLoading: boolean;
     mutate: () => Promise<void>;
   };
-  
+
   // No longer need to fetch artists
   const mutateArtists = () => Promise.resolve();
 
@@ -83,15 +83,15 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [selectedArtist, setSelectedArtist] = useState<ArtistWithMetrics | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  
+
   // Add console logs to debug data
   //console.log('ArtistMetricsTable - artists from props:', artists);
   //console.log('ArtistMetricsTable - metrics from hook:', metrics);
-  
+
   const data = useMemo<ArtistWithMetrics[]>(() => {
     //console.log('data useMemo - artists:', artists);
     //console.log('data useMemo - metrics?.data?.data:', metrics?.data?.data);
-    
+
     if (!artists || !metrics?.data?.data) {
       console.log('data useMemo - returning empty array because data is missing');
       return [];
@@ -99,15 +99,15 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
 
     console.log('data useMemo - mapping artists:', artists.length);
     return artists.map((artist: Artist): ArtistWithMetrics => {
-      const youtubeMetric = metrics.data.data.find((m: ArtistMetric) => 
-        m.artist_id === artist.id && 
-        m.platform === 'youtube' && 
+      const youtubeMetric = metrics.data.data.find((m: ArtistMetric) =>
+        m.artist_id === artist.id &&
+        m.platform === 'youtube' &&
         m.metric_type === 'subscribers'
       );
 
-      const spotifyMetric = metrics.data.data.find((m: ArtistMetric) => 
-        m.artist_id === artist.id && 
-        m.platform === 'spotify' && 
+      const spotifyMetric = metrics.data.data.find((m: ArtistMetric) =>
+        m.artist_id === artist.id &&
+        m.platform === 'spotify' &&
         m.metric_type === 'popularity'
       );
 
@@ -122,7 +122,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
   // Function to update URL with artist ID query parameter
   const updateUrlWithArtistId = (artist: ArtistWithMetrics | null) => {
     if (!searchParams) return;
-    
+
     if (!artist) {
       // Remove the query parameter if no artist is selected
       const params = new URLSearchParams(searchParams.toString());
@@ -130,7 +130,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
       router.replace(`?${params.toString()}`, { scroll: false });
       return;
     }
-    
+
     // Add or update the artistId query parameter
     const params = new URLSearchParams(searchParams.toString());
     // Ensure artist.id is a string
@@ -139,11 +139,11 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
       router.replace(`?${params.toString()}`, { scroll: false });
     }
   };
-  
+
   // Check for artistId in URL on component mount and when data changes
   useEffect(() => {
     if (!searchParams) return;
-    
+
     const artistId = searchParams.get('artistId');
     if (artistId && data.length > 0 && !selectedArtist) {
       const artist = data.find(a => a.id === artistId);
@@ -153,7 +153,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
       }
     }
   }, [searchParams, data, selectedArtist]);
-  
+
   // Update URL when selected artist changes
   useEffect(() => {
     updateUrlWithArtistId(selectedArtist);
@@ -168,7 +168,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
 
   const handleBulkUpdate = async () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    
+
     if (selectedRows.length === 0) {
       toast.error("No artists selected");
       return;
@@ -192,8 +192,8 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
       }
     } catch (error) {
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : "Failed to update artists"
       );
     }
@@ -266,7 +266,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
       },
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <div 
+          <div
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => {
               setSelectedArtist(row.original);
@@ -274,7 +274,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
             }}
           >
             <div className="h-11 w-11 rounded-md overflow-hidden">
-              <Image 
+              <Image
                 src={row.original.image_url || "/images/placeholder.jpg"}
                 alt={row.getValue("name")}
                 width={44}
@@ -307,34 +307,34 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
         const country = row.getValue("country") as string
         return (
           <div className="flex items-center justify-end gap-2">
-              {row.original.country && (
-                <div className="flex items-center gap-1.5">
-                  <Image
-                    src={`/flags/${row.original.country.toLowerCase()}.svg`}
-                    alt={row.original.country}
-                    width={16}
-                    height={12}
-                    className="rounded-sm"
-                  />
-                  <span>{row.original.country}</span>
-                </div>
-              )}
+            {row.original.country && (
+              <div className="flex items-center gap-1.5">
+                <Image
+                  src={`/flags/${row.original.country.toLowerCase()}.svg`}
+                  alt={row.original.country}
+                  width={16}
+                  height={12}
+                  className="rounded-sm"
+                />
+                <span>{row.original.country}</span>
+              </div>
+            )}
           </div>
         )
       },
     },
-    {
-      accessorKey: "is_complete",
-      header: () => (
-          <div className="flex items-center justify-end gap-2">
-             <span className="text-[10px]">Completed</span>
-          </div>
-        ),
-      cell: ({ row }) => {
-        const isComplete = row.getValue("is_complete") as boolean
-        return <div className="text-right font-medium">{isComplete ? "Yes" : "No"}</div>
-      },
-    },
+    // {
+    //   accessorKey: "is_complete",
+    //   header: () => (
+    //     <div className="flex items-center justify-end gap-2">
+    //       <span className="text-[10px]">Completed</span>
+    //     </div>
+    //   ),
+    //   cell: ({ row }) => {
+    //     const isComplete = row.getValue("is_complete") as boolean
+    //     return <div className="text-right font-medium">{isComplete ? "Yes" : "No"}</div>
+    //   },
+    // },
     {
       accessorKey: "youtube_subscribers",
       header: () => (
@@ -382,25 +382,58 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
           <div className="text-right text-muted-foreground">-</div>
         )
       },
+
     },
     {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const artist = row.original;
-        return (
-          <ArtistDropdownMenu 
-            artist={artist} 
-            onEdit={(artist) => {
-              // Cast the artist to ArtistWithMetrics since we know it has these properties
-              setSelectedArtist(artist as unknown as ArtistWithMetrics);
-              setSheetOpen(true);
-            }}
-            onUpdate={handleUpdate}
+      accessorKey: "deezer",
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <Image
+            src="/images/deezer.svg"
+            alt="Spotify"
+            width={16}
+            height={16}
           />
-        );
+          <span className="text-[10px]">Deezer</span>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const popularity = row.getValue("spotify_popularity") as number | null
+        return popularity ? (
+          <div className="text-right font-medium">
+            {popularity}
+          </div>
+        ) : (
+          <div className="text-right text-muted-foreground">-</div>
+        )
       },
+
     },
+    {
+      accessorKey: "yt-charts",
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <Image
+            src="/images/youtube.svg"
+            alt="YT Charts"
+            width={16}
+            height={16}
+          />
+          <span className="text-[10px]">YT Charts</span>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const popularity = row.getValue("spotify_popularity") as number | null
+        return popularity ? (
+          <div className="text-right font-medium">
+            {popularity}
+          </div>
+        ) : (
+          <div className="text-right text-muted-foreground">-</div>
+        )
+      },
+
+    }
   ]
 
   const table = useReactTable({
@@ -442,12 +475,12 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
 
   return (
     <>
-      <ArtistDetailsSheet 
-        open={sheetOpen} 
-        onOpenChange={setSheetOpen} 
-        artist={selectedArtist} 
+      <ArtistDetailsSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        artist={selectedArtist}
       />
-      
+
       <div className="w-full">
         <div className="flex items-center py-4">
           <Input
@@ -500,7 +533,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead 
+                        <TableHead
                           key={header.id}
                           className={cn(
                             "h-[40px]",
@@ -511,9 +544,9 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       )
                     })}
@@ -528,7 +561,7 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
                       data-state={row.getIsSelected() && "selected"}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell 
+                        <TableCell
                           key={cell.id}
                           className={cn(
                             cell.column.id === 'select' ? 'px-1' : 'px-6'

@@ -100,7 +100,7 @@ export function SimilarArtists() {
                 </div>
             ) : similarArtists.length > 0 ? (
                 <div className="flex flex-wrap justify-between gap-4 mb-4">
-                    {similarArtists.map((artist, index) => (
+                    {similarArtists.slice(0, 5).map((artist, index) => (
                         <div
                             key={artist.id}
                             className="flex items-center justify-between p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10 transition-colors w-full"

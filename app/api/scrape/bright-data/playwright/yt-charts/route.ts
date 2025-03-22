@@ -115,11 +115,11 @@ async function extractYtChartLocations(page: any): Promise<LocationData[]> {
     const rows = container.querySelectorAll('.ytmc-carousel-shelf-renderer-v2');
     return Array.from(rows).map(row => {
       return {
-        rank: row.querySelector('.rankForInsightsPageLocationEntity')?.textContent.trim() || '',
+        rank: row.querySelector('.rankForInsightsPageLocationEntity')?.textContent?.trim() || '',
         location:
-          row.querySelector('.entityTitleForInsightsPageLocationEntity')?.textContent.trim() || '',
+          row.querySelector('.entityTitleForInsightsPageLocationEntity')?.textContent?.trim() || '',
         views:
-          row.querySelector('.subtitleForInsightsPageLocationEntity')?.textContent.trim() || '',
+          row.querySelector('.subtitleForInsightsPageLocationEntity')?.textContent?.trim() || '',
       };
     });
   });

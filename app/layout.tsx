@@ -1,6 +1,3 @@
-import { EnvVarWarning } from '@/components/env-var-warning';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import { hasEnvVars } from '@/lib/supabase/check-env-vars';
 import { Geist } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
@@ -13,7 +10,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: 'Audiograph',
+  title: 'Audiograph | Admin',
   description: 'The fastest way to build apps with Next.js and Supabase',
 };
 

@@ -11,7 +11,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { ArtistWithMetrics } from '../types'
-import {SimilarArtists} from './similar-sheet-artists'
+import { SimilarArtists } from './similar-sheet-artists'
+import { PlatformsSheet } from './platforms'
+import { GeoSheet } from './geo'
+
 interface ArtistDetailsSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -30,12 +33,12 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                 {artist.genres && artist.genres.join(", ")}
               </SheetDescription>
             </SheetHeader>
-            
+
             <div className="space-y-6">
               {/* Artist Image */}
               <div className="flex justify-center mb-6">
                 <div className="h-32 w-32 rounded-md overflow-hidden">
-                  <Image 
+                  <Image
                     src={artist.image_url || "/images/placeholder.jpg"}
                     alt={artist.name}
                     width={128}
@@ -44,14 +47,14 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                   />
                 </div>
               </div>
-              
+
               {/* Artist Details */}
               <div className="grid gap-4">
                 <div className="grid grid-cols-2 gap-2 items-center">
                   <span className="text-muted-foreground">Rank:</span>
                   <span>{artist.rank}</span>
                 </div>
-                
+
                 {artist.country && (
                   <div className="grid grid-cols-2 gap-2 items-center">
                     <span className="text-muted-foreground">Country:</span>
@@ -67,16 +70,16 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                     </div>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-2 items-center">
                   <span className="text-muted-foreground">Completed:</span>
                   <span>{artist.is_complete ? "Yes" : "No"}</span>
                 </div>
-                
+
                 {/* Platform Metrics */}
                 <div className="border-t pt-4 mt-2">
                   <h3 className="font-medium mb-3">Platform Metrics</h3>
-                  
+
                   <div className="space-y-3">
                     {/* YouTube */}
                     <div className="grid grid-cols-2 gap-2 items-center">
@@ -90,12 +93,12 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                         <span className="text-muted-foreground">Subscribers:</span>
                       </div>
                       <span>
-                        {artist.youtube_subscribers 
+                        {artist.youtube_subscribers
                           ? Intl.NumberFormat('en', { notation: 'compact' }).format(artist.youtube_subscribers)
                           : "-"}
                       </span>
                     </div>
-                    
+
                     {/* Spotify */}
                     <div className="grid grid-cols-2 gap-2 items-center">
                       <div className="flex items-center gap-2">
@@ -112,17 +115,19 @@ export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetails
                   </div>
                 </div>
                 <SimilarArtists />
+                <PlatformsSheet />
+                <GeoSheet />
               </div>
-              
+
               {/* Actions */}
               <div className="flex justify-between mt-8">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => onOpenChange(false)}
                 >
                   Close
                 </Button>
-                <Button 
+                <Button
                   variant="default"
                   onClick={() => {
                     window.open(`/artists/${artist.slug}`, '_blank');
