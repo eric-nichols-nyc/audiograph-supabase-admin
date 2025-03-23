@@ -4,7 +4,6 @@ export const GET = async (
     request: Request
 ) => {
     console.log('Getting similar artists');
-    // Get the ID from the URL query parameters
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
 
@@ -16,37 +15,28 @@ export const GET = async (
     }
 
     try {
-        const service = new ArtistSimilarityCalculationService();
+        const service = ArtistSimilarityCalculationService.forRouteHandler();
 
-        // Check if similarities exist for this artist
-        const hasSimilarities = await service.hasSimilarities(id);
-
-        // If no similarities exist, calculate them first
-        if (!hasSimilarities) {
-            console.log(`No similarities found for artist ${id}, calculating now...`);
-            const calculationResult = await service.calculateSimilaritiesForArtist(id);
-
-            if (!calculationResult.success) {
-                return new Response(
-                    JSON.stringify({
-                        success: false,
-                        message: calculationResult.error || 'Error calculating similarities'
-                    }),
-                    { status: 500, headers: { 'Content-Type': 'application/json' } }
-                );
-            }
-
-            console.log('Similarities calculated successfully');
+        // Always try to calculate similarities first
+        try {
+            await service.calculateSimilaritiesForArtist(id);
+        } catch (calcError) {
+            console.log('Calculation failed or already exists, proceeding to fetch existing similarities');
         }
 
-        // Get the similar artists
+        // Get whatever similar artists exist
         const similarArtists = await service.getSimilarArtists(id);
-
         console.log(`Loaded ${similarArtists.length} similar artists`);
 
         return new Response(
             JSON.stringify({ success: true, data: similarArtists }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'max-age=3600, s-maxage=3600, stale-while-revalidate=1800'
+                }
+            }
         );
     } catch (error) {
         console.error('Error loading similar artists:', error);
