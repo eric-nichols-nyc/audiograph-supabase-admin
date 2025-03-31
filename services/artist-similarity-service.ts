@@ -17,7 +17,7 @@
  * 3. Database Integration:
  *    - Uses Supabase for data storage and retrieval
  *    - Leverages PostgreSQL's vector_similarity function for content comparison
- *    - Stores calculated similarities in artist_similarities table
+ *    - Stores calculated similarities in similar_artists table
  * 
  * The service provides both comprehensive and simplified interfaces for accessing
  * artist similarity data depending on the use case requirements.
@@ -285,7 +285,7 @@ export class ArtistSimilarityService {
     staleThreshold.setDate(staleThreshold.getDate() - daysThreshold);
 
     const { data: staleScores } = await this.supabase
-      .from('artist_similarities')
+      .from('similar_artists')
       .select('artist1_id, artist2_id')
       .lt('last_updated', staleThreshold.toISOString());
 
@@ -372,7 +372,7 @@ export class ArtistSimilarityService {
 
   async getSimilarArtists(artistId: string, limit = 5) {
     const { data, error } = await this.supabase
-      .from('artist_similarities')
+      .from('similar_artists')
       .select(`
     similarity_score,
     similar_artist:artist2_id(

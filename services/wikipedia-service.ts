@@ -241,7 +241,7 @@ async function updateArtistSimilarities(artistId: string, article: ProcessedArti
     }));
 
   if (similarityRecords.length > 0) {
-    await supabase.from('artist_similarities').upsert(similarityRecords);
+    await supabase.from('similar_artists').upsert(similarityRecords);
   }
 }
 

@@ -11,9 +11,8 @@
  * Unlike the ArtistSimilarityService which performs calculations directly,
  * this service delegates the heavy computation to the Edge Function.
  */
-
-import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from "@/lib/supabase/server";
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface CalculationResult {
     success: boolean;
@@ -27,24 +26,43 @@ interface CalculationResult {
     message?: string;
 }
 
+type ClientType = 'client' | 'server' | 'route';
+
 export class ArtistSimilarityCalculationService {
-    private supabase;
-    private isServer: boolean;
+    private supabasePromise: Promise<SupabaseClient>;
+    private clientType: ClientType;
 
     /**
      * Create a new instance of the service
-     * @param isClientSide Set to true when using in client components
+     * @param clientType The type of client to create ('client', 'server', or 'route')
      */
-    constructor(isClientSide = false) {
-        this.isServer = !isClientSide;
+    constructor(clientType: ClientType = 'server') {
+        this.clientType = clientType;
+        this.supabasePromise = createClient();
+    }
 
-        if (isClientSide) {
-            // Client-side usage
-            this.supabase = createClientComponentClient();
-        } else {
-            // Server-side usage
-            this.supabase = createServerComponentClient({ cookies });
-        }
+    /**
+     * Get the Supabase client instance
+     * @returns Promise that resolves to the Supabase client
+     */
+    private async getClient(): Promise<SupabaseClient> {
+        return this.supabasePromise;
+    }
+
+    /**
+     * Create an instance of the service for route handlers
+     * @returns A new instance configured for route handlers
+     */
+    static forRouteHandler(): ArtistSimilarityCalculationService {
+        return new ArtistSimilarityCalculationService('route');
+    }
+
+    /**
+     * Create an instance of the service for client components
+     * @returns A new instance configured for client-side use
+     */
+    static forClient(): ArtistSimilarityCalculationService {
+        return new ArtistSimilarityCalculationService('client');
     }
 
     /**
@@ -54,7 +72,8 @@ export class ArtistSimilarityCalculationService {
      */
     async calculateSimilaritiesForArtist(artistId: string): Promise<CalculationResult> {
         try {
-            const { data, error } = await this.supabase.functions.invoke('calculate-artist-similarities', {
+            const supabase = await this.getClient();
+            const { data, error } = await supabase.functions.invoke('calculate-artist-similarities', {
                 body: { specificArtistId: artistId }
             });
 
@@ -83,7 +102,8 @@ export class ArtistSimilarityCalculationService {
      */
     async calculateSimilaritiesForBatch(limit = 10): Promise<CalculationResult> {
         try {
-            const { data, error } = await this.supabase.functions.invoke('calculate-artist-similarities', {
+            const supabase = await this.getClient();
+            const { data, error } = await supabase.functions.invoke('calculate-artist-similarities', {
                 body: { limit }
             });
 
@@ -124,8 +144,9 @@ export class ArtistSimilarityCalculationService {
         } | null;
     }>> {
         try {
-            const { data, error } = await this.supabase
-                .from('artist_similarities')
+            const supabase = await this.getClient();
+            const { data, error } = await supabase
+                .from('similar_artists')
                 .select(`
           similarity_score,
           metadata,
@@ -170,8 +191,9 @@ export class ArtistSimilarityCalculationService {
      */
     async hasSimilarities(artistId: string): Promise<boolean> {
         try {
-            const { count, error } = await this.supabase
-                .from('artist_similarities')
+            const supabase = await this.getClient();
+            const { count, error } = await supabase
+                .from('similar_artists')
                 .select('*', { count: 'exact', head: true })
                 .eq('artist1_id', artistId);
 
@@ -194,8 +216,9 @@ export class ArtistSimilarityCalculationService {
      */
     async getLastCalculationTime(artistId: string): Promise<string | null> {
         try {
-            const { data, error } = await this.supabase
-                .from('artist_similarities')
+            const supabase = await this.getClient();
+            const { data, error } = await supabase
+                .from('similar_artists')
                 .select('last_updated')
                 .eq('artist1_id', artistId)
                 .order('last_updated', { ascending: false })
