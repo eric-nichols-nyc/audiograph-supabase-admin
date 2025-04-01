@@ -17,14 +17,28 @@ export const GET = async (
     try {
         const service = ArtistSimilarityCalculationService.forRouteHandler();
 
-        // Always try to calculate similarities first
-        try {
-            await service.calculateSimilaritiesForArtist(id);
-        } catch (calcError) {
-            console.log('Calculation failed or already exists, proceeding to fetch existing similarities');
+        // Check if we already have similarities calculated
+        const hasSimilarities = await service.hasSimilarities(id);
+
+        // Only calculate if we don't have similarities
+        if (!hasSimilarities) {
+            console.log('No existing similarities found, calculating...');
+            const calcResult = await service.calculateSimilaritiesForArtist(id);
+            if (!calcResult.success) {
+                console.error('Failed to calculate similarities:', calcResult.error);
+                return new Response(
+                    JSON.stringify({
+                        success: false,
+                        message: calcResult.error || 'Failed to calculate similarities'
+                    }),
+                    { status: 500, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+            // Add a small delay to ensure calculation is complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        // Get whatever similar artists exist
+        // Get the similar artists
         const similarArtists = await service.getSimilarArtists(id);
         console.log(`Loaded ${similarArtists.length} similar artists`);
 

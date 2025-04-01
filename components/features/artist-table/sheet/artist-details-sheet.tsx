@@ -14,6 +14,7 @@ import { ArtistWithMetrics } from '../types'
 import { SimilarArtists } from './similar-sheet-artists'
 import { PlatformsSheet } from './platforms'
 import { GeoSheet } from './geo'
+import { useRouter } from 'next/navigation'
 
 interface ArtistDetailsSheetProps {
   open: boolean
@@ -22,8 +23,18 @@ interface ArtistDetailsSheetProps {
 }
 
 export function ArtistDetailsSheet({ open, onOpenChange, artist }: ArtistDetailsSheetProps) {
+  const router = useRouter();
+
+  const handleSheetOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      // Remove the artistId from URL when closing
+      router.replace('/', { scroll: false });
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent className="overflow-y-auto">
         {artist && (
           <>

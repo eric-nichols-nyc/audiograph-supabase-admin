@@ -13,94 +13,48 @@
  * stored in the database.
  */
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button"
 import { useSearchParams } from "next/navigation";
-import { SimilarArtist } from "@/types/artists";
+import { Button } from "@/components/ui/button"
+import { useSimilarArtists, useSimilarArtistsMutation } from "@/lib/queries/artists";
 
 export function SimilarArtists() {
-    const params = useSearchParams()
-    const [similarArtists, setSimilarArtists] = useState<SimilarArtist[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const fetchSimilarArtists = async (artistId: string) => {
-        if (!artistId) {
-            setError("No artist ID provided")
-            return
-        }
+    const params = useSearchParams();
+    const artistId = params?.get('artistId');
 
-        setIsLoading(true)
-        setError(null)
+    // Query for fetching existing similar artists
+    const {
+        data: similarArtists = [],
+        isLoading: isLoadingSimilar,
+        isError,
+        error
+    } = useSimilarArtists(artistId);
 
-        try {
-            const response = await fetch(`/api/artists/get-similar-artists?id=${artistId}`)
-            if (!response.ok) {
-                const errorText = `Error fetching similar artists: ${response.status}`
-                console.error(errorText)
-                setError(errorText)
-                setSimilarArtists([])
-                return
-            }
-
-            const json = await response.json()
-            console.log('similar artists = ', json)
-
-            if (!json.success) {
-                setError(json.message || "Failed to fetch similar artists")
-                setSimilarArtists([])
-                return
-            }
-
-            setSimilarArtists(json.data || [])
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-            console.error('Failed to fetch similar artists:', error)
-            setError(`Failed to fetch similar artists: ${errorMessage}`)
-            setSimilarArtists([])
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        console.log('artistId :', params?.get('artistId'))
-        const artistId = params?.get('artistId')
-        if (!artistId) {
-            console.warn('No artistId provided')
-            setError("No artist ID provided")
-            return
-        }
-
-        fetchSimilarArtists(artistId)
-    }, [params])
+    // Mutation for generating similar artists
+    const mutation = useSimilarArtistsMutation();
 
     const handleGenerateSimilarArtists = () => {
-        const artistId = params?.get('artistId')
         if (artistId) {
-            fetchSimilarArtists(artistId)
-        } else {
-            setError("No artist ID provided")
+            mutation.mutate(artistId);
         }
-    }
-
+    };
 
     return (
         <div className="w-full bg-[#141e3c] text-white p-6 rounded-lg">
             <h1 className="text-2xl font-bold mb-1">Similar Artists</h1>
 
-            {error && (
+            {isError && (
                 <div className="bg-red-500/20 border border-red-500 text-red-100 p-3 rounded-md mb-4">
-                    {error}
+                    {error instanceof Error ? error.message : 'Error loading similar artists'}
                 </div>
             )}
 
-            {isLoading ? (
+            {isLoadingSimilar ? (
                 <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
                 </div>
             ) : similarArtists.length > 0 ? (
                 <div className="flex flex-wrap justify-between gap-4 mb-4">
-                    {similarArtists.slice(0, 5).map((artist, index) => (
+                    {similarArtists.slice(0, 5).map((artist) => (
                         <div
                             key={artist.id}
                             className="flex items-center justify-between p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10 transition-colors w-full"
@@ -112,7 +66,7 @@ export function SimilarArtists() {
                         </div>
                     ))}
                 </div>
-            ) : !error && (
+            ) : !isError && (
                 <div className="text-center py-6 text-gray-400">
                     No similar artists found
                 </div>
@@ -120,11 +74,11 @@ export function SimilarArtists() {
 
             <Button
                 onClick={handleGenerateSimilarArtists}
-                disabled={isLoading || !params?.get('artistId')}
+                disabled={mutation.isPending || !artistId}
                 className="mt-2"
             >
-                {isLoading ? 'Loading...' : 'Generate Similar Artists'}
+                {mutation.isPending ? 'Generating...' : 'Generate Similar Artists'}
             </Button>
         </div>
-    )
+    );
 }

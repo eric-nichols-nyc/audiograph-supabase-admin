@@ -1,25 +1,10 @@
 import { ArtistSimilarityCalculationService } from "@/services/artist-similarity-calculation-service";
-import { unstable_cache } from 'next/cache';
-
-// Cache the similarity calculation results
-const getCachedSimilarArtists = (artistId: string) => unstable_cache(
-    async () => {
-        console.log(`[Cache Miss] Fetching fresh similar artists data for artist: ${artistId}`);
-        const calculationService = new ArtistSimilarityCalculationService();
-        const result = await calculationService.getSimilarArtists(artistId);
-        return result;
-    },
-    ['similar-artists', `artist-${artistId}`], // cache tags for revalidation
-    {
-        revalidate: 86400 // Cache for 24 hours
-    }
-)();
 
 export const POST = async (
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
-    const artistId = params.id;
+    const artistId = (await params).id;
 
     if (!artistId) {
         return new Response(
@@ -31,8 +16,9 @@ export const POST = async (
     console.log(`Generating similarities for artist: ${artistId}`);
 
     try {
-        // Use the new calculation service to trigger the Edge Function
         const calculationService = new ArtistSimilarityCalculationService();
+
+        // Calculate similarities
         const result = await calculationService.calculateSimilaritiesForArtist(artistId);
 
         if (!result.success) {
@@ -45,8 +31,8 @@ export const POST = async (
             );
         }
 
-        // Get the newly calculated similar artists using the cached function
-        const similarArtists = await getCachedSimilarArtists(artistId);
+        // Get the newly calculated similar artists
+        const similarArtists = await calculationService.getSimilarArtists(artistId);
 
         return new Response(
             JSON.stringify({
@@ -74,7 +60,6 @@ export const POST = async (
     }
 };
 
-// Keep the GET method for backward compatibility
 export const GET = async (
     request: Request,
     { params }: { params: { id: string } }
@@ -91,8 +76,8 @@ export const GET = async (
     console.log(`Getting similar artists for: ${artistId}`);
 
     try {
-        // Use the cached function to get similar artists
-        const similarArtists = await getCachedSimilarArtists(artistId);
+        const calculationService = new ArtistSimilarityCalculationService();
+        const similarArtists = await calculationService.getSimilarArtists(artistId);
 
         return new Response(
             JSON.stringify({
