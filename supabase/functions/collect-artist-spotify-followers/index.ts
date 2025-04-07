@@ -56,33 +56,60 @@ Deno.serve(async req => {
     }
 
     const results = [];
+    const startTime = Date.now();
 
     for (const artist of artists) {
       const spotifyId = artist.artist_platform_ids[0].platform_id;
+      const artistStartTime = Date.now();
 
       try {
-        console.log(`Collecting Spotify followers for ${artist.name} (${spotifyId})`);
+        console.log(`Collecting Spotify metrics for ${artist.name} (${spotifyId})`);
 
         const followerData = await scrapeWithBrightData(spotifyId);
 
         if (followerData && followerData.followers) {
-          // Store the metrics in the database
-          const { error: metricsError } = await supabaseClient.from('artist_metrics').insert({
+          const now = new Date().toISOString();
+
+          // Store the follower metrics
+          const { error: followerMetricsError } = await supabaseClient.from('artist_metrics').insert({
             artist_id: artist.id,
             platform: 'spotify',
             metric_type: 'followers',
             value: followerData.followers,
-            date: new Date().toISOString(),
+            date: now,
           });
 
-          if (metricsError) {
-            console.error(`Error storing metrics for ${artist.name}:`, metricsError);
+          if (followerMetricsError) {
+            console.error(`Error storing follower metrics for ${artist.name}:`, followerMetricsError);
             continue;
           }
+
+          // Store the popularity metrics if available
+          if (followerData.popularity !== undefined) {
+            const { error: popularityMetricsError } = await supabaseClient.from('artist_metrics').insert({
+              artist_id: artist.id,
+              platform: 'spotify',
+              metric_type: 'popularity',
+              value: followerData.popularity,
+              date: now,
+            });
+
+            if (popularityMetricsError) {
+              console.error(`Error storing popularity metrics for ${artist.name}:`, popularityMetricsError);
+            }
+          }
+
+          const processingTime = Date.now() - artistStartTime;
+          console.log(`Metrics collected for ${artist.name} - Time: ${processingTime}ms
+            Followers: ${followerData.followers}
+            Popularity: ${followerData.popularity ?? 'N/A'}
+          `);
 
           results.push({
             artist: artist.name,
             followers: followerData.followers,
+            popularity: followerData.popularity,
+            processingTime,
             success: true,
           });
         } else {
@@ -90,14 +117,16 @@ Deno.serve(async req => {
             artist: artist.name,
             success: false,
             error: 'No follower data returned',
+            processingTime: Date.now() - artistStartTime,
           });
         }
       } catch (error) {
-        console.error(`Error collecting followers for ${artist.name}:`, error);
+        console.error(`Error collecting metrics for ${artist.name}:`, error);
         results.push({
           artist: artist.name,
           success: false,
           error: error.message,
+          processingTime: Date.now() - artistStartTime,
         });
       }
 
@@ -105,10 +134,24 @@ Deno.serve(async req => {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
+    const totalTime = Date.now() - startTime;
+    const successfulCollections = results.filter(r => r.success);
+
+    console.log(`
+    Collection Summary:
+    ------------------
+    Total Time: ${totalTime}ms
+    Average Time per Artist: ${Math.round(totalTime / artists.length)}ms
+    Total Artists: ${results.length}
+    Successful: ${successfulCollections.length}
+    Failed: ${results.length - successfulCollections.length}
+    `);
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Collected Spotify followers for ${results.filter(r => r.success).length} artists`,
+        message: `Collected Spotify metrics for ${successfulCollections.length} artists`,
+        totalTime,
         results,
       }),
       {
@@ -143,7 +186,7 @@ async function scrapeWithBrightData(spotifyId: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        collector: 'c_lkxnxnxnxnxnxn', // Replace with your actual collector ID for Spotify followers
+        collector: 'c_lkxnxnxnxnxnxn', // Replace with your actual collector ID for Spotify data
         spotify_artist_id: spotifyId,
       }),
     });

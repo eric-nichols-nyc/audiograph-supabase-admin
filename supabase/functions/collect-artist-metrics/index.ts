@@ -1,8 +1,39 @@
+/**
+ * Collect Artist Metrics Edge Function
+ *
+ * This function collects and stores metrics for artists from various platforms:
+ * - YouTube: Subscriber counts
+ * - Spotify: Follower counts
+ * - Deezer: Fan counts
+ *
+ * Process Flow:
+ * 1. Fetches artist platform IDs from 'artist_platform_ids' table
+ * 2. Processes artists in batches of 10 to avoid rate limits
+ * 3. For each platform:
+ *    - YouTube: Fetches subscriber count via YouTube Data API
+ *    - Spotify: Fetches follower count via Spotify Web API
+ *    - Deezer: Fetches fan count via Deezer API
+ * 4. Stores metrics in 'artist_metrics' table
+ * 5. Logs activity and sends notifications on completion/failure
+ *
+ * Required Environment Variables:
+ * - SUPABASE_URL: Supabase project URL
+ * - SUPABASE_SERVICE_ROLE_KEY: Supabase service role key
+ * - YOUTUBE_API_KEY: YouTube Data API key
+ * - SPOTIFY_CLIENT_ID: Spotify API client ID
+ * - SPOTIFY_CLIENT_SECRET: Spotify API client secret
+ *
+ * Database Tables Used:
+ * - artist_platform_ids: Source of platform IDs
+ * - artist_metrics: Stores collected metrics
+ * - activity_logs: Logs function execution
+ * - notifications: Stores completion/error notifications
+ */
+
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
 
-// Setup type definitions for built-in Supabase Runtime APIs
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 // Import Supabase Edge Function types
@@ -146,10 +177,62 @@ serve(async (req: Request) => {
             console.log('YouTube API response:', data);
 
             const subscriberCount = data.items?.[0]?.statistics?.subscriberCount;
+            const viewCount = data.items?.[0]?.statistics?.viewCount;
+            const timestamp = new Date().toISOString();
             console.log('Subscriber count:', subscriberCount);
+            console.log('View count:', viewCount);
 
+            // Get yesterday's view count
+            const { data: yesterdayData, error: yesterdayError } = await supabase
+              .from('artist_metrics')
+              .select('value, date')
+              .eq('artist_id', artistPlatform.artist_id)
+              .eq('platform', 'youtube')
+              .eq('metric_type', 'views')
+              .lt('date', timestamp)
+              .order('date', { ascending: false })
+              .limit(1);
+
+            if (yesterdayError) {
+              console.error('Error fetching previous view count:', yesterdayError);
+            }
+
+            console.log('Previous view count data:', yesterdayData);
+
+            // Calculate daily views if we have previous data
+            let dailyViews = null;
+            if (yesterdayData && yesterdayData.length > 0) {
+              dailyViews = parseInt(viewCount) - parseInt(yesterdayData[0].value);
+              console.log('Daily views calculation:', {
+                currentViews: viewCount,
+                previousViews: yesterdayData[0].value,
+                difference: dailyViews
+              });
+
+              if (dailyViews >= 0) {
+                const dailyResult = await supabase.from('artist_metrics').insert({
+                  artist_id: artistPlatform.artist_id,
+                  platform: 'youtube',
+                  metric_type: 'daily_view_count',
+                  value: dailyViews,
+                  date: timestamp,
+                });
+                console.log('Daily view count insertion result:', dailyResult);
+
+                if (dailyResult.error) {
+                  console.error('Error inserting daily view count:', dailyResult.error);
+                }
+
+                console.log(`Daily views for ${artistPlatform.artist_id}: ${dailyViews} (Current: ${viewCount}, Previous: ${yesterdayData[0].value} from ${yesterdayData[0].date})`);
+              } else {
+                console.log(`Skipping negative daily views for ${artistPlatform.artist_id}: Current ${viewCount}, Previous ${yesterdayData[0].value} from ${yesterdayData[0].date}`);
+              }
+            } else {
+              console.log(`No previous view count found for ${artistPlatform.artist_id}, skipping daily view calculation`);
+            }
+
+            // Store subscriber count
             if (subscriberCount) {
-              const timestamp = new Date().toISOString();
               const result = await supabase.from('artist_metrics').insert({
                 artist_id: artistPlatform.artist_id,
                 platform: 'youtube',
@@ -157,11 +240,31 @@ serve(async (req: Request) => {
                 value: parseInt(subscriberCount),
                 date: timestamp,
               });
-              console.log('Insert result:', result);
+              console.log('Insert subscriber result:', result);
               youtubeCount++;
             } else {
               console.log('No subscriber count found for this channel');
             }
+
+            // Store total views
+            if (viewCount) {
+              const result = await supabase.from('artist_metrics').insert({
+                artist_id: artistPlatform.artist_id,
+                platform: 'youtube',
+                metric_type: 'views',
+                value: viewCount,
+                date: timestamp,
+              });
+              console.log('Total views insertion result:', result);
+            } else {
+              console.log('No view count found for this channel');
+            }
+
+            console.log(`YouTube metrics collected for artist ${artistPlatform.artist_id}:`, {
+              subscribers: subscriberCount,
+              total_views: viewCount,
+              daily_views: dailyViews
+            });
           }
 
           // Add Spotify metrics collection
@@ -178,9 +281,11 @@ serve(async (req: Request) => {
 
             const data = await response.json();
             const followerCount = data.followers?.total;
+            const popularity = data.popularity;
+            const timestamp = new Date().toISOString();
 
+            // Store follower count
             if (followerCount !== undefined) {
-              const timestamp = new Date().toISOString();
               await supabase.from('artist_metrics').insert({
                 artist_id: artistPlatform.artist_id,
                 platform: 'spotify',
@@ -190,6 +295,23 @@ serve(async (req: Request) => {
               });
               spotifyCount++;
             }
+
+            // Store popularity score
+            if (popularity !== undefined) {
+              await supabase.from('artist_metrics').insert({
+                artist_id: artistPlatform.artist_id,
+                platform: 'spotify',
+                metric_type: 'popularity',
+                value: popularity,
+                date: timestamp,
+              });
+              // Don't increment spotifyCount here as it's the same artist
+            }
+
+            console.log(`Spotify metrics collected for artist ${artistPlatform.artist_id}:`, {
+              followers: followerCount,
+              popularity: popularity
+            });
           }
 
           // Add Deezer metrics collection
@@ -198,41 +320,41 @@ serve(async (req: Request) => {
               `Fetching Deezer metrics for artist ${artistPlatform.artist_id} with platform ID ${artistPlatform.platform_id}`
             );
 
-            try {
-              const response = await fetch(
-                `https://api.deezer.com/artist/${artistPlatform.platform_id}`,
-                { method: 'GET' }
-              );
+            const response = await fetch(
+              `https://api.deezer.com/artist/${artistPlatform.platform_id}`,
+              { method: 'GET' }
+            );
 
-              if (!response.ok) {
-                console.error(`Deezer API error: ${response.status} ${response.statusText}`);
-                continue;
-              }
-
-              const data = await response.json();
-              console.log('Deezer API response:', data);
-
-              // Extract fan count - nb_fan is directly on the artist object
-              const fanCount = data.nb_fan;
-              console.log('Fan count:', fanCount);
-
-              if (typeof fanCount === 'number') {
-                const timestamp = new Date().toISOString();
-                const result = await supabase.from('artist_metrics').insert({
-                  artist_id: artistPlatform.artist_id,
-                  platform: 'deezer',
-                  metric_type: 'followers',
-                  value: fanCount,
-                  date: timestamp,
-                });
-                console.log('Insert result:', result);
-                deezerCount++;
-              } else {
-                console.log('No fan count found for this artist');
-              }
-            } catch (deezerError) {
-              console.error(`Error fetching Deezer data: ${deezerError.message}`);
+            if (!response.ok) {
+              console.error(`Deezer API error: ${response.status} ${response.statusText}`);
+              continue;
             }
+
+            const data = await response.json();
+            console.log('Deezer API response:', data);
+
+            const fanCount = data.nb_fan;
+            const timestamp = new Date().toISOString();
+            console.log('Fan count:', fanCount);
+
+            // Store fan count
+            if (typeof fanCount === 'number') {
+              const result = await supabase.from('artist_metrics').insert({
+                artist_id: artistPlatform.artist_id,
+                platform: 'deezer',
+                metric_type: 'followers',
+                value: fanCount,
+                date: timestamp,
+              });
+              console.log('Insert follower result:', result);
+              deezerCount++;
+            } else {
+              console.log('No fan count found for this artist');
+            }
+
+            console.log(`Deezer metrics collected for artist ${artistPlatform.artist_id}:`, {
+              followers: fanCount
+            });
           }
         } catch (platformError) {
           console.error(

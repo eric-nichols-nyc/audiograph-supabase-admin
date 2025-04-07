@@ -3,7 +3,7 @@ import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import { Providers } from './providers';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
+import { ProviderComponents } from './provider-components';
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : 'http://localhost:3000';
@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               disableTransitionOnChange
             >
               {children}
-              <Toaster />
+              <ProviderComponents />
             </ThemeProvider>
           </HydrationBoundary>
         </Providers>
