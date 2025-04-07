@@ -88,12 +88,22 @@ serve(async (req) => {
 
       const sourceArticle = sourceArticles?.[0];
 
-      // Get other artists to compare with
+      // Get artists to compare with
       const { data: otherArtists, error } = await supabaseClient
         .from('artists')
-        .select('id, name, genres')
+        .select(`
+          id,
+          name,
+          genres,
+          metrics:artist_metrics(
+            platform,
+            metric_type,
+            value,
+            date
+          )
+        `)
         .neq('id', sourceArtist.id)
-        .limit(100) // Limit comparison to avoid processing too many
+        .limit(100)
 
       if (error) {
         console.error('Error fetching other artists:', error);
@@ -115,6 +125,12 @@ serve(async (req) => {
         const nameSimilarity = calculateNameSimilarity(
           sourceArtist.name,
           targetArtist.name
+        )
+
+        // Calculate metrics similarity
+        const metricsSimilarity = calculateMetricsSimilarity(
+          sourceArtist.metrics || [],
+          targetArtist.metrics || []
         )
 
         // Calculate content similarity using embeddings if available
@@ -143,20 +159,22 @@ serve(async (req) => {
           }
         }
 
-        // Apply weights to the components (adjust as needed)
+        // Apply weights to the components (adjusted weights)
         const weights = {
-          genre: 0.6,
-          name: 0.1,
-          content: 0.3
+          genre: 0.35,
+          name: 0.05,
+          content: 0.2,
+          metrics: 0.4  // New weight for metrics
         }
 
         const similarityScore = (
           (genreSimilarity * weights.genre) +
           (nameSimilarity * weights.name) +
-          (contentSimilarity * weights.content)
+          (contentSimilarity * weights.content) +
+          (metricsSimilarity * weights.metrics)
         )
 
-        // Add to batch
+        // Add to batch with more detailed metadata
         similarities.push({
           artist1_id: sourceArtist.id,
           artist2_id: targetArtist.id,
@@ -166,7 +184,8 @@ serve(async (req) => {
             factors: {
               genre_similarity: genreSimilarity,
               name_similarity: nameSimilarity,
-              content_similarity: contentSimilarity
+              content_similarity: contentSimilarity,
+              metrics_similarity: metricsSimilarity
             }
           }
         })
@@ -230,14 +249,94 @@ function calculateGenreSimilarity(genres1: string[], genres2: string[]): number 
   return intersection.length / union.size
 }
 
+function calculateMetricsSimilarity(metrics1: any[], metrics2: any[]): number {
+  if (!metrics1?.length || !metrics2?.length) return 0
+
+  const getLatestMetric = (metrics: any[], platform: string, type: string) => {
+    const platformMetrics = metrics
+      .filter(m => m.platform === platform && m.metric_type === type)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return platformMetrics[0]?.value || 0
+  }
+
+  // Get latest metrics for each platform
+  const spotify1 = getLatestMetric(metrics1, 'spotify', 'followers')
+  const spotify2 = getLatestMetric(metrics2, 'spotify', 'followers')
+  const youtube1 = getLatestMetric(metrics1, 'youtube', 'subscribers')
+  const youtube2 = getLatestMetric(metrics2, 'youtube', 'subscribers')
+
+  // Calculate relative differences (using logarithmic scale to handle large numbers)
+  const calculateRelativeSimilarity = (val1: number, val2: number) => {
+    if (val1 === 0 && val2 === 0) return 1
+    if (val1 === 0 || val2 === 0) return 0
+    const log1 = Math.log10(val1)
+    const log2 = Math.log10(val2)
+    const diff = Math.abs(log1 - log2)
+    return Math.max(0, 1 - (diff / 2)) // Scale difference to 0-1 range
+  }
+
+  const spotifySimilarity = calculateRelativeSimilarity(spotify1, spotify2)
+  const youtubeSimilarity = calculateRelativeSimilarity(youtube1, youtube2)
+
+  // Weight the platform similarities
+  const platformWeights = {
+    spotify: 0.5,
+    youtube: 0.5
+  }
+
+  return (
+    (spotifySimilarity * platformWeights.spotify) +
+    (youtubeSimilarity * platformWeights.youtube)
+  )
+}
+
 function calculateNameSimilarity(name1: string, name2: string): number {
-  // Simple implementation - you can replace with your full Levenshtein implementation
   const normalizedName1 = name1.toLowerCase()
   const normalizedName2 = name2.toLowerCase()
 
   if (normalizedName1 === normalizedName2) return 1
-  if (normalizedName1.includes(normalizedName2) || normalizedName2.includes(normalizedName1)) return 0.8
 
-  // More advanced logic can be implemented here
-  return 0.1
+  // Calculate word overlap
+  const words1 = new Set(normalizedName1.split(/\s+/))
+  const words2 = new Set(normalizedName2.split(/\s+/))
+  const intersection = [...words1].filter(word => words2.has(word))
+
+  if (intersection.length > 0) {
+    return 0.8 * (intersection.length / Math.max(words1.size, words2.size))
+  }
+
+  // Check for substring matches
+  if (normalizedName1.includes(normalizedName2) || normalizedName2.includes(normalizedName1)) {
+    return 0.6
+  }
+
+  // Calculate Levenshtein-based similarity for remaining cases
+  const maxLength = Math.max(normalizedName1.length, normalizedName2.length)
+  const distance = levenshteinDistance(normalizedName1, normalizedName2)
+  return Math.max(0, 1 - (distance / maxLength))
+}
+
+function levenshteinDistance(str1: string, str2: string): number {
+  const m = str1.length
+  const n = str2.length
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0))
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i
+  for (let j = 0; j <= n; j++) dp[0][j] = j
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (str1[i - 1] === str2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1]
+      } else {
+        dp[i][j] = Math.min(
+          dp[i - 1][j - 1] + 1,
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1
+        )
+      }
+    }
+  }
+
+  return dp[m][n]
 }
