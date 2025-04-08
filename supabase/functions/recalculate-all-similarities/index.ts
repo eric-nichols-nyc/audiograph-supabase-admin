@@ -23,22 +23,21 @@ serve(async (req) => {
         )
 
         // Get total count of artists
-        const { data: countData, error: countError } = await supabaseClient
+        const { count: totalArtists, error: countError } = await supabaseClient
             .from('artists')
-            .select('count', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
 
         if (countError) {
             throw new Error(`Error getting artist count: ${countError.message}`)
         }
 
-        const totalArtists = countData || 0
         console.log(`Found ${totalArtists} artists to process`)
 
         // Clear existing similarities to prevent stale data
         const { error: clearError } = await supabaseClient
             .from('similar_artists')
             .delete()
-            .neq('artist1_id', 'dummy') // Delete all rows
+            .gte('similarity_score', 0)
 
         if (clearError) {
             throw new Error(`Error clearing existing similarities: ${clearError.message}`)
@@ -71,4 +70,4 @@ serve(async (req) => {
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
     }
-}) 
+})

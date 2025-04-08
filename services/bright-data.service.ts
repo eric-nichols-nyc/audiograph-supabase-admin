@@ -65,15 +65,17 @@ export class BrightDataService {
 
   private async extractTableData(page: any): Promise<SpotifyListenerData[]> {
     return await page.evaluate(() => {
-      const rows = document.querySelectorAll('.addpos.sortable tbody tr');
+      const rows = document.querySelectorAll('.sortable tbody tr');
 
       return Array.from(rows)
         .slice(0, 100)
         .map(row => {
           const cells = row.querySelectorAll('td');
 
-          // Get artist name and URL
-          const artistElement = cells[0].querySelector('a');
+          // The artist information is in the second column (index 1)
+          // and the structure is <td class="text"><div><a href="...">Artist Name</a></div></td>
+          const artistCell = cells[1]; // Use index 1 instead of 0
+          const artistElement = artistCell?.querySelector('div a');
           const artistName = artistElement ? artistElement.textContent || '' : '';
           const artistUrl = artistElement ? artistElement.getAttribute('href') || '' : '';
 
@@ -92,13 +94,20 @@ export class BrightDataService {
             return parseInt(text.replace(/,/g, '')) || 0;
           };
 
+          // Based on the table structure:
+          // Index 0: Rank position
+          // Index 1: Artist name/link
+          // Index 2: Listeners count
+          // Index 3: Daily trend
+          // Index 4: Peak position
+          // Index 5: Peak listeners
           return {
             artist: artistName,
             spotify_id: spotifyId,
-            listeners: formatNumber(cells[1] ? cells[1].textContent || '0' : '0'),
-            dailyTrend: parseInt((cells[2] ? cells[2].textContent || '0' : '0').replace(/,/g, '')),
-            peak: parseInt(cells[3] ? cells[3].textContent || '0' : '0'),
-            peakListeners: formatNumber(cells[4] ? cells[4].textContent || '0' : '0'),
+            listeners: formatNumber(cells[2] ? cells[2].textContent || '0' : '0'),
+            dailyTrend: parseInt((cells[3] ? cells[3].textContent || '0' : '0').replace(/,/g, '')),
+            peak: parseInt(cells[4] ? cells[4].textContent || '0' : '0'),
+            peakListeners: formatNumber(cells[5] ? cells[5].textContent || '0' : '0'),
           };
         });
     });

@@ -1,5 +1,4 @@
 // app/api/spotify-listeners/route.ts
-import { chromium } from 'playwright';
 import { NextRequest, NextResponse } from 'next/server';
 import { brightDataService } from '@/services/bright-data.service';
 import { createServiceClient } from '@/utils/supabase/server';

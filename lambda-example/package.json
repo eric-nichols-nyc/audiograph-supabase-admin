@@ -1,0 +1,16 @@
+{
+  "name": "kworb-spotify-scraper",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to scrape Kworb Spotify listeners data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "playwright-aws-lambda": "^0.9.0",
+    "playwright-core": "^1.39.0"
+  },
+  "author": "",
+  "license": "ISC"
+} 
