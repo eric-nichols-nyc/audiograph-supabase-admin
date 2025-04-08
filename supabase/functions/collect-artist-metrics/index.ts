@@ -5,6 +5,7 @@
  * - YouTube: Subscriber counts
  * - Spotify: Follower counts
  * - Deezer: Fan counts
+ * - Genius: Follower counts
  *
  * Process Flow:
  * 1. Fetches artist platform IDs from 'artist_platform_ids' table
@@ -13,6 +14,7 @@
  *    - YouTube: Fetches subscriber count via YouTube Data API
  *    - Spotify: Fetches follower count via Spotify Web API
  *    - Deezer: Fetches fan count via Deezer API
+ *    - Genius: Fetches follower count via Genius API
  * 4. Stores metrics in 'artist_metrics' table
  * 5. Logs activity and sends notifications on completion/failure
  *
@@ -22,6 +24,7 @@
  * - YOUTUBE_API_KEY: YouTube Data API key
  * - SPOTIFY_CLIENT_ID: Spotify API client ID
  * - SPOTIFY_CLIENT_SECRET: Spotify API client secret
+ * - GENIUS_ACCESS_TOKEN: Genius API access token
  *
  * Database Tables Used:
  * - artist_platform_ids: Source of platform IDs
@@ -84,6 +87,7 @@ serve(async (req: Request) => {
       YOUTUBE_API_KEY: 'exists: ' + !!Deno.env.get('YOUTUBE_API_KEY'),
       SPOTIFY_CLIENT_ID: 'exists: ' + !!Deno.env.get('SPOTIFY_CLIENT_ID'),
       SPOTIFY_CLIENT_SECRET: 'exists: ' + !!Deno.env.get('SPOTIFY_CLIENT_SECRET'),
+      GENIUS_ACCESS_TOKEN: 'exists: ' + !!Deno.env.get('GENIUS_ACCESS_TOKEN'),
     };
 
     console.log('Environment variables check:', envVars);
@@ -113,6 +117,7 @@ serve(async (req: Request) => {
       hasYoutubeKey: !!Deno.env.get('YOUTUBE_API_KEY'),
       hasSpotifyId: !!Deno.env.get('SPOTIFY_CLIENT_ID'),
       hasSpotifySecret: !!Deno.env.get('SPOTIFY_CLIENT_SECRET'),
+      hasGeniusToken: !!Deno.env.get('GENIUS_ACCESS_TOKEN'),
     });
 
     // Get all artists but process in batches
@@ -153,6 +158,7 @@ serve(async (req: Request) => {
     let youtubeCount = 0;
     let spotifyCount = 0;
     let deezerCount = 0;
+    let geniusCount = 0;
 
     // Process in batches
     for (let i = 0; i < artistPlatforms.length; i += BATCH_SIZE) {
@@ -356,6 +362,61 @@ serve(async (req: Request) => {
               followers: fanCount
             });
           }
+
+          // Add Genius metrics collection
+          if (artistPlatform.platform === 'genius') {
+            console.log(
+              `Fetching Genius metrics for artist ${artistPlatform.artist_id} with platform ID ${artistPlatform.platform_id}`
+            );
+
+            const geniusToken = Deno.env.get('GENIUS_ACCESS_TOKEN');
+            if (!geniusToken) {
+              console.error('Genius API token not available');
+              continue;
+            }
+
+            // First, fetch the artist data to get followers
+            const response = await fetch(
+              `https://api.genius.com/artists/${artistPlatform.platform_id}`,
+              {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${geniusToken}`
+                }
+              }
+            );
+
+            if (!response.ok) {
+              console.error(`Genius API error: ${response.status} ${response.statusText}`);
+              continue;
+            }
+
+            const data = await response.json();
+            console.log('Genius API response:', data);
+
+            const followerCount = data.response?.artist?.followers_count;
+            const timestamp = new Date().toISOString();
+            console.log('Genius follower count:', followerCount);
+
+            // Store follower count
+            if (typeof followerCount === 'number') {
+              const result = await supabase.from('artist_metrics').insert({
+                artist_id: artistPlatform.artist_id,
+                platform: 'genius',
+                metric_type: 'followers',
+                value: followerCount,
+                date: timestamp,
+              });
+              console.log('Insert Genius follower result:', result);
+              geniusCount++;
+            } else {
+              console.log('No follower count found for this artist on Genius');
+            }
+
+            console.log(`Genius metrics collected for artist ${artistPlatform.artist_id}:`, {
+              followers: followerCount
+            });
+          }
         } catch (platformError) {
           console.error(
             `Error processing artist ${artistPlatform.artist_id} platform ${artistPlatform.platform}:`,
@@ -372,13 +433,13 @@ serve(async (req: Request) => {
       type: 'success',
       message: 'Artist metrics collection completed',
       platform: 'system',
-      details: `Processed ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount})`,
+      details: `Processed ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount}, Genius: ${geniusCount})`,
     });
 
     // After logging the activity for successful collection
     await supabase.from('notifications').insert({
       title: 'Metrics Collection Complete',
-      message: `Successfully collected metrics for ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount})`,
+      message: `Successfully collected metrics for ${artistPlatforms.length} artists (YouTube: ${youtubeCount}, Spotify: ${spotifyCount}, Deezer: ${deezerCount}, Genius: ${geniusCount})`,
       type: 'success',
       created_at: new Date().toISOString(),
     });

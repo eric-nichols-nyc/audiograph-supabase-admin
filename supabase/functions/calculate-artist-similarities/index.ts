@@ -91,17 +91,7 @@ serve(async (req) => {
       // Get artists to compare with
       const { data: otherArtists, error } = await supabaseClient
         .from('artists')
-        .select(`
-          id,
-          name,
-          genres,
-          metrics:artist_metrics(
-            platform,
-            metric_type,
-            value,
-            date
-          )
-        `)
+        .select(`id,name,genres,metrics:artist_metrics(platform,metric_type,value,date)`)
         .neq('id', sourceArtist.id)
         .limit(100)
 
@@ -112,10 +102,34 @@ serve(async (req) => {
 
       if (!otherArtists?.length) continue
 
+      // Get source artist's metrics
+      const { data: sourceMetrics, error: sourceMetricsError } = await supabaseClient
+        .from('artist_metrics')
+        .select('platform, metric_type, value, date')
+        .eq('artist_id', sourceArtist.id)
+        .order('date', { ascending: false })
+        .limit(50)
+
+      if (sourceMetricsError) {
+        console.error('Error fetching source artist metrics:', sourceMetricsError);
+      }
+
       // Calculate similarities and prepare for batch insert
       const similarities = []
 
       for (const targetArtist of otherArtists) {
+        // Get target artist's metrics
+        const { data: targetMetrics, error: targetMetricsError } = await supabaseClient
+          .from('artist_metrics')
+          .select('platform, metric_type, value, date')
+          .eq('artist_id', targetArtist.id)
+          .order('date', { ascending: false })
+          .limit(50)
+
+        if (targetMetricsError) {
+          console.error('Error fetching target artist metrics:', targetMetricsError);
+        }
+
         // Calculate similarity components
         const genreSimilarity = calculateGenreSimilarity(
           sourceArtist.genres || [],
@@ -129,8 +143,8 @@ serve(async (req) => {
 
         // Calculate metrics similarity
         const metricsSimilarity = calculateMetricsSimilarity(
-          sourceArtist.metrics || [],
-          targetArtist.metrics || []
+          sourceMetrics || [],
+          targetMetrics || []
         )
 
         // Calculate content similarity using embeddings if available
@@ -159,12 +173,12 @@ serve(async (req) => {
           }
         }
 
-        // Apply weights to the components (adjusted weights)
+        // Apply weights to the components
         const weights = {
           genre: 0.35,
           name: 0.05,
-          content: 0.2,
-          metrics: 0.4  // New weight for metrics
+          content: 0.20,
+          metrics: 0.40
         }
 
         const similarityScore = (
@@ -174,7 +188,7 @@ serve(async (req) => {
           (metricsSimilarity * weights.metrics)
         )
 
-        // Add to batch with more detailed metadata
+        // Add to batch with detailed metadata
         similarities.push({
           artist1_id: sourceArtist.id,
           artist2_id: targetArtist.id,
@@ -252,42 +266,46 @@ function calculateGenreSimilarity(genres1: string[], genres2: string[]): number 
 function calculateMetricsSimilarity(metrics1: any[], metrics2: any[]): number {
   if (!metrics1?.length || !metrics2?.length) return 0
 
-  const getLatestMetric = (metrics: any[], platform: string, type: string) => {
-    const platformMetrics = metrics
-      .filter(m => m.platform === platform && m.metric_type === type)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    return platformMetrics[0]?.value || 0
+  const getLatestMetricValue = (metrics: any[], platform: string, type: string) => {
+    const metric = metrics.find(m => m.platform === platform && m.metric_type === type);
+    return metric ? parseFloat(metric.value) : 0;
   }
 
   // Get latest metrics for each platform
-  const spotify1 = getLatestMetric(metrics1, 'spotify', 'followers')
-  const spotify2 = getLatestMetric(metrics2, 'spotify', 'followers')
-  const youtube1 = getLatestMetric(metrics1, 'youtube', 'subscribers')
-  const youtube2 = getLatestMetric(metrics2, 'youtube', 'subscribers')
+  const spotify1 = getLatestMetricValue(metrics1, 'spotify', 'followers');
+  const spotify2 = getLatestMetricValue(metrics2, 'spotify', 'followers');
+  const youtube1 = getLatestMetricValue(metrics1, 'youtube', 'subscribers');
+  const youtube2 = getLatestMetricValue(metrics2, 'youtube', 'subscribers');
+  const genius1 = getLatestMetricValue(metrics1, 'genius', 'followers');
+  const genius2 = getLatestMetricValue(metrics2, 'genius', 'followers');
 
-  // Calculate relative differences (using logarithmic scale to handle large numbers)
+  // Calculate relative differences using logarithmic scale
   const calculateRelativeSimilarity = (val1: number, val2: number) => {
-    if (val1 === 0 && val2 === 0) return 1
-    if (val1 === 0 || val2 === 0) return 0
-    const log1 = Math.log10(val1)
-    const log2 = Math.log10(val2)
-    const diff = Math.abs(log1 - log2)
-    return Math.max(0, 1 - (diff / 2)) // Scale difference to 0-1 range
+    if (val1 === 0 && val2 === 0) return 1;
+    if (val1 === 0 || val2 === 0) return 0;
+    const log1 = Math.log10(val1);
+    const log2 = Math.log10(val2);
+    const diff = Math.abs(log1 - log2);
+    // Scale difference to 0-1 range, with closer numbers having higher similarity
+    return Math.max(0, 1 - (diff / 3)); // Divide by 3 to make the scaling less aggressive
   }
 
-  const spotifySimilarity = calculateRelativeSimilarity(spotify1, spotify2)
-  const youtubeSimilarity = calculateRelativeSimilarity(youtube1, youtube2)
+  const spotifySimilarity = calculateRelativeSimilarity(spotify1, spotify2);
+  const youtubeSimilarity = calculateRelativeSimilarity(youtube1, youtube2);
+  const geniusSimilarity = calculateRelativeSimilarity(genius1, genius2);
 
   // Weight the platform similarities
   const platformWeights = {
-    spotify: 0.5,
-    youtube: 0.5
+    spotify: 0.5,     // Spotify is most important for music
+    youtube: 0.4,     // YouTube second most important
+    genius: 0.1       // Genius least important but still useful
   }
 
   return (
     (spotifySimilarity * platformWeights.spotify) +
-    (youtubeSimilarity * platformWeights.youtube)
-  )
+    (youtubeSimilarity * platformWeights.youtube) +
+    (geniusSimilarity * platformWeights.genius)
+  );
 }
 
 function calculateNameSimilarity(name1: string, name2: string): number {

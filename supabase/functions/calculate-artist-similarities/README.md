@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Artist Similarity System calculates and maintains similarity scores between artists in the Audiograph platform. It uses a combination of genre matching, name similarity, and content embedding comparison to determine how similar artists are to each other.
+The Artist Similarity System calculates and maintains similarity scores between artists in the Audiograph platform. It uses a combination of genre matching, name similarity, content embedding comparison, and platform metrics to determine how similar artists are to each other.
 
 ## System Components
 
@@ -10,21 +10,55 @@ The Artist Similarity System calculates and maintains similarity scores between 
 2. **Database Tables**: 
    - `artists` - Stores artist information
    - `artist_articles` - Stores artist content and embeddings
+   - `artist_metrics` - Stores platform-specific metrics
    - `artist_similarities` - Stores calculated similarity scores
 3. **Scheduled Job**: Automatically runs the similarity calculations on a regular schedule
 
 ## Similarity Calculation Algorithm
 
-The system calculates similarity between artists using three components:
+The system calculates similarity between artists using four components:
 
-1. **Genre Similarity (60%)**: Compares the genres associated with each artist using Jaccard similarity (intersection over union)
-2. **Name Similarity (10%)**: Compares artist names to identify potential connections
-3. **Content Similarity (30%)**: Uses vector similarity between content embeddings to find semantic relationships
+1. **Genre Similarity (35%)**: Compares the genres associated with each artist using Jaccard similarity (intersection over union)
+2. **Name Similarity (5%)**: Uses a sophisticated name comparison algorithm including word overlap and Levenshtein distance
+3. **Content Similarity (20%)**: Uses vector similarity between content embeddings to find semantic relationships
+4. **Metrics Similarity (40%)**: Compares platform metrics using logarithmic scaling:
+   - Spotify followers (50%)
+   - YouTube subscribers (40%)
+   - Genius followers (10%)
 
-The final similarity score is a weighted average of these three components:
+The final similarity score is a weighted average of these components:
 ```
-similarityScore = (genreSimilarity * 0.6) + (nameSimilarity * 0.1) + (contentSimilarity * 0.3)
+similarityScore = (genreSimilarity * 0.35) + (nameSimilarity * 0.05) + (contentSimilarity * 0.20) + (metricsSimilarity * 0.40)
 ```
+
+### Metrics Similarity Calculation
+
+The metrics similarity component:
+- Uses the latest metrics from each platform
+- Applies logarithmic scaling to handle large numerical differences
+- Weights each platform according to its importance for music artists
+- Handles missing data gracefully
+
+Example calculation:
+```typescript
+// Logarithmic comparison of metrics
+const calculateRelativeSimilarity = (val1, val2) => {
+  if (val1 === 0 && val2 === 0) return 1
+  if (val1 === 0 || val2 === 0) return 0
+  const log1 = Math.log10(val1)
+  const log2 = Math.log10(val2)
+  const diff = Math.abs(log1 - log2)
+  return Math.max(0, 1 - (diff / 3))
+}
+```
+
+### Name Similarity Calculation
+
+The improved name similarity algorithm:
+1. Exact match: 100% similarity
+2. Word overlap: Up to 80% similarity based on shared words
+3. Substring match: 60% similarity
+4. Levenshtein distance: Scaled similarity for remaining cases
 
 ## Edge Function Implementation
 
@@ -192,6 +226,19 @@ create table artist_articles (
 );
 ```
 
+### artist_metrics
+
+```sql
+create table artist_metrics (
+  artist_id uuid references artists(id),
+  platform text not null,
+  metric_type text not null,
+  value numeric not null,
+  date timestamp with time zone default now(),
+  primary key (artist_id, platform, metric_type, date)
+);
+```
+
 ### artist_similarities
 
 ```sql
@@ -205,17 +252,27 @@ create table artist_similarities (
 );
 ```
 
-## Retrieving Similar Artists
+## Retrieving Similar Artists with Metrics
 
-To retrieve similar artists for a given artist:
+To retrieve similar artists with their metrics:
 
 ```sql
 select 
   s.similarity_score,
   s.metadata,
   a.id as artist_id,
-  a.name as artist_name
-  -- include other artist fields as needed
+  a.name as artist_name,
+  (
+    select json_object_agg(platform, value)
+    from artist_metrics am
+    where am.artist_id = a.id
+    and am.date = (
+      select max(date)
+      from artist_metrics
+      where artist_id = a.id
+      and platform = am.platform
+    )
+  ) as latest_metrics
 from 
   artist_similarities s
   join artists a on s.artist2_id = a.id
@@ -237,10 +294,18 @@ limit 10;
 2. **Low similarity scores**:
    - Ensure artists have genres assigned
    - Verify that artist_articles have valid embeddings
+   - Check that metrics data is available and up-to-date
+   - Verify the logarithmic scaling is appropriate for your use case
 
 3. **Missing similar artists**:
    - Confirm that the similarity calculation has been run for the artist
    - Check that there are other artists in the database to compare with
+   - Verify that metrics data exists for both artists being compared
+
+4. **Metric-specific issues**:
+   - Ensure metrics are being regularly updated
+   - Check for any platform-specific API rate limits or errors
+   - Verify the metric types match exactly (e.g., 'followers' vs 'subscriber')
 
 ### Debugging
 
