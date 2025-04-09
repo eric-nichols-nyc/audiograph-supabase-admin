@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { MessageSquare } from 'lucide-react';
+import Link from 'next/link';
 import {
   Sheet,
   SheetContent,
@@ -51,9 +52,19 @@ export default function ChatbotSheet() {
       
       const data = await response.json();
       
+      console.log("Response from chatbot API:", data);
+      
       if (data.error) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.error }]);
       } else {
+        // Debug the action data
+        if (data.hasAction) {
+          console.log("Action data in response:", {
+            hasAction: data.hasAction,
+            action: data.action
+          });
+        }
+        
         setMessages(prev => [...prev, { 
           role: 'assistant', 
           content: data.response,
@@ -129,6 +140,13 @@ export default function ChatbotSheet() {
                 >
                   Show me metrics for The Weeknd
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="text-sm m-1" 
+                  onClick={() => setInput("Add artist Jennifer Lopez")}
+                >
+                  Add artist Jennifer Lopez
+                </Button>
               </div>
             </div>
           ) : (
@@ -158,6 +176,25 @@ export default function ChatbotSheet() {
                           />
                         )}
                         <span className="text-sm font-semibold">{message.data.artist.name}</span>
+                        
+                        {/* Add action button for links */}
+                        {message.data.hasAction ? (
+                          <div className="ml-auto">
+                            {message.data.action?.type === 'link' ? (
+                              <Button asChild size="sm" variant="outline">
+                                <Link href={message.data.action.url}>
+                                  {message.data.action.text}
+                                </Link>
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                (Action type: {message.data.action?.type || 'unknown'})
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          console.log("No action for message:", message.content)
+                        )}
                       </div>
                     )}
                   </Card>

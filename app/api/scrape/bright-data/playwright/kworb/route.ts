@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { brightDataService } from '@/services/bright-data.service';
 import { createServiceClient } from '@/utils/supabase/server';
 
+// Define interfaces for strict typing
+interface ArtistMetric {
+  artist_id: string;
+  platform: string;
+  metric_type: string;
+  value: number;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Step 1: Scrape data from Kworb
@@ -53,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     artists.forEach(artist => {
       if (artist.artist_platform_ids && Array.isArray(artist.artist_platform_ids)) {
-        artist.artist_platform_ids.forEach((platformId: any) => {
+        artist.artist_platform_ids.forEach((platformId: { platform: string, platform_id: string }) => {
           if (platformId.platform === 'spotify' && platformId.platform_id) {
             spotifyIdToArtistMap.set(platformId.platform_id, artist.id);
           }
@@ -65,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     // Step 5: Match scraped data with artists and prepare metrics
     console.log('Matching scraped data with artists...');
-    const metricsToUpdate = [];
+    const metricsToUpdate: ArtistMetric[] = [];
     let matchCount = 0;
 
     scrapedData.forEach(item => {
