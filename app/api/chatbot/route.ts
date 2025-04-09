@@ -53,11 +53,7 @@ function parseQuery(query: string) {
 
 export async function POST(req: Request) {
   try {
-<<<<<<< HEAD
-    const supabase = await createClient();
-=======
     const supabaseClient = await createClient();
->>>>>>> chatbot
     const { query } = await req.json();
 
     // Extract intent and entities from query
@@ -76,14 +72,10 @@ export async function POST(req: Request) {
       .ilike('name', `%${artistName}%`)
       .single();
 
-<<<<<<< HEAD
-    if (artistError || !artist) {
-=======
     // Special handling for add_artist intent - if artist not found, we'll add them
     if (infoType === 'add_artist') {
       // Continue even if artist not found
     } else if (artistError || !artist) {
->>>>>>> chatbot
       return NextResponse.json({
         error: `I couldn't find information about ${artistName}.`
       });
@@ -165,7 +157,7 @@ export async function POST(req: Request) {
             slug: artistData.artist.slug,
             hasAction: true
           });
-          
+
           const response = {
             response: `Successfully added ${spotifyArtist.name} to the database!`,
             artist: {
@@ -180,7 +172,7 @@ export async function POST(req: Request) {
               url: `/artists/${artistData.artist.slug}`
             }
           };
-          
+
           console.log("Full response:", JSON.stringify(response));
           return NextResponse.json(response);
         } catch (error) {
@@ -212,11 +204,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           response: tracks?.length
-<<<<<<< HEAD
-            ? `Here are the top tracks for ${artist.name}: ${tracks.map(t => t.tracks.name).join(', ')}`
-=======
             ? `Here are the top tracks for ${artist.name}: ${tracks.map((t: any) => t.tracks.name).join(', ')}`
->>>>>>> chatbot
             : `I couldn't find any tracks for ${artist.name}.`,
           artist: { name: artist.name, image_url: artist.image_url },
           tracks: tracks
@@ -235,11 +223,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           response: metrics?.length
-<<<<<<< HEAD
-            ? `Here are the latest metrics for ${artist.name}: ${metrics.map(m =>
-=======
             ? `Here are the latest metrics for ${artist.name}: ${metrics.map((m: any) =>
->>>>>>> chatbot
               `${m.platform} ${m.metric_type}: ${m.value.toLocaleString()}`).join(', ')}`
             : `I couldn't find any metrics for ${artist.name}.`,
           artist: { name: artist.name, image_url: artist.image_url },
@@ -259,11 +243,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           response: similar?.length
-<<<<<<< HEAD
-            ? `Artists similar to ${artist.name}: ${similar.map(s => s.similar_artist.name).join(', ')}`
-=======
             ? `Artists similar to ${artist.name}: ${similar.map((s: any) => s.similar_artist.name).join(', ')}`
->>>>>>> chatbot
             : `I couldn't find any similar artists for ${artist.name}.`,
           artist: { name: artist.name, image_url: artist.image_url },
           similar_artists: similar
