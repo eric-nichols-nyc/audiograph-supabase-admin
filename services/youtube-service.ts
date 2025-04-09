@@ -20,6 +20,15 @@ interface YTVideo {
     published_at: string;
 }
 
+// Add interface for YouTube Playlist
+interface YTPlaylist {
+    playlist_id: string;
+    title: string;
+    description: string;
+    thumbnail_url: string;
+    item_count: number;
+    published_at: string;
+}
 
 export function createYoutubeService() {
     return new YoutubeService();
@@ -30,7 +39,7 @@ class YoutubeService {
     private lastRequestTime: number = 0;
     private readonly API_KEY: string;
     private memoryCache: Map<string, {
-        data: YoutubeChannelInfo, // Allow both single objects and arrays
+        data: any, // Use any to support different data types
         timestamp: number
     }>;
 
@@ -214,6 +223,287 @@ class YoutubeService {
 
         }
     }, ['youtube-video'], { tags: ['youtube-video'], revalidate: 60 * 60 * 24 });
+
+    // Get all videos from a channel
+    public getChannelVideos = unstable_cache(async (
+        channelId: string,
+        maxResults: number = 50,
+        sortBy: 'date' | 'views' = 'date',
+        minViews: number = 0
+    ): Promise<{ videos: YTVideo[], total: number }> => {
+        const cacheKey = `youtube-channel-videos-${channelId}-${sortBy}-${minViews}`;
+        const cachedData = this.memoryCache.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < 6 * 60 * 60 * 1000) { // 6 hours cache
+            console.log('✅ Found channel videos in memory cache:', cacheKey);
+            return cachedData.data as { videos: YTVideo[], total: number };
+        }
+
+        try {
+            console.log('❌ Not in memory cache, fetching channel videos from YouTube API for channel:', channelId);
+
+            let videos: YTVideo[] = [];
+            let nextPageToken: string | undefined = undefined;
+
+            // YouTube API order parameter - only using 'date' as YouTube doesn't
+            // directly support sorting by views in the API call
+            const apiOrder = 'date';
+
+            // Fetch videos from channel, handling pagination
+            do {
+                // Using any type to avoid type conflicts with the YouTube API response
+                const searchResponse: any = await this.rateLimitRequest(
+                    this.youtube.search.list({
+                        key: this.API_KEY,
+                        part: ['snippet'],
+                        channelId: channelId,
+                        maxResults: maxResults,
+                        order: apiOrder,
+                        type: ['video'],
+                        pageToken: nextPageToken
+                    })
+                );
+
+                if (!searchResponse.data.items || searchResponse.data.items.length === 0) {
+                    break;
+                }
+
+                // Get video IDs from search results
+                const videoIds = searchResponse.data.items
+                    .map((item: any) => item.id?.videoId)
+                    .filter((id: any) => id) as string[];
+
+                if (videoIds.length === 0) {
+                    break;
+                }
+
+                // Get detailed video information
+                const videosResponse = await this.rateLimitRequest(
+                    this.youtube.videos.list({
+                        key: this.API_KEY,
+                        part: ['snippet', 'statistics'],
+                        id: videoIds
+                    })
+                );
+
+                if (videosResponse.data.items) {
+                    const fetchedVideos = videosResponse.data.items.map(item => ({
+                        video_id: item.id as string,
+                        title: item.snippet?.title || '',
+                        description: item.snippet?.description || '',
+                        thumbnail_url: item.snippet?.thumbnails?.high?.url || '',
+                        view_count: parseInt(item.statistics?.viewCount || '0'),
+                        like_count: parseInt(item.statistics?.likeCount || '0'),
+                        published_at: item.snippet?.publishedAt || ''
+                    }));
+
+                    videos = [...videos, ...fetchedVideos];
+                }
+
+                nextPageToken = searchResponse.data.nextPageToken;
+            } while (nextPageToken);
+
+            // Filter videos that have at least minViews views
+            if (minViews > 0) {
+                videos = videos.filter(video => video.view_count >= minViews);
+            }
+
+            // Sort videos according to the requested sort method
+            // sort by most views first
+            if (sortBy === 'views') {
+                videos.sort((a, b) => b.view_count - a.view_count); // Sort by most views first
+            } else {
+                // Default sort by date (newest first)
+                videos.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+            }
+
+            const result = {
+                videos,
+                total: videos.length
+            };
+
+            // Store in memory cache
+            this.memoryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching channel videos:', error);
+            return { videos: [], total: 0 };
+        }
+    }, ['youtube-channel-videos'], { tags: ['youtube-channel-videos'], revalidate: 60 * 60 * 6 });
+
+    // Get all videos from a playlist
+    public getPlaylistVideos = unstable_cache(async (
+        playlistId: string,
+        maxResults: number = 50,
+        sortBy: 'date' | 'views' = 'date',
+        minViews: number = 0
+    ): Promise<{ videos: YTVideo[], total: number }> => {
+        const cacheKey = `youtube-playlist-videos-${playlistId}-${sortBy}-${minViews}`;
+        const cachedData = this.memoryCache.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < 6 * 60 * 60 * 1000) { // 6 hours cache
+            console.log('✅ Found playlist videos in memory cache:', cacheKey);
+            return cachedData.data as { videos: YTVideo[], total: number };
+        }
+
+        try {
+            console.log('❌ Not in memory cache, fetching playlist videos from YouTube API for playlist:', playlistId);
+
+            let videos: YTVideo[] = [];
+            let nextPageToken: string | undefined = undefined;
+
+            // Fetch videos from playlist, handling pagination
+            do {
+                // Get playlist items
+                const playlistResponse: any = await this.rateLimitRequest(
+                    this.youtube.playlistItems.list({
+                        key: this.API_KEY,
+                        part: ['snippet', 'contentDetails'],
+                        playlistId: playlistId,
+                        maxResults: maxResults,
+                        pageToken: nextPageToken
+                    })
+                );
+
+                if (!playlistResponse.data.items || playlistResponse.data.items.length === 0) {
+                    break;
+                }
+
+                // Get video IDs from playlist items
+                const videoIds = playlistResponse.data.items
+                    .map((item: any) => item.contentDetails?.videoId)
+                    .filter((id: any) => id) as string[];
+
+                if (videoIds.length === 0) {
+                    break;
+                }
+
+                // Get detailed video information
+                const videosResponse = await this.rateLimitRequest(
+                    this.youtube.videos.list({
+                        key: this.API_KEY,
+                        part: ['snippet', 'statistics'],
+                        id: videoIds
+                    })
+                );
+
+                if (videosResponse.data.items) {
+                    const fetchedVideos = videosResponse.data.items.map(item => ({
+                        video_id: item.id as string,
+                        title: item.snippet?.title || '',
+                        description: item.snippet?.description || '',
+                        thumbnail_url: item.snippet?.thumbnails?.high?.url || '',
+                        view_count: parseInt(item.statistics?.viewCount || '0'),
+                        like_count: parseInt(item.statistics?.likeCount || '0'),
+                        published_at: item.snippet?.publishedAt || ''
+                    }));
+
+                    videos = [...videos, ...fetchedVideos];
+                }
+
+                nextPageToken = playlistResponse.data.nextPageToken;
+            } while (nextPageToken);
+
+            // Filter videos that have at least minViews views
+            if (minViews > 0) {
+                videos = videos.filter(video => video.view_count >= minViews);
+            }
+
+            // Sort videos according to the requested sort method
+            if (sortBy === 'views') {
+                videos.sort((a, b) => b.view_count - a.view_count); // Sort by most views first
+            } else {
+                // Default sort by date (newest first)
+                videos.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+            }
+
+            const result = {
+                total: videos.length,
+                videos,
+            };
+
+            // Store in memory cache
+            this.memoryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching playlist videos:', error);
+            return { videos: [], total: 0 };
+        }
+    }, ['youtube-playlist-videos'], { tags: ['youtube-playlist-videos'], revalidate: 60 * 60 * 6 });
+
+    // Get all playlists from a channel
+    public getChannelPlaylists = unstable_cache(async (
+        channelId: string,
+        maxResults: number = 50
+    ): Promise<{ playlists: YTPlaylist[], total: number }> => {
+        const cacheKey = `youtube-channel-playlists-${channelId}`;
+        const cachedData = this.memoryCache.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < 12 * 60 * 60 * 1000) { // 12 hours cache
+            console.log('✅ Found channel playlists in memory cache:', cacheKey);
+            return cachedData.data as { playlists: YTPlaylist[], total: number };
+        }
+
+        try {
+            console.log('❌ Not in memory cache, fetching channel playlists from YouTube API for channel:', channelId);
+
+            let playlists: YTPlaylist[] = [];
+            let nextPageToken: string | undefined = undefined;
+
+            // Fetch playlists from channel, handling pagination
+            do {
+                const playlistsResponse: any = await this.rateLimitRequest(
+                    this.youtube.playlists.list({
+                        key: this.API_KEY,
+                        part: ['snippet', 'contentDetails'],
+                        channelId: channelId,
+                        maxResults: maxResults,
+                        pageToken: nextPageToken
+                    })
+                );
+
+                if (!playlistsResponse.data.items || playlistsResponse.data.items.length === 0) {
+                    break;
+                }
+
+                const fetchedPlaylists = playlistsResponse.data.items.map((item: any) => ({
+                    playlist_id: item.id,
+                    title: item.snippet?.title || '',
+                    description: item.snippet?.description || '',
+                    thumbnail_url: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
+                    item_count: parseInt(item.contentDetails?.itemCount || '0'),
+                    published_at: item.snippet?.publishedAt || ''
+                }));
+
+                playlists = [...playlists, ...fetchedPlaylists];
+                nextPageToken = playlistsResponse.data.nextPageToken;
+            } while (nextPageToken);
+
+            // Sort playlists by date (newest first)
+            playlists.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+
+            const result = {
+                total: playlists.length,
+                playlists
+            };
+
+            // Store in memory cache
+            this.memoryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching channel playlists:', error);
+            return { playlists: [], total: 0 };
+        }
+    }, ['youtube-channel-playlists'], { tags: ['youtube-channel-playlists'], revalidate: 60 * 60 * 12 });
 }
 
 

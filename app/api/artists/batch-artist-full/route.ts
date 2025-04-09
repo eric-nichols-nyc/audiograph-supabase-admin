@@ -30,16 +30,16 @@ interface Metric {
 }
 
 // Add type for metric types
-type MetricType = 
-  | "popularity" 
-  | "followers" 
-  | "views" 
-  | "likes" 
-  | "subscribers" 
-  | "monthly_listeners" 
-  | "daily_view_count" 
-  | "daily_stream_count" 
-  | "total_views" 
+type MetricType =
+  | "popularity"
+  | "followers"
+  | "views"
+  | "likes"
+  | "subscribers"
+  | "monthly_listeners"
+  | "daily_view_count"
+  | "daily_stream_count"
+  | "total_views"
   | "total_streams";
 
 export function combineArtistName(artistName: string): string {
@@ -90,12 +90,12 @@ const cachedGetArtistVideoData = unstable_cache(
       console.log('🔍 Fetching video data for:', artistName);
       const videoData = await scrapeKworbData(combineArtistName(artistName), 'videos');
       // console.log('Raw video data:', videoData);
-      const {videos, stats} = videoData;
-      const videoIds = videos.map((video:Video) => video.video_id);
-      
+      const { videos, stats } = videoData;
+      const videoIds = videos.map((video: Video) => video.video_id);
+
       const youtubeService = createYoutubeService();
       const youtubeVideos = await youtubeService.getYoutubeVideos(videoIds);
-      
+
       // Create a map of video details from YouTube API
       const videoDetails = new Map(youtubeVideos.map(video => [
         video.id,
@@ -156,14 +156,14 @@ const cachedFetchTrackData = unstable_cache(
 
       // map the stats to the artist metric type
       const stats: Omit<ArtistMetric, 'id' | 'date'>[] = [
-        { 
+        {
           platform: "spotify",
-          metric_type: "total_streams", 
+          metric_type: "total_streams",
           value: trackData.stats.find((stat: Metric) => stat.metric_type === 'streams')?.value || 0,
         },
-        { 
+        {
           platform: "spotify",
-          metric_type: "daily_stream_count", 
+          metric_type: "daily_stream_count",
           value: trackData.stats.find((stat: Metric) => stat.metric_type === 'daily')?.value || 0,
         }
       ];
@@ -225,7 +225,7 @@ export async function POST(req: Request) {
         });
 
         const [analyticsData, videoData, trackData] = await Promise.all([
-          cachedFetchAnalytics(name),
+          //cachedFetchAnalytics(name),
           cachedGetArtistVideoData(name),
           cachedFetchTrackData(spotify_id)
         ]);

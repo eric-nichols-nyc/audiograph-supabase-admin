@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/sonner';
+import { toast } from '@/components/ui/sonner';
+import Link from 'next/link';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -17,36 +18,35 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!input.trim()) return;
-    
+
     const userMessage = input;
     setInput('');
-    
+
     // Add user message to chat
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    
+
     // Show loading state
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: userMessage }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.error }]);
       } else {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
+        setMessages(prev => [...prev, {
+          role: 'assistant',
           content: data.response,
           data: data
         }]);
@@ -58,10 +58,10 @@ export default function ChatInterface() {
         description: 'Failed to get a response from the chatbot',
         variant: 'destructive',
       });
-      
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "Sorry, I encountered an error processing your request." 
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Sorry, I encountered an error processing your request."
       }]);
     } finally {
       setIsLoading(false);
@@ -76,32 +76,39 @@ export default function ChatInterface() {
             <p>Ask me anything about your artists!</p>
             <div className="mt-4 space-y-2">
               <p className="text-sm">Try asking:</p>
-              <Button 
-                variant="outline" 
-                className="text-xs m-1" 
+              <Button
+                variant="outline"
+                className="text-xs m-1"
                 onClick={() => setInput("Tell me about Lady Gaga")}
               >
                 Tell me about Lady Gaga
               </Button>
-              <Button 
-                variant="outline" 
-                className="text-xs m-1" 
+              <Button
+                variant="outline"
+                className="text-xs m-1"
                 onClick={() => setInput("What are Beyoncé's top songs?")}
               >
                 What are Beyoncé's top songs?
               </Button>
-              <Button 
-                variant="outline" 
-                className="text-xs m-1" 
+              <Button
+                variant="outline"
+                className="text-xs m-1"
                 onClick={() => setInput("Who are similar artists to Drake?")}
               >
                 Who are similar artists to Drake?
+              </Button>
+              <Button
+                variant="outline"
+                className="text-xs m-1"
+                onClick={() => setInput("Add artist The Weeknd")}
+              >
+                Add artist The Weeknd
               </Button>
             </div>
           </div>
         ) : (
           messages.map((message, index) => (
-            <div 
+            <div
               key={index}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
@@ -115,17 +122,28 @@ export default function ChatInterface() {
                 )}
                 <Card className={`p-3 ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                   <div className="text-sm">{message.content}</div>
-                  
+
                   {message.data?.artist && (
                     <div className="mt-2 pt-2 border-t border-border flex items-center">
                       {message.data.artist.image_url && (
-                        <img 
-                          src={message.data.artist.image_url} 
+                        <img
+                          src={message.data.artist.image_url}
                           alt={message.data.artist.name}
                           className="h-8 w-8 rounded-full mr-2"
                         />
                       )}
                       <span className="text-xs font-semibold">{message.data.artist.name}</span>
+
+                      {/* Add action button for links */}
+                      {message.data.hasAction && message.data.action?.type === 'link' && (
+                        <div className="ml-auto">
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={message.data.action.url}>
+                              {message.data.action.text}
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </Card>
@@ -159,7 +177,7 @@ export default function ChatInterface() {
           </div>
         )}
       </div>
-      
+
       <div className="border-t p-4">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Input
