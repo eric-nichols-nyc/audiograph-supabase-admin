@@ -39,11 +39,19 @@ export async function GET(request: Request) {
       const stats = Array.from(statsTable.querySelectorAll('tbody tr')).map(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length < 5) return null;
-        const label = cells[0].textContent.trim();
-        const total = parseInt(cells[1].textContent.replace(/,/g, ''), 10);
-        const asLead = parseInt(cells[2].textContent.replace(/,/g, ''), 10);
-        const solo = parseInt(cells[3].textContent.replace(/,/g, ''), 10);
-        const asFeature = parseInt(cells[4].textContent.replace(/,/g, ''), 10);
+
+        // Add null checks for each cell
+        const label = cells[0]?.textContent?.trim() || '';
+        const totalText = cells[1]?.textContent?.replace(/,/g, '') || '0';
+        const asLeadText = cells[2]?.textContent?.replace(/,/g, '') || '0';
+        const soloText = cells[3]?.textContent?.replace(/,/g, '') || '0';
+        const asFeatureText = cells[4]?.textContent?.replace(/,/g, '') || '0';
+
+        const total = parseInt(totalText, 10);
+        const asLead = parseInt(asLeadText, 10);
+        const solo = parseInt(soloText, 10);
+        const asFeature = parseInt(asFeatureText, 10);
+
         return { label, total, asLead, solo, asFeature };
       }).filter(item => item !== null);
 
@@ -51,18 +59,26 @@ export async function GET(request: Request) {
       const tracks = Array.from(tracksTable.querySelectorAll('tbody tr')).map(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length < 3) return null;
+
         const titleCell = cells[0];
         const link = titleCell.querySelector('a');
         if (!link) return null;
+
         const href = link.getAttribute('href') || '';
         const trackIdMatch = href.match(/\/track\/([^/?]+)/);
         const trackId = trackIdMatch ? trackIdMatch[1] : '';
-        const title = link.textContent.trim();
-        const isCollaboration = titleCell.textContent.trim().startsWith('*');
-        const streamsText = cells[1].textContent.trim();
-        const dailyText = cells[2].textContent.trim();
+
+        // Add null checks for text content
+        const title = link.textContent?.trim() || '';
+        const titleCellText = titleCell.textContent?.trim() || '';
+        const isCollaboration = titleCellText.startsWith('*');
+
+        const streamsText = cells[1]?.textContent?.trim() || '0';
+        const dailyText = cells[2]?.textContent?.trim() || '0';
+
         const streams = parseInt(streamsText.replace(/,/g, ''), 10);
         const dailyStreams = parseInt(dailyText.replace(/,/g, ''), 10);
+
         return { title, trackId, streams, dailyStreams, isCollaboration };
       }).filter(item => item !== null).slice(0, 25);
 

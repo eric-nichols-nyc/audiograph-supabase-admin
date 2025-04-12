@@ -225,7 +225,7 @@ export async function POST(req: Request) {
         });
 
         const [analyticsData, videoData, trackData] = await Promise.all([
-          //cachedFetchAnalytics(name),
+          cachedFetchAnalytics(name),
           cachedGetArtistVideoData(name),
           cachedFetchTrackData(spotify_id)
         ]);

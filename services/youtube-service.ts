@@ -504,6 +504,105 @@ class YoutubeService {
             return { playlists: [], total: 0 };
         }
     }, ['youtube-channel-playlists'], { tags: ['youtube-channel-playlists'], revalidate: 60 * 60 * 12 });
+
+    // Get popular videos based on a search query
+    public getPopularVideos = unstable_cache(async (
+        query: string,
+        maxResults: number = 50,
+        minViews: number = 0
+    ): Promise<{ videos: YTVideo[], total: number }> => {
+        const cacheKey = `youtube-popular-videos-${query}-${minViews}`;
+        const cachedData = this.memoryCache.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < 6 * 60 * 60 * 1000) { // 6 hours cache
+            console.log('✅ Found popular videos in memory cache:', cacheKey);
+            return cachedData.data as { videos: YTVideo[], total: number };
+        }
+
+        try {
+            console.log('❌ Not in memory cache, fetching popular videos from YouTube API for query:', query);
+
+            let videos: YTVideo[] = [];
+            let nextPageToken: string | undefined = undefined;
+
+            // Fetch popular videos based on search query, handling pagination
+            do {
+                // First, search for videos matching the query
+                const searchResponse: any = await this.rateLimitRequest(
+                    this.youtube.search.list({
+                        key: this.API_KEY,
+                        part: ['snippet'],
+                        q: query,
+                        type: ['video'],
+                        maxResults: maxResults,
+                        order: 'viewCount', // Sort by view count to get popular videos
+                        pageToken: nextPageToken
+                    })
+                );
+
+                if (!searchResponse.data.items || searchResponse.data.items.length === 0) {
+                    break;
+                }
+
+                // Get video IDs from search results
+                const videoIds = searchResponse.data.items
+                    .map((item: any) => item.id?.videoId)
+                    .filter((id: any) => id) as string[];
+
+                if (videoIds.length === 0) {
+                    break;
+                }
+
+                // Get detailed video information including statistics
+                const videosResponse = await this.rateLimitRequest(
+                    this.youtube.videos.list({
+                        key: this.API_KEY,
+                        part: ['snippet', 'statistics'],
+                        id: videoIds
+                    })
+                );
+
+                if (videosResponse.data.items) {
+                    const fetchedVideos = videosResponse.data.items.map(item => ({
+                        video_id: item.id as string,
+                        title: item.snippet?.title || '',
+                        description: item.snippet?.description || '',
+                        thumbnail_url: item.snippet?.thumbnails?.high?.url || '',
+                        view_count: parseInt(item.statistics?.viewCount || '0'),
+                        like_count: parseInt(item.statistics?.likeCount || '0'),
+                        published_at: item.snippet?.publishedAt || ''
+                    }));
+
+                    videos = [...videos, ...fetchedVideos];
+                }
+
+                nextPageToken = searchResponse.data.nextPageToken;
+            } while (nextPageToken);
+
+            // Filter videos that have at least minViews views
+            if (minViews > 0) {
+                videos = videos.filter(video => video.view_count >= minViews);
+            }
+
+            // Sort videos by view count (highest first)
+            videos.sort((a, b) => b.view_count - a.view_count);
+
+            const result = {
+                total: videos.length,
+                videos
+            };
+
+            // Store in memory cache
+            this.memoryCache.set(cacheKey, {
+                data: result,
+                timestamp: Date.now()
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching popular videos:', error);
+            return { videos: [], total: 0 };
+        }
+    }, ['youtube-popular-videos'], { tags: ['youtube-popular-videos'], revalidate: 60 * 60 * 6 });
 }
 
 

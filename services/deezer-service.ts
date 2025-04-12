@@ -1,21 +1,19 @@
 import { unstable_cache } from 'next/cache';
 
 interface DeezerArtist {
-  artist: {
-    id: number;
-    name: string;
-    link: string;
-    picture: string;
-    picture_small: string;
-    picture_medium: string;
-    picture_big: string;
-    picture_xl: string;
-    nb_album: number;
-    nb_fan: number;
-    radio: boolean;
-    tracklist: string;
-    type: string;
-  };
+  id: number;
+  name: string;
+  link: string;
+  picture: string;
+  picture_small: string;
+  picture_medium: string;
+  picture_big: string;
+  picture_xl: string;
+  nb_album: number;
+  nb_fan: number;
+  radio: boolean;
+  tracklist: string;
+  type: string;
 }
 
 export class DeezerService {
@@ -35,24 +33,23 @@ export class DeezerService {
         throw new Error(`Deezer API error: ${response.statusText}`);
       }
       const data = await response.json();
-      return data.data[0].artist || null;
+      return data.data[0] || null;
     } catch (error) {
       console.error('Error fetching Deezer artist:', error);
       return null;
     }
   }
 
-
   static async getArtistById(id: string): Promise<DeezerArtist | null> {
     try {
       console.log(`Making request to Deezer API: ${this.BASE_URL}/artist/${id}`);
       const response = await fetch(`${this.BASE_URL}/artist/${id}`);
-      
-      if (!response.ok) {
+
+      if (response.status !== 200) {
         console.error(`Deezer API error: ${response.status} ${response.statusText}`);
         return null;
       }
-      
+
       const data = await response.json();
       console.log(`Deezer API response for artist ${id}:`, data);
       return data || null;

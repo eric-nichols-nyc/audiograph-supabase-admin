@@ -106,16 +106,7 @@ export const addFullArtist = actionClient
           throw error;
         }
       }
-      // Insert URL data
-      // for (const url of urlData) {
-      //   const urlInsert = { ...url, artist_id: artistId };
-      //   const { error: urlError } = await supabase
-      //     .from("artist_urls")
-      //     .insert(urlInsert);
-      //   if (urlError) {
-      //     throw new Error(`Error inserting artist URL: ${urlError.message}`);
-      //   }
-      // }
+
       // Insert metric data
       for (const metric of metricData) {
         const metricInsert = { ...metric, artist_id: artistId };
