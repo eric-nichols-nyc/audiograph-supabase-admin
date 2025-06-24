@@ -183,7 +183,7 @@ const cachedFetchTrackData = unstable_cache(
 export async function POST(req: Request) {
   const user = await getUser();
   if (!user) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response('Unauthorized - Please login to continue', { status: 401 });
   }
 
   try {

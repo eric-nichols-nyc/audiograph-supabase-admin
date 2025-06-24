@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+// List of public routes that do not require authentication
+const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/api", "/favicon.ico"];
+
 export const updateSession = async (request: NextRequest) => {
   // This `try/catch` block is only here for the interactive tutorial.
   // Feel free to remove once you have Supabase connected.
@@ -37,14 +40,20 @@ export const updateSession = async (request: NextRequest) => {
 
     // This will refresh session if expired - required for Server Components
     // https://supabase.com/docs/guides/auth/server-side/nextjs
-    const user = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    const path = request.nextUrl.pathname;
 
-    // protected routes
-    if (request.nextUrl.pathname.startsWith("/protected") && user.error) {
+    // Check if the route is public (does not require authentication)
+    const isPublic = PUBLIC_ROUTES.some((route) => path === route || path.startsWith(route + "/"));
+    const isStatic = path.startsWith("/_next/") || /\.(svg|png|jpg|jpeg|gif|webp|css|js)$/.test(path);
+
+    // Redirect to /sign-in if not authenticated and not on a public/static route
+    if (!user && !isPublic && !isStatic) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
+    // Optional: redirect authenticated users from / to /artists
+    if (path === "/" && user) {
       return NextResponse.redirect(new URL("/artists", request.url));
     }
 
