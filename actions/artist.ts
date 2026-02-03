@@ -7,8 +7,6 @@ import { artistSchema } from "@/schemas/artists";
 import { z } from "zod";
 import { transformArtistResponse } from '@/utils/transforms/artist';
 import { createSpotifyService } from "@/services/spotify-service";
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 
 export const getArtists = actionClient
   .action(async () => {
@@ -142,7 +140,7 @@ export const getArtistMetrics = actionClient
       throw artistsError;
     }
 
-    // Then get the metrics for these artists
+    // Then get the metrics for these artists (ordered by created_at so latest is first)
     const { data: metrics, error } = await supabase
       .from("artist_metrics")
       .select("*")
@@ -150,16 +148,21 @@ export const getArtistMetrics = actionClient
       .in('platform', ['youtube', 'spotify'])
       .order('created_at', { ascending: false });
 
-    // Add debug log
-    // console.log('Metrics response:', { metrics, error });
-
     if (error) {
       console.error('Error fetching metrics:', error);
       throw error;
     }
 
-    // Sort metrics by artist rank
-    const sortedMetrics = metrics ? [...metrics].sort((a, b) => {
+    // Keep only the latest metric per (artist_id, platform, metric_type)
+    const latestByKey = new Map<string, (typeof metrics)[0]>();
+    for (const m of metrics ?? []) {
+      const key = `${m.artist_id}:${m.platform}:${m.metric_type}`;
+      if (!latestByKey.has(key)) latestByKey.set(key, m);
+    }
+    const latestMetrics = Array.from(latestByKey.values());
+
+    // Sort by artist rank for display order
+    const sortedMetrics = latestMetrics.sort((a, b) => {
       const artistA = artists?.find(artist => artist.id === a.artist_id);
       const artistB = artists?.find(artist => artist.id === b.artist_id);
 
@@ -169,7 +172,7 @@ export const getArtistMetrics = actionClient
 
       // Sort by rank (ascending)
       return parseInt(artistA.rank) - parseInt(artistB.rank);
-    }) : [];
+    });
 
     // Ensure we return the expected structure
     return {
@@ -339,7 +342,7 @@ export const bulkUpdateSpotifyPopularity = actionClient
   });
 
 export async function getArtistBySlug(slug: string) {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = await createClient()
 
   // Get basic artist info
   const { data: artist } = await supabase

@@ -94,7 +94,8 @@ export const getArtistMetrics = actionClient.action(async (input: unknown): Prom
     .select('*')
     .eq('artist_id', artist.id)
     .gte('date', thirtyDaysAgo.toISOString())
-    .order('date', { ascending: false });
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false });
 
 
     console.log('metrics data', data);

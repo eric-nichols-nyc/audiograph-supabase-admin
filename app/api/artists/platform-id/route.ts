@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function PUT(request: Request) {
@@ -14,8 +13,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createClient();
 
     // Update the platform ID
     const { data, error } = await supabase

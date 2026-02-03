@@ -14,7 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown } from "lucide-react"
+import { ArrowUpDown, ChevronDown, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -491,6 +491,18 @@ export function ArtistMetricsTable({ artists }: ArtistMetricsTableProps) {
             }
             className="max-w-sm"
           />
+          <Button
+            variant="outline"
+            size="icon"
+            className="ml-2"
+            onClick={async () => {
+              await mutateMetrics();
+              toast.success("Metrics refreshed from database");
+            }}
+            title="Refresh metrics from database"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button
             onClick={handleBulkUpdate}
             className="ml-2"

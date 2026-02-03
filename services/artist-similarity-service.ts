@@ -23,8 +23,7 @@
  * artist similarity data depending on the use case requirements.
  */
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { SimilarArtist } from '@/types/artists'
 // Represents an artist with their associated article data
 interface ArtistWithArticle {
@@ -84,10 +83,8 @@ interface SimilarArtistResponse {
 
 
 export class ArtistSimilarityService {
-  private supabase;
-
-  constructor() {
-    this.supabase = createServerComponentClient({ cookies });
+  private async getSupabase() {
+    return createClient();
   }
 
   private weights = {
@@ -105,7 +102,7 @@ export class ArtistSimilarityService {
   async findSimilarArtists(artistId: string, limit = 10): Promise<ArtistWithArticle[]> {
     console.log('Finding similar artists for:', artistId);
 
-    const { data: sourceArtist, error: sourceError } = await this.supabase
+    const { data: sourceArtist, error: sourceError } = await (await this.getSupabase())
       .from('artists')
       .select(`
         id,
@@ -125,7 +122,7 @@ export class ArtistSimilarityService {
       return [];
     }
 
-    const { data: allArtists, error: allError } = await this.supabase
+    const { data: allArtists, error: allError } = await (await this.getSupabase())
       .from('artists')
       .select(`
         id,
@@ -239,7 +236,7 @@ export class ArtistSimilarityService {
     if (!article1?.embedding || !article2?.embedding) return 0;
 
     // Use PostgreSQL vector similarity function
-    const { data } = await this.supabase.rpc('vector_similarity', {
+    const { data } = await (await this.getSupabase()).rpc('vector_similarity', {
       vec1: article1.embedding,
       vec2: article2.embedding
     });
@@ -248,8 +245,9 @@ export class ArtistSimilarityService {
   }
 
   async getSimilarityScore(artist1Id: string, artist2Id: string): Promise<number> {
+    const supabase = await this.getSupabase();
     const [artist1Result, artist2Result] = await Promise.all([
-      this.supabase
+      supabase
         .from('artists')
         .select(`
           *,
@@ -260,7 +258,7 @@ export class ArtistSimilarityService {
         `)
         .eq('id', artist1Id)
         .single(),
-      this.supabase
+      supabase
         .from('artists')
         .select(`
           *,
@@ -284,7 +282,7 @@ export class ArtistSimilarityService {
     const staleThreshold = new Date();
     staleThreshold.setDate(staleThreshold.getDate() - daysThreshold);
 
-    const { data: staleScores } = await this.supabase
+    const { data: staleScores } = await (await this.getSupabase())
       .from('similar_artists')
       .select('artist1_id, artist2_id')
       .lt('last_updated', staleThreshold.toISOString());
@@ -301,7 +299,7 @@ export class ArtistSimilarityService {
     console.log('Finding similar artists for:', artistId);
 
     // Update query to select only needed fields
-    const { data: sourceArtist, error: sourceError } = await this.supabase
+    const { data: sourceArtist, error: sourceError } = await (await this.getSupabase())
       .from('artists')
       .select(`
         id,
@@ -322,7 +320,7 @@ export class ArtistSimilarityService {
     }
 
     // Update query for other artists
-    const { data: allArtists, error: allError } = await this.supabase
+    const { data: allArtists, error: allError } = await (await this.getSupabase())
       .from('artists')
       .select(`
         id,
@@ -371,7 +369,7 @@ export class ArtistSimilarityService {
 
 
   async getSimilarArtists(artistId: string, limit = 5) {
-    const { data, error } = await this.supabase
+    const { data, error } = await (await this.getSupabase())
       .from('similar_artists')
       .select(`
     similarity_score,

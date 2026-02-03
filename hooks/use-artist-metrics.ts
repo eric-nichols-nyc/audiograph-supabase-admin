@@ -13,6 +13,8 @@ export function useArtistMetrics() {
 
   const query = useQuery<MetricsResponse>({
     queryKey: ['artist-metrics'],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       try {
         const result = await getArtistMetrics();

@@ -3,6 +3,10 @@
     {
       "schedule": "0 2 * * *",
       "path": "/api/scrape/spotify"
+    },
+    {
+      "schedule": "0 3 * * *",
+      "path": "/api/cron/spotify-listeners"
     }
   ]
 } 

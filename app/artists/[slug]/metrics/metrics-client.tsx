@@ -15,7 +15,8 @@ export function MetricsPageClient() {
       const result = await getArtistMetrics(pathname)
       return result.data || [] // Only one .data needed now
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   })
 
   console.log('metrics from client', metrics);

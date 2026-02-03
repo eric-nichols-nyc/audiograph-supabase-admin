@@ -1,5 +1,5 @@
 import { addArtistFullSchema } from "@/schemas/x-artist-full-schema";
-import { addArtistFull } from "@/services/add-artist-full";
+import { addFullArtist } from "@/services/add-artist-full";
 
 
 export async function POST(request: Request) {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const { artist, platformData, urlData, metricData, tracks, videos } = artistInfo.data;
 
-  const artistData = await addArtistFull(artistInfo.data);
+  const artistData = await addFullArtist(artistInfo.data);
 
   return new Response(JSON.stringify(artistData), { status: 200 });
 }
